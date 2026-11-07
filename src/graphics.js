@@ -1,0 +1,37 @@
+const paths={
+ home:'m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z',
+ check:'m5 12 4 4L19 6',plus:'M12 5v14M5 12h14',close:'m6 6 12 12M6 18 18 6',arrow:'M5 12h14m-5-5 5 5-5 5',chevron:'m9 5 7 7-7 7',
+ compass:'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0ZM16 8l-3 5-5 3 3-5z',
+ book:'M3 4c3-1 6-1 9 1 3-2 6-2 9-1v15c-3-1-6-1-9 1-3-2-6-2-9-1zm9 1v15',
+ users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M13 3a4 4 0 0 1 0 8M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+ person:'M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2M16 5a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+ list:'M9 5h12M9 12h12M9 19h12M3 5h.01M3 12h.01M3 19h.01',
+ flame:'M12 3c1 5 5 5 5 9 0 2-1 3-1 3s4-1 4-5c3 8-2 12-8 12S2 19 4 12c1-3 4-4 4-7 3 2 3 5 2 7 4-2 4-5 2-9Z',
+ dumbbell:'m6 4 14 14M3 7l4-4M2 6l4 4m12 4 4 4m-8 4 4-4M4 14l6 6m4-16 6 6M5 13l8-8m-2 14 8-8',
+ heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z',
+ bolt:'m13 2-9 12h7l-1 8 10-13h-8z',sun:'M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5',
+ bell:'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4',
+ mountain:'m2 21 8-16 6 11 2-5 5 10ZM7 11l3 2 2-3',
+ flag:'M4 22V3m0 1c5-4 10 4 16 0v11c-6 4-11-4-16 0',
+ trophy:'M8 3h8v7a4 4 0 0 1-8 0ZM8 5H3v3a4 4 0 0 0 5 4m8-7h5v3a4 4 0 0 1-5 4m-4 2v5m-5 2h10',
+ camera:'M3 6h4l2-3h6l2 3h4v15H3ZM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+ lock:'M5 10h14v11H5ZM8 10V6a4 4 0 0 1 8 0v4m-4 5v2',
+ gem:'m3 8 4-5h10l4 5-9 13Zm0 0h18M7 3l5 18 5-18',
+ edit:'m15 4 5 5M4 20l5-1L21 7l-5-5L4 14z',
+ settings:'m9 3 1-2h4l1 2 3 2 3 1 1 4-2 2 0 3 1 3-3 3-3-1-3 0-2 2-4-1-1-3-2-3-2-1V9l2-1 2-3ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
+ calendar:'M3 5h18v16H3ZM7 2v6m10-6v6M3 10h18m-14 4h2m4 0h2m-8 4h2m4 0h2',
+ clock:'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0ZM12 6v6l4 2',
+ shield:'M12 2 3 6v7c0 5 9 9 9 9s9-4 9-9V6Zm-5 10 3 3 7-7',
+ logout:'M9 3H3v18h6m5-15 6 6-6 6M7 12h13',
+ download:'M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5',
+ image:'M3 3h18v18H3Zm0 14 6-6 4 4 3-3 5 5M16 7h.01',
+ info:'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0ZM12 11v6m0-10h.01',
+ tree:'M12 2v6M5 22v-7h14v7M12 8H3v5m9-5h9v5M12 15v7',
+ snow:'M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 3l3 3 3-3M9 21l3-3 3 3M3 10l4-1-1-4m12 14-1-4 4-1M3 14l4 1-1 4M18 5l-1 4 4 1',
+ gift:'M3 8h18v5H3ZM5 13v9h14v-9M12 8v14m0-14C4-2 1 9 12 8c11 1 8-10 0 0',
+ scale:'M3 3h18v18H3Zm4 4h10v5H7Zm5 2 2-1',
+ refresh:'M20 7V2l-4 4M4 17v5l4-4M4 10a8 8 0 0 1 14-5m2 9a8 8 0 0 1-14 5'
+};
+export function icon(n, cls=''){return `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n]||paths.compass}"/></svg>`;}
+export function landscape(){return `<svg class="landscape" viewBox="0 0 900 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#536c65"/><stop offset="1" stop-color="#273f3c"/></linearGradient><linearGradient id="peak" x2="0" y2="1"><stop stop-color="#d4dfcc"/><stop offset="1" stop-color="#5d7e70"/></linearGradient><radialGradient id="haze"><stop stop-color="#e6ead0" stop-opacity=".22"/><stop offset="1" stop-color="#d4dfcc" stop-opacity="0"/></radialGradient></defs><path fill="url(#sky)" d="M0 0h900v340H0z"/><ellipse cx="665" cy="74" rx="230" ry="180" fill="url(#haze)"/><circle cx="685" cy="64" r="25" fill="#dee5c8" opacity=".48"/><path d="m0 258 140-100 110 47L420 60l89 70 69-110 156 160 100-71 100 135v96H0Z" fill="#719084" opacity=".55"/><path d="m310 290 130-119 82 22L651 34l118 160 57-22 75 86v82H310Z" fill="url(#peak)"/><path d="m651 34-55 128 44-27 31 19-20-120 77 113-26-7-22-21-9 35-20-120Z" fill="#e0e5d3" opacity=".8"/><path d="m440 171-37 58 32-12 11 18 19-14 57-28-57-15-8 28Z" fill="#bdcdbc" opacity=".65"/><path d="m650 34 21 120-12 20 110 20Z" fill="#8ca795" opacity=".75"/><path d="m0 270 173-31 153 37 172-34 177 46 225-51v103H0Z" fill="#3c5b4e"/><path d="m0 299 229-14 143 29 192-25 143 27 193-25v49H0Z" fill="#2a433b"/><path d="M620 340c-23-23 97-28 33-52-45-18-42-21-27-30" fill="none" stroke="#a8bda2" stroke-width="2" opacity=".55"/>${[30,85,740,790,825,862,880,710].map((x,i)=>`<g fill="${i%2?'#263f36':'#203a32'}" transform="translate(${x} ${200+(i%3)*19}) scale(${.65+(i%4)*.2})"><path d="M0 0-16 30h8l-17 22h12l-20 26h65L13 52h12L8 30h8Z"/><path d="M-3 67h6v30h-6Z"/></g>`).join('')}<g fill="#dce5d1" opacity=".32">${[[55,35],[120,80],[380,25],[800,60],[560,55],[740,90],[834,24],[455,90],[300,65]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4"/>`).join('')}</g></svg>`;}
+export function character(level=1,large=false){const tier=Math.min(3,Math.floor((level-1)/5)), colors=[['#93b6a9','#334e48'],['#a7cbd8','#345261'],['#d4b8ec','#56426c'],['#ead29d','#62533b']][tier];return `<svg class="character ${large?'large':''}" viewBox="0 0 250 260" aria-label="Din karaktär, evolution ${tier+1}" role="img"><defs><linearGradient id="cloak${large}" x2="1" y2="1"><stop stop-color="${colors[0]}"/><stop offset=".45" stop-color="${colors[1]}"/><stop offset="1" stop-color="#1d3230"/></linearGradient><radialGradient id="aura${large}"><stop stop-color="${colors[0]}" stop-opacity=".25"/><stop offset="1" stop-color="${colors[0]}" stop-opacity="0"/></radialGradient></defs><ellipse cx="125" cy="137" rx="105" ry="115" fill="url(#aura${large})"/><circle cx="125" cy="125" r="77" fill="none" stroke="${colors[0]}" stroke-opacity=".1"/><circle cx="125" cy="125" r="96" fill="none" stroke="${colors[0]}" stroke-opacity=".08" stroke-dasharray="2 13"/><path d="m122 29-7-10 10 4 10-4-7 10" fill="${colors[0]}" opacity="${tier>1?1:.3}"/><ellipse cx="126" cy="238" rx="58" ry="7" fill="#0b1817" opacity=".6"/><path d="m103 185-2 47-11 5v4h29l5-52 5 52h29v-4l-12-6-2-47Z" fill="#182c2a" stroke="#6a8e7d" stroke-width="1"/><path d="m90 93-14 30-11 46 12 5 20-40 4 74 23 16 26-18 1-73 20 40 12-5-11-46-17-28Z" fill="url(#cloak${large})" stroke="#6e9483" stroke-width="1"/><path d="m103 93 22 57 24-57-6-24-17-8-19 9Z" fill="#203a33"/><path d="m95 81 9-31 22-17 23 18 9 31-15 24h-34Z" fill="url(#cloak${large})" stroke="${colors[0]}" stroke-opacity=".55"/><path d="m108 70 18-16 16 16-5 23h-22Z" fill="#101f20"/><path d="m116 76 5 1m10 0 5-1" stroke="#d9f5d9" stroke-width="2" stroke-linecap="round"/><path d="m94 91 30 28 31-29-7 26-24 17-26-19Z" fill="${colors[0]}" opacity=".56"/><path d="m86 120 16 8m48 0 16-8m-64 40h47m-25-27v75" fill="none" stroke="${colors[0]}" stroke-opacity=".45"/><path d="m117 146 8-9 8 9-8 9Z" fill="${colors[0]}"/><path d="M91 138 80 183l19-5 3-37m49 0 3 37 17 5-10-45" fill="#2b443a" opacity=".9"/><path d="m73 164-7 14 9 3 5-13m92 0 5 13 9-3-7-14" fill="#b4c2a8"/><path d="m182 89-3 139" stroke="#a7b498" stroke-width="4"/><path d="m182 86-7-10 7-20 8 20Z" fill="${colors[0]}" stroke="#d4e9d6" stroke-width="1"/>${tier>=1?'<path d="m96 62-14 10 7 27 10-11m55-26 14 10-7 27-10-11" fill="none" stroke="'+colors[0]+'" stroke-opacity=".5"/>':''}${tier>=2?'<path d="m100 94-26-9-12 33 30-10m60-14 26-9 12 33-30-10" fill="'+colors[1]+'" stroke="'+colors[0]+'"/>':''}<g fill="${colors[0]}" opacity=".45"><path d="m52 68 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/><circle cx="192" cy="122" r="1.5"/><circle cx="53" cy="165" r="1"/><circle cx="158" cy="30" r="1.2"/></g></svg>`;}

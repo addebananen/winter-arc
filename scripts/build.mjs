@@ -1,0 +1,16 @@
+import {build} from 'esbuild';
+import {mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+await mkdir('dist',{recursive:true});
+await build({entryPoints:['src/app.js'],bundle:true,minify:true,format:'esm',target:['safari16'],outfile:'dist/app.js'});
+for(const file of ['index.html','style.css','icon.svg','icon-192.png','icon-512.png','apple-touch-icon.png','manifest.webmanifest'])await copyFile('src/'+file,'dist/'+file);
+const content=await readFile('dist/app.js'),version=createHash('sha256').update(content).update(await readFile('dist/style.css')).digest('hex').slice(0,12);
+const assets=['./','./index.html','./app.js','./style.css','./icon.svg','./icon-192.png','./icon-512.png','./apple-touch-icon.png','./manifest.webmanifest'];
+await writeFile('dist/sw.js',`const CACHE='winter-arc-${version}';const ASSETS=${JSON.stringify(assets)};
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('winter-arc-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('message',e=>{if(e.data?.type==='SKIP_WAITING')self.skipWaiting()});
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==location.origin||u.search||u.pathname.includes('callback')||u.pathname.includes('signin'))return;const path=u.pathname.split('/').pop();if(!['','index.html','app.js','style.css','icon.svg','icon-192.png','icon-512.png','apple-touch-icon.png','manifest.webmanifest'].includes(path))return;
+e.respondWith(fetch(e.request).then(r=>{if(r.ok&&!r.redirected){const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy))}return r}).catch(()=>caches.match(e.request).then(r=>r||new Response('Offline',{status:503}))));});`);
+await writeFile('dist/_headers',`/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: geolocation=(), microphone=()\n  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'\n/index.html\n  Cache-Control: no-cache\n/sw.js\n  Cache-Control: no-cache\n/app.js\n  Cache-Control: no-cache\n/style.css\n  Cache-Control: no-cache\n`);
+console.log('Built Winter Arc '+version);

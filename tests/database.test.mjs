@@ -1,0 +1,47 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as D from '../src/domain.js';
+test('Postgres migration, state conflicts, squad isolation and photo policies',async t=>{
+ const db=new PGlite();await db.waitReady;
+ try{
+ await db.exec(`create role anon;create role authenticated;create schema auth;create schema storage;create schema extensions;
+ create table auth.users(id uuid primary key);
+ create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+ create function extensions.gen_random_bytes(n integer) returns bytea language sql volatile as $$select decode(substr(repeat(md5(random()::text),4),1,n*2),'hex')$$;
+ create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+ create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text);
+ create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;
+ alter table storage.objects enable row level security;
+ grant usage on schema public,auth,storage to authenticated;
+ grant select,insert,delete on storage.objects to authenticated;`);
+ let migration=await readFile(new URL('../supabase/001_winter_arc.sql',import.meta.url),'utf8');
+ migration=migration.replace('create extension if not exists pgcrypto with schema extensions;','-- Random bytes mocked only in this in-memory test runtime.');
+ await db.exec(migration);
+ const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',c='33333333-3333-4333-8333-333333333333';
+ await db.query('insert into auth.users values($1),($2),($3)',[a,b,c]);
+ const as=async uid=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[uid]);await db.exec('set role authenticated');};
+ const stateA=D.seedDemo(D.dateKey(new Date(),'Europe/Stockholm'));stateA.timezone='Europe/Stockholm';
+ const stateB=D.blankState();stateB.profile.name='Friend';
+ await as(a);assert.equal(Number((await db.query('select public.save_arc_state($1::jsonb,0) as n',[JSON.stringify(stateA)])).rows[0].n),1);
+ await t.test('optimistic revision rejects stale overwrites',async()=>{await assert.rejects(db.query('select public.save_arc_state($1::jsonb,0)',[JSON.stringify(stateA)]),/conflict/i);});
+ const squad=(await db.query("select public.create_squad('Northbound') as id")).rows[0].id;
+ const code=(await db.query('select public.get_squad_code($1) as code',[squad])).rows[0].code;
+ await t.test('invite codes are not selectable through table grants',async()=>{await assert.rejects(db.query('select invite_code from public.squads'),/permission/i);assert.equal(code.length,36);});
+ await t.test('private body photo is visible to owner',async()=>{await db.query('insert into storage.objects(bucket_id,name) values($1,$2)',['arc-photos',a+'/body/private.jpg']);assert.equal((await db.query('select * from storage.objects')).rows.length,1);});
+ await as(b);await db.query('select public.save_arc_state($1::jsonb,0)',[JSON.stringify(stateB)]);
+ await t.test('unrelated accounts cannot read squad records or private state',async()=>{assert.equal((await db.query('select id,name from public.squads')).rows.length,0);assert.equal((await db.query('select * from public.user_states')).rows.length,1);assert.equal((await db.query('select * from storage.objects')).rows.length,0);await assert.rejects(db.query('select * from public.squad_progress($1)',[squad]),/denied/i);});
+ await db.query('select public.join_squad($1)',[code]);
+ await t.test('member sees progress but never private state or body images',async()=>{const result=(await db.query('select * from public.squad_progress($1)',[squad])).rows;assert.equal(result.length,2);const alex=result.find(r=>r.user_id===a);assert.equal(Number(alex.xp),D.totalXP(stateA));assert.equal(alex.streak,D.streak(stateA,D.dateKey(new Date(),'Europe/Stockholm')));assert.equal((await db.query('select * from public.user_states')).rows.length,1);assert.equal((await db.query('select * from storage.objects')).rows.length,0);});
+ await t.test('cannot forge profile, state or membership directly',async()=>{await assert.rejects(db.query('update public.user_states set revision=100'),/permission/i);await assert.rejects(db.query('update public.profiles set display_name=\'Fake\''),/permission/i);await assert.rejects(db.query('insert into public.squad_members values($1,$2,now())',[squad,c]),/permission/i);});
+ await as(a);await db.query('insert into storage.objects(bucket_id,name) values($1,$2)',['arc-photos',a+'/posts/accountability.jpg']);
+ const post=(await db.query('insert into public.posts(squad_id,user_id,body,image_path) values($1,$2,$3,$4) returning id',[squad,a,'I showed up',a+'/posts/accountability.jpg'])).rows[0].id;
+ await as(b);
+ await t.test('posted image visible to squad; body photo stays hidden',async()=>{const rows=(await db.query('select name from storage.objects')).rows;assert.deepEqual(rows.map(x=>x.name),[a+'/posts/accountability.jpg']);});
+ await t.test('reaction is per-user idempotent at database boundary',async()=>{await db.query('insert into public.reactions values($1,$2,\'fire\')',[post,b]);await assert.rejects(db.query('insert into public.reactions values($1,$2,\'fire\')',[post,b]),/duplicate/i);await assert.rejects(db.query('insert into public.reactions values($1,$2,\'clap\')',[post,a]),/row-level/i);});
+ await t.test('cannot delete a friend post or image',async()=>{await db.query('delete from public.posts where id=$1',[post]);assert.equal((await db.query('select * from public.posts')).rows.length,1);await db.query('delete from storage.objects');assert.equal((await db.query('select name from storage.objects')).rows.length,1);});
+ await as(c);await db.query('select public.save_arc_state($1::jsonb,0)',[JSON.stringify(D.blankState())]);
+ await t.test('third account cannot read posts, reactions or posted images',async()=>{assert.equal((await db.query('select * from public.posts')).rows.length,0);assert.equal((await db.query('select * from public.reactions')).rows.length,0);assert.equal((await db.query('select * from storage.objects')).rows.length,0);});
+ }finally{await db.close();}
+});
