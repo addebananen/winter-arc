@@ -2,6 +2,8 @@
 
 En svensk, mobilanpassad PWA för vanor, karaktärsutveckling och en expedition med vänner. HTML, CSS och JavaScript, med Supabase för Google-konton, gemensam data och privata bilder.
 
+**Publicerad app:** [addebananen.github.io/winter-arc](https://addebananen.github.io/winter-arc/). GitHub Actions testar, bygger och publicerar uppdateringar från `main` automatiskt.
+
 ## Kör appen
 
 ```sh
@@ -16,10 +18,11 @@ npm run dev
 ## Status
 
 - Det tydligt märkta demoläget innehåller påhittade vänner och historik. Ändringar sparas på den aktuella enheten.
+- Nya besökare väljer Google-inloggning eller att uttryckligen utforska demon. En utgången eller avbruten inloggning visas med möjlighet att försöka igen.
 - **Börja min egen lokala expedition** skapar en separat tom resa. Demo flyttas aldrig in i ett riktigt konto.
 - Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. Första SQL-installationen är genomförd. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
 - Google-leverantören och webbklienten är konfigurerade i Supabase. Aktiveringen är verifierad mot tjänstens riktiga auth-inställningar och appens `googleEnabled` är `true`.
-- Molnkoden och RLS-reglerna är testade. Slutprov med riktig Google-inloggning, mobilkamera och flera verkliga enheter återstår att genomföra.
+- Riktig Google-inloggning, sparad profil och återhämtning efter omladdning är verifierade på både GitHub Pages och den privata förhandsversionen. Samma konto hämtar samma molnprofil från båda adresserna. Mobilkamera på fysisk iPhone och flera verkliga vänners konton behöver fortfarande provas tillsammans.
 - Den anslutna Sites-publiceringen är en privat förhandsversion. GitHub-repositoryts synlighet styr inte vem som får läsa privata kontodata i Supabase.
 
 ## Funktioner
@@ -37,6 +40,8 @@ Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensa
 5. Kör tester och bygg igen, publicera och testa två separata Google-konton. Skapa squad från det första kontot och gå med via koden från det andra.
 
 För det redan installerade Winter -arc-projektet: kör inte SQL-filen igen. Google-klienten är konfigurerad med callback `https://noamtwazmbtrnyqdmplf.supabase.co/auth/v1/callback`. Google är aktiverat i Supabase och `googleEnabled` är `true` i `src/config.js`. Returadresserna för Sites och den förberedda GitHub Pages-adressen är sparade i Supabase. Google-klientens hemlighet ligger enbart i Supabase och ska inte läggas i källkoden.
+
+Supabases huvudadress (Site URL) är nu `https://addebananen.github.io/winter-arc/`. Sites-förhandsversionen finns kvar som en separat tillåten returadress.
 
 Google Cloud-projektet **Winter Arc** (`winter-arc-514022`) är skapat utan att något betalkonto kopplats in i denna installation. Google Auth Platforms grundkonfiguration och webbklienten **Winter Arc Web** är klara med två JavaScript-origins (Sites-adressen och `https://addebananen.github.io`) och Supabase-callbacken ovan. Klienthemligheten har förts direkt till Supabase. Appen använder endast grundläggande Google-inloggning (namn, e-post och profil); se [Googles regler för app-publik](https://support.google.com/cloud/answer/15549945?hl=en).
 
