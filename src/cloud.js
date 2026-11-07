@@ -1,12 +1,13 @@
 import {createClient} from '@supabase/supabase-js';
 import {config} from './config.js';
 export const configured = Boolean(config.supabaseUrl && config.supabaseKey);
+export const googleReady = configured && config.googleEnabled === true;
 export const client = configured ? createClient(config.supabaseUrl,config.supabaseKey,{auth:{flowType:'pkce',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}}) : null;
 export let user = null;
 let revision=0;
 const check = ({data,error})=>{if(error)throw error;return data;};
 export async function initialize(){if(!client)return null;const session=check(await client.auth.getSession());user=session.session?.user||null;return user;}
-export async function login(){if(!client)throw Error('Google-inloggning är redo i koden. Anslut först ett Supabase-projekt.');check(await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}}));}
+export async function login(){if(!googleReady)throw Error('Google-inloggningen väntar på att OAuth-klienten aktiveras i Supabase.');check(await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}}));}
 export async function logout(){if(client)check(await client.auth.signOut());user=null;}
 export async function load(){const row=check(await client.from('user_states').select('payload,revision').eq('user_id',user.id).maybeSingle());revision=row?.revision||0;return row?.payload||null;}
 export async function save(payload){const result=check(await client.rpc('save_arc_state',{p_payload:payload,p_expected_revision:revision}));revision=result;}

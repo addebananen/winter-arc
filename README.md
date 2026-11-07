@@ -11,14 +11,15 @@ npm run build
 npm run dev
 ```
 
-Öppna `http://127.0.0.1:4173`. Node 20 eller senare krävs. Färdiga PWA-ikoner är incheckade; `python scripts/make-icons.py` återskapar dem utan externa Pythonpaket.
+Öppna `http://127.0.0.1:4173`. Node 22.13 eller senare krävs. Färdiga PWA-ikoner är incheckade; `python scripts/make-icons.py` återskapar dem utan externa Pythonpaket.
 
 ## Status
 
 - Det tydligt märkta demoläget innehåller påhittade vänner och historik. Ändringar sparas på den aktuella enheten.
 - **Börja min egen lokala expedition** skapar en separat tom resa. Demo flyttas aldrig in i ett riktigt konto.
-- Google-inloggning är avstängd tills projektets publika Supabase-konfiguration har lagts in. Appen utger sig inte för att vara ansluten.
-- Molnkoden, SQL-installationen och RLS-reglerna finns med. Riktig OAuth, mobilkamera och flera verkliga enheter behöver verifieras efter anslutningen.
+- Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. Första SQL-installationen är genomförd. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
+- Google-inloggning är avstängd med `googleEnabled: false` tills OAuth-klienten har konfigurerats och Google-leverantören är aktiverad i Supabase. Appen visar det återstående steget tydligt.
+- Molnkoden och RLS-reglerna är testade. Riktig OAuth, mobilkamera och flera verkliga enheter behöver fortfarande verifieras när Google-klienten är aktiv.
 - Den anslutna Sites-publiceringen är en privat förhandsversion. GitHub-repositoryts synlighet styr inte vem som får läsa privata kontodata i Supabase.
 
 ## Funktioner
@@ -34,6 +35,8 @@ Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensa
 3. Sätt appens produktionsadress som Site URL och tillåten Redirect URL i Supabase Authentication → URL Configuration. OAuth-return går till **exakt samma origin och sökväg** som appen. För GitHub Pages används adressen med `/winter-arc/` och avslutande snedstreck. Lägg bara till den lokala adressen om utveckling behövs.
 4. Lägg projektets URL och **publika publishable/anon-nyckel** i `src/config.js`. Dessa får finnas i frontend; RLS skyddar datan. Använd aldrig `service_role` eller en databashemlighet här.
 5. Kör tester och bygg igen, publicera och testa två separata Google-konton. Skapa squad från det första kontot och gå med via koden från det andra.
+
+För det redan installerade Winter -arc-projektet: kör inte SQL-filen igen. Slutför Google-klienten med callback `https://noamtwazmbtrnyqdmplf.supabase.co/auth/v1/callback`, aktivera Google i Supabase och ändra sedan `googleEnabled` till `true` i `src/config.js`. Returadresserna för Sites och den förberedda GitHub Pages-adressen är redan sparade i Supabase. Google-klientens hemlighet ska enbart ligga i Supabase.
 
 Verifiera att konto B ser konto A:s delade inlägg och kan reagera, men inte kan läsa konto A:s kroppsbilder, mått, mål eller reflektioner. Prova även inloggning/utloggning, bildimport, omladdning, förlorat nätverk och två samtidiga enheter innan skarp användning. [Supabase Storage Access Control](https://supabase.com/docs/guides/storage/security/access-control) och [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) beskriver den underliggande åtkomstmodellen.
 

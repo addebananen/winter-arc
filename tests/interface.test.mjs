@@ -2,7 +2,7 @@ import {JSDOM,VirtualConsole} from 'jsdom';
 import {build} from 'esbuild';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-const bundled=await build({entryPoints:['src/app.js'],bundle:true,write:false,format:'iife',target:'es2022'});
+const bundled=await build({entryPoints:['src/app.js'],bundle:true,write:false,format:'iife',target:'es2022',plugins:[{name:'isolated-demo',setup(b){b.onLoad({filter:/[\\/]config\.js$/},()=>({contents:"export const config={supabaseUrl:'',supabaseKey:'',googleEnabled:false}",loader:'js'}));}}]});
 const source=bundled.outputFiles[0].text;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 test('interactive app workflows with isolated demo/local storage',async t=>{
