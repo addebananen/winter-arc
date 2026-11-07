@@ -56,7 +56,8 @@ export function setProgress(state,id,value,day=dateKey()) {
  return p;
 }
 export function addHabit(state,h,today=dateKey()) {state.habits.push(h);if(due(h,today)&&state.history[today]&&!state.history[today].required.includes(h.id))state.history[today].required.push(h.id);}
-export function archiveHabit(state,id,today=dateKey()) { const h=state.habits.find(h=>h.id===id);if(!h)return;h.archived=true; const r=state.history[today]; if(r && !(r.entries[id]?.value>=r.entries[id]?.target))r.required=r.required.filter(x=>x!==id); }
+export function archiveHabit(state,id,today=dateKey()) { const h=state.habits.find(h=>h.id===id);if(!h)return;h.archived=true;delete h.pending;delete h.pendingDate; const r=state.history[today]; if(r && !(r.entries[id]?.value>=r.entries[id]?.target))r.required=r.required.filter(x=>x!==id); }
+export function applyScheduledChanges(state,day=dateKey()){for(const h of state.habits)if(h.pending&&h.pendingDate<=day){const pending=h.pending;delete h.pending;delete h.pendingDate;Object.assign(h,pending);}}
 export function multiplier(count){return count>=5?1.5:count>=3?1.2:1;}
 export function dayXP(record) {const done=Object.values(record?.entries||{}).filter(e=>e.value>=e.target);return Math.round(done.reduce((sum,e)=>sum+e.xp,0)*multiplier(done.length));}
 export function totalXP(state){return Object.values(state.history).reduce((s,r)=>s+dayXP(r),0)+Object.values(state.claims).reduce((s,c)=>s+c.xp,0);}

@@ -11,8 +11,27 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
+  availability:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.pages.outputs.enabled }}
+    steps:
+      - name: Check whether Pages is enabled
+        id: pages
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.repos.getPages({ owner: context.repo.owner, repo: context.repo.repo });
+              core.setOutput('enabled', 'true');
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              core.notice('Enable Settings > Pages > Source: GitHub Actions. A new push or manual run will publish the app.');
+              core.setOutput('enabled', 'false');
+            }
   build:
-    if: vars.PAGES_ENABLED == 'true'
+    needs: availability
+    if: needs.availability.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

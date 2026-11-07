@@ -18,8 +18,8 @@ npm run dev
 - Det tydligt märkta demoläget innehåller påhittade vänner och historik. Ändringar sparas på den aktuella enheten.
 - **Börja min egen lokala expedition** skapar en separat tom resa. Demo flyttas aldrig in i ett riktigt konto.
 - Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. Första SQL-installationen är genomförd. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
-- Google-inloggning är avstängd med `googleEnabled: false` tills OAuth-klienten har konfigurerats och Google-leverantören är aktiverad i Supabase. Appen visar det återstående steget tydligt.
-- Molnkoden och RLS-reglerna är testade. Riktig OAuth, mobilkamera och flera verkliga enheter behöver fortfarande verifieras när Google-klienten är aktiv.
+- Google-leverantören och webbklienten är konfigurerade i Supabase. Aktiveringen är verifierad mot tjänstens riktiga auth-inställningar och appens `googleEnabled` är `true`.
+- Molnkoden och RLS-reglerna är testade. Slutprov med riktig Google-inloggning, mobilkamera och flera verkliga enheter återstår att genomföra.
 - Den anslutna Sites-publiceringen är en privat förhandsversion. GitHub-repositoryts synlighet styr inte vem som får läsa privata kontodata i Supabase.
 
 ## Funktioner
@@ -36,7 +36,9 @@ Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensa
 4. Lägg projektets URL och **publika publishable/anon-nyckel** i `src/config.js`. Dessa får finnas i frontend; RLS skyddar datan. Använd aldrig `service_role` eller en databashemlighet här.
 5. Kör tester och bygg igen, publicera och testa två separata Google-konton. Skapa squad från det första kontot och gå med via koden från det andra.
 
-För det redan installerade Winter -arc-projektet: kör inte SQL-filen igen. Slutför Google-klienten med callback `https://noamtwazmbtrnyqdmplf.supabase.co/auth/v1/callback`, aktivera Google i Supabase och ändra sedan `googleEnabled` till `true` i `src/config.js`. Returadresserna för Sites och den förberedda GitHub Pages-adressen är redan sparade i Supabase. Google-klientens hemlighet ska enbart ligga i Supabase.
+För det redan installerade Winter -arc-projektet: kör inte SQL-filen igen. Google-klienten är konfigurerad med callback `https://noamtwazmbtrnyqdmplf.supabase.co/auth/v1/callback`. Google är aktiverat i Supabase och `googleEnabled` är `true` i `src/config.js`. Returadresserna för Sites och den förberedda GitHub Pages-adressen är sparade i Supabase. Google-klientens hemlighet ligger enbart i Supabase och ska inte läggas i källkoden.
+
+Google Cloud-projektet **Winter Arc** (`winter-arc-514022`) är skapat utan att något betalkonto kopplats in i denna installation. Google Auth Platforms grundkonfiguration och webbklienten **Winter Arc Web** är klara med två JavaScript-origins (Sites-adressen och `https://addebananen.github.io`) och Supabase-callbacken ovan. Klienthemligheten har förts direkt till Supabase. Appen använder endast grundläggande Google-inloggning (namn, e-post och profil); se [Googles regler för app-publik](https://support.google.com/cloud/answer/15549945?hl=en).
 
 Verifiera att konto B ser konto A:s delade inlägg och kan reagera, men inte kan läsa konto A:s kroppsbilder, mått, mål eller reflektioner. Prova även inloggning/utloggning, bildimport, omladdning, förlorat nätverk och två samtidiga enheter innan skarp användning. [Supabase Storage Access Control](https://supabase.com/docs/guides/storage/security/access-control) och [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) beskriver den underliggande åtkomstmodellen.
 
@@ -49,8 +51,7 @@ Sites-projektets ID ligger i `.openai/hosting.json`. Fortsatta redigeringar i sa
 För automatiska GitHub Pages-uppdateringar:
 
 1. Välj Settings → Pages → Source: **GitHub Actions** i repositoryt.
-2. Lägg till repositoryvariabeln `PAGES_ENABLED` med värdet `true` under Settings → Secrets and variables → Actions → Variables.
-3. Kör workflowet **Deploy GitHub Pages** manuellt första gången. Därefter bygger och publicerar varje push till `main`. Detta workflow är avsiktligt avstängt tills hosting är aktiverad.
+2. Kör workflowet **Deploy GitHub Pages** manuellt första gången, eller gör en ny push till `main`. Därefter bygger och publicerar varje push automatiskt. Workflowet känner av när Pages är aktiverat och hoppar över publiceringen tills dess.
 
 Google/Supabase tillåter sedan denna adress som redirect. Lägg aldrig privata bilder i repositoryt eller `dist/`.
 
