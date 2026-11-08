@@ -19,7 +19,7 @@ npm run dev
 
 - Den publika releasen kräver Google-inloggning. Den visar inga demo- eller lokala kontoval. Isolerade DOM-tester aktiverar utvecklingslägen via ersatt testkonfiguration; `developmentModes` är `false` i publicerad kod.
 - Befintliga molnprofiler, journaler och historik bevaras vid uppgraderingar. Appens cache innehåller kod, inte kontodata. Nya funktioner lägger till data utan att återställa tidigare stats.
-- Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. SQL-migrationerna 001–006 är genomförda. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
+- Databasschemat omfattar migrationerna 001–008. Alla åtta tabeller har RLS och bildbucketen är privat. Befintliga projekt ska endast tillämpa saknade migrationer.
 - Google-leverantören och webbklienten är konfigurerade i Supabase. Aktiveringen är verifierad mot tjänstens riktiga auth-inställningar och appens `googleEnabled` är `true`.
 - Riktig Google-inloggning, sparad profil och återhämtning efter omladdning är verifierade på både GitHub Pages och den privata förhandsversionen. Samma konto hämtar samma molnprofil från båda adresserna. Mobilkamera på fysisk iPhone och flera verkliga vänners konton behöver fortfarande provas tillsammans.
 - Den anslutna Sites-publiceringen är en privat förhandsversion. GitHub-repositoryts synlighet styr inte vem som får läsa privata kontodata i Supabase.
@@ -36,19 +36,15 @@ Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensa
 
 ## Anslut ett nytt Supabase-projekt
 
-1. Skapa ett projekt i [Supabase](https://supabase.com/dashboard). Kör hela `supabase/001_winter_arc.sql` i SQL Editor **en gång i ett nytt projekt**. Skriptet skapar tabeller, funktioner, privata lagringsregler och bildbucketen `arc-photos`. Kör sedan `supabase/002_training_season.sql` och `supabase/003_daily_integrity.sql` och `supabase/004_calendar_integrity.sql` och `supabase/005_effort_rewards.sql` och `supabase/006_music_course.sql` i ordning, en gång vardera.
+1. Skapa ett projekt i [Supabase](https://supabase.com/dashboard). Kör hela `supabase/001_winter_arc.sql` i SQL Editor **en gång i ett nytt projekt**. Skriptet skapar tabeller, funktioner, privata lagringsregler och bildbucketen `arc-photos`. Kör sedan `supabase/002_training_season.sql` och `supabase/003_daily_integrity.sql` och `supabase/004_calendar_integrity.sql` och `supabase/005_effort_rewards.sql` och `supabase/006_music_course.sql`, `supabase/007_strength_hub.sql` samt `supabase/008_squad_activity.sql` i ordning, en gång vardera.
 2. Aktivera Google under Authentication → Sign In / Providers. Skapa en Google OAuth-webbklient i ert Google Cloud-projekt och konfigurera Supabase-leverantören enligt [Supabase Google-guide](https://supabase.com/docs/guides/auth/social-sign-in/auth-google). Google-klientens hemlighet anges bara i Supabase, aldrig i GitHub eller frontend.
 3. Sätt appens produktionsadress som Site URL och tillåten Redirect URL i Supabase Authentication → URL Configuration. OAuth-return går till **exakt samma origin och sökväg** som appen. För GitHub Pages används adressen med `/winter-arc/` och avslutande snedstreck. Lägg bara till den lokala adressen om utveckling behövs.
 4. Lägg projektets URL och **publika publishable/anon-nyckel** i `src/config.js`. Dessa får finnas i frontend; RLS skyddar datan. Använd aldrig `service_role` eller en databashemlighet här.
 5. Kör tester och bygg igen, publicera och testa två separata Google-konton. Skapa squad från det första kontot och gå med via koden från det andra.
 
-För det redan installerade Winter -arc-projektet: kör inte SQL-filen igen. Google-klienten är konfigurerad med callback `https://noamtwazmbtrnyqdmplf.supabase.co/auth/v1/callback`. Google är aktiverat i Supabase och `googleEnabled` är `true` i `src/config.js`. Returadresserna för Sites och den förberedda GitHub Pages-adressen är sparade i Supabase. Google-klientens hemlighet ligger enbart i Supabase och ska inte läggas i källkoden.
+För ett befintligt projekt: kör inte redan applicerade migrationer igen. OAuth-klienthemligheter ska enbart ligga i Supabase-leverantörens inställningar, aldrig i källkoden. Hämta projektets callback från Supabase när en ny installation konfigureras.
 
-Supabases huvudadress (Site URL) är nu `https://addebananen.github.io/winter-arc/`. Sites-förhandsversionen finns kvar som en separat tillåten returadress.
-
-Google Cloud-projektet **Winter Arc** (`winter-arc-514022`) är skapat utan att något betalkonto kopplats in i denna installation. Google Auth Platforms grundkonfiguration och webbklienten **Winter Arc Web** är klara med två JavaScript-origins (Sites-adressen och `https://addebananen.github.io`) och Supabase-callbacken ovan. Klienthemligheten har förts direkt till Supabase. Appen använder endast grundläggande Google-inloggning (namn, e-post och profil); se [Googles regler för app-publik](https://support.google.com/cloud/answer/15549945?hl=en).
-
-Verifiera att konto B ser konto A:s delade inlägg och kan reagera, men inte kan läsa konto A:s kroppsbilder, mått, mål eller reflektioner. Prova även inloggning/utloggning, bildimport, omladdning, förlorat nätverk och två samtidiga enheter innan skarp användning. [Supabase Storage Access Control](https://supabase.com/docs/guides/storage/security/access-control) och [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) beskriver den underliggande åtkomstmodellen.
+Verifiera att konto B ser konto A:s delade inlägg och kan reagera, men inte kan läsa konto A:s kroppsbilder, mått, privata trackers eller skrivna reflektionsanteckningar. Prova även inloggning/utloggning, bildimport, omladdning, förlorat nätverk och två samtidiga enheter innan skarp användning. [Supabase Storage Access Control](https://supabase.com/docs/guides/storage/security/access-control) och [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) beskriver den underliggande åtkomstmodellen.
 
 ## Publicera och uppdatera
 
@@ -110,10 +106,20 @@ Under Träning → Musikkurs finns 30 originallektioner i tio svårighetssteg, f
 
 Länkade övningar och underlag: [musictheory.net](https://www.musictheory.net/exercises), [teoria](https://www.teoria.com/en/exercises/), [VoiceScienceWorks SOVT](https://www.voicescienceworks.org/sovt-exercises.html), [sugrörsfonation](https://www.voicescienceworks.org/straw-phonation.html), [Berklee röstvanor](https://college.berklee.edu/bt/213/play_for_life.html), [Berklee registerarbete](https://college.berklee.edu/people/ilona-tipp) och [NIDCD rösthälsa](https://www.nidcd.nih.gov/health/taking-care-your-voice). Källorna har inte godkänt eller certifierat kursen. Länkar öppnas i nya flikar; externa övningsresultat importeras inte. Sång sker i bekvämt omfång med pauser, utan krav på maxhöjd eller volym. Kursen lovar inte ett visst röstomfång eller mixed voice.
 
-Framtida databasmigrationer ska vara nya, framåtgående filer (007 och vidare); ändra eller kör inte om redan tillämpade migrationer. Bygg, tester och uppgraderingskontroller ska passera före publicering.
+Framtida databasmigrationer ska vara nya, framåtgående filer (009 och vidare); ändra eller kör inte om redan tillämpade migrationer. Bygg, tester och uppgraderingskontroller ska passera före publicering.
 
 ## Styrkehub och tidsbaserade vanor (migration 007)
 
 20 övningar, originalritade rörelseskisser, utrustnings-/muskelfilter, fyra rutiner och tomma pass. Setloggen har föregående resultat, kg, reps/sekunder och upp till sex set per övning. Serverstyrd timer med paus, anteckning, historik och kroppsviktssnapshot. Tids-XP och PR-bonusar beräknas även på servern. Metod och forskningskällor finns i `STRENGTH-METHOD.md` och i appens “Så räknar vi”.
 
 Välj minuter när en vana skapas eller redigeras; ändringar före expeditionens start gäller direkt, senare ändringar gäller nästa dag. Profilen stöder egen uppladdad bild samt frivillig kroppsvikt och längd. Profilbilden ligger i samma privata bildlagring och delas inte automatiskt i squadet. Befintliga poster raderas eller omräknas inte vid migreringen. Spara ny migration `007_strength_hub.sql` efter 001–006 innan denna frontendversion används. Ändra inte redan applicerade migrationer.
+
+
+## Squad-aktivitet och bildsäkerhet (migration 008)
+Vanor/utmaningar med registrerade framsteg, avslutade träningspass, målframsteg, hämtade quests och genomförd reflektion skapar allowlistade sammanfattningar i squadet. Sammanfattningen skrivs atomiskt med kontots tillstånd. Ingen historisk masspublicering sker. Återkommande sparanden uppdaterar samma aktivitet; ångrade registreringar märks som återtagna. Ett manuellt raderat aktivitetsinlägg återuppstår inte.
+
+Spegelbilder, kroppsmått, NoFap och andra privata trackers, träningsanteckningar samt skrivna reflektioner/lärdomar kopieras aldrig till flödet. En separat uppladdning under `posts/` kan läggas till på ett eget inlägg. RLS och bild-RPC:n avvisar andras inlägg och privata bildsökvägar.
+
+PostgREST-frågan namnger FK-kopplingarna uttryckligen. Ett lyckat sparande betraktas inte som misslyckat bara för att flödeshämtningen fallerar. Inlägg får en stabil identifierare och utkast som överlever osäkra svar. Profil- och kroppsbilder raderas inte vid osäkra sparfel. Den gamla versionen kunde lämna sparade inlägg men radera deras bildfil vid ett flödesfel; en sådan fil måste laddas upp igen via Byt bild. Inga äldre inlägg raderas automatiskt.
+
+Verifiering omfattar Supabase-klientens faktiska REST-frågor, molnflöden med injicerade nätverksfel och PostgreSQL/RLS med isolerade konton. Det verkliga flödet och att reaktioner överlever omladdning har också kontrollerats. Kör alltid hela testsamlingen och bygg före nästa publicering. Installerad migration 008 ska inte köras igen.
