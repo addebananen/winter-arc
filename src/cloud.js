@@ -27,6 +27,6 @@ export const removePost=id=>socialClient.remove(id);
 export const attachPostPhoto=(id,path)=>socialClient.attach(id,path);
 export async function upload(blob,kind){const path=`${user.id}/${kind}/${crypto.randomUUID()}.jpg`;check(await client.storage.from('arc-photos').upload(path,blob,{contentType:'image/jpeg',upsert:false}));return path;}
 const signed=new Map();
-export async function imageUrl(path){if(!path)return '';const cached=signed.get(path);if(cached&&cached.expires>Date.now())return cached.url;const data=check(await client.storage.from('arc-photos').createSignedUrl(path,300));signed.set(path,{url:data.signedUrl,expires:Date.now()+240000});return data.signedUrl;}
+export async function imageUrl(path,refresh=false){if(!path)return '';const cached=signed.get(path);if(!refresh&&cached&&cached.expires>Date.now())return cached.url;const data=check(await client.storage.from('arc-photos').createSignedUrl(path,300));signed.set(path,{url:data.signedUrl,expires:Date.now()+240000});return data.signedUrl;}
 export async function removeImage(path){check(await client.storage.from('arc-photos').remove([path]));signed.delete(path);}
 export async function createMission(squad,name,target,deadline){return check(await client.from('missions').insert({squad_id:squad.id,created_by:user.id,name,target,deadline}).select().single());}
