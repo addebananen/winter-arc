@@ -1,3 +1,4 @@
+import {ensureStrength,strengthXP} from './strength.js';
 import {SEASON_START,extraHabits,ensureTraining,trainingXP,trainingStats,hasRecovery} from './fitness.js';
 export const categories = {
  music: {name:'Musik',stat:'Music',icon:'music',color:'#e1b6d8'},
@@ -43,7 +44,7 @@ export function due(h, day) { const w=new Date(day+'T12:00:00Z').getUTCDay(); re
 export function makeHabit(item, today=dateKey()) { return {templateId:'habit-'+library.findIndex(x=>x[0]===item[0]),activityKey:habitKey({name:item[0]}),id:uid(),name:item[0],category:item[1],target:item[2],unit:item[3],xp:item[4],cue:item[5],days:[0,1,2,3,4,5,6],start:today,archived:false}; }
 export function blankState(today=dateKey()) { return {version:1,profile:{name:'Äventyrare',bio:'Lite bättre, varje dag.',title:'The beginning',color:'ice'},timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,habits:[],history:{},goals:[],reflections:[],body:[],claims:{},rewards:[],accountCreated:today,expedition:{start:seasonStart(today),days:90},onboarded:false}; }
 export function seasonStart(created=dateKey()){return created>SEASON_START?created:SEASON_START;}
-export function normalizeState(state,created, demo=false){ensureTraining(state);normalizeHabits(state);if(!demo){if(created)state.accountCreated=dateKey(new Date(created),state.timezone);else state.accountCreated??=state.expedition.start;state.expedition.start=seasonStart(state.accountCreated);for(const h of state.habits)if(h.start<state.expedition.start)h.start=state.expedition.start;}return state;}
+export function normalizeState(state,created, demo=false){ensureTraining(state);ensureStrength(state);normalizeHabits(state);if(!demo){if(created)state.accountCreated=dateKey(new Date(created),state.timezone);else state.accountCreated??=state.expedition.start;state.expedition.start=seasonStart(state.accountCreated);for(const h of state.habits)if(h.start<state.expedition.start)h.start=state.expedition.start;}return state;}
 export function ensureDay(state,day) {
  if(!state.history[day]) state.history[day]={required:state.habits.filter(h=>due(h,day)).map(h=>h.id),entries:{}};
  return state.history[day];
@@ -61,7 +62,7 @@ export function setProgress(state,id,value,day=dateKey()) {
  const h=state.habits.find(x=>x.id===id); if(!h||!due(h,day))throw Error('Vanan är inte aktiv den här dagen.');
  if(!Number.isFinite(value)||value<0||value>h.target)throw Error('Ogiltigt värde.');
  const record=ensureDay(state,day); if(!record.required.includes(id))record.required.push(id);
- record.entries[id]={value,target:h.target,xp:habitXP(h),category:h.category,name:h.name,activityKey:habitKey(h)};
+ record.entries[id]={value,target:h.target,xp:habitXP(h),category:h.category,name:h.name,activityKey:habitKey(h),...(h.durationMinutes?{durationMinutes:h.durationMinutes}:{})};
  const p=progress(state,day),count=Object.values(record.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target).length;
  if(count<3)delete state.claims['three:'+day];if(!p.perfect)delete state.claims['perfect:'+day];if(count<2&&!hasRecovery(state,day))delete state.claims['comeback:'+day];
  return p;
@@ -72,15 +73,15 @@ export function applyScheduledChanges(state,day=dateKey()){for(const h of state.
 export function multiplier(count){return count>=5?1.5:count>=3?1.2:1;}
 export function challengeRewards(record){
  const done=Object.values(record?.entries||{}).filter(e=>e.value>=e.target&&e.source!=='challenge');
- const meditation=done.filter(e=>e.activityKey==='meditation').reduce((n,e)=>n+e.xp,0),music=done.filter(e=>e.category==='music').reduce((n,e)=>n+e.xp,0);
+ const meditation=done.filter(e=>e.activityKey==='meditation').reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0),music=done.filter(e=>e.category==='music').reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0);
  const rewards=Object.entries(record?.entries||{}).filter(([,e])=>e.source==='challenge'&&e.value>=e.target).map(([id,e])=>({...e,earned:Math.max(0,e.xp-(id==='challenge:meditation-notice'?meditation:0))}));
  const pool=rewards.filter(e=>e.category==='music').reduce((n,e)=>n+e.earned,0);
  for(const e of rewards)if(e.category==='music')e.earned*=pool?Math.max(0,pool-music)/pool:0;
  return rewards;
 }
 export function challengeXP(record){return Math.min(100,Math.round(challengeRewards(record).reduce((n,e)=>n+e.earned,0)));}
-export function dayXP(record) {const all=Object.values(record?.entries||{}).filter(e=>e.value>=e.target),done=all.filter(e=>e.source!=='challenge');return Math.round(Math.min(200,done.reduce((sum,e)=>sum+e.xp,0))*multiplier(done.length))+challengeXP(record);}
-export function totalXP(state){return Object.entries(state.history).filter(([d])=>d>=state.expedition.start).reduce((s,[,r])=>s+dayXP(r),0)+Object.values(state.claims).filter(c=>c.date>=state.expedition.start).reduce((s,c)=>s+c.xp,0)+trainingXP(state);}
+export function dayXP(record) {if(Object.values(record?.entries||{}).some(e=>e.durationMinutes)){const done=Object.values(record.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target);return Math.min(240,done.reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0))+challengeXP(record);}const all=Object.values(record?.entries||{}).filter(e=>e.value>=e.target),done=all.filter(e=>e.source!=='challenge');return Math.round(Math.min(200,done.reduce((sum,e)=>sum+e.xp,0))*multiplier(done.length))+challengeXP(record);}
+export function totalXP(state){return Object.entries(state.history).filter(([d])=>d>=state.expedition.start).reduce((s,[,r])=>s+dayXP(r),0)+Object.values(state.claims).filter(c=>c.date>=state.expedition.start).reduce((s,c)=>s+c.xp,0)+trainingXP(state)+strengthXP(state);}
 export function levelInfo(xp){const level=Math.floor(Math.sqrt(xp/80))+1,base=80*(level-1)**2,next=80*level**2;return {level,base,next,ratio:(xp-base)/(next-base)};}
 export function streak(state,today=dateKey()) {
  let d=progress(state,today).perfect?today:shiftDate(today,-1),n=0;
@@ -88,11 +89,11 @@ export function streak(state,today=dateKey()) {
 }
 export function bestStreak(state){let best=0,n=0,last='';for(const d of Object.keys(state.history).sort()){if(progress(state,d).perfect){n=last&&d===shiftDate(last,1)?n+1:1;best=Math.max(best,n);}else n=0;last=d;}return best;}
 export function stats(state){
- const s={Strength:0,Flexibility:0,Discipline:0,Wisdom:0,Faith:0,Social:0,Music:0};
+ const s={Strength:strengthXP(state),Flexibility:0,Discipline:0,Wisdom:0,Faith:0,Social:0,Music:0};
  for(const [day,r] of Object.entries(state.history)){
   if(day<state.expedition.start)continue;
-  const habits=Object.values(r.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target),base=habits.reduce((n,e)=>n+e.xp,0),meditation=habits.filter(e=>e.activityKey==='meditation').reduce((n,e)=>n+e.xp,0);
-  for(const e of habits)s[categories[e.category]?.stat||'Discipline']+=e.xp*Math.min(1,200/base);
+  const habits=Object.values(r.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target),base=habits.reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0),meditation=habits.filter(e=>e.activityKey==='meditation').reduce((n,e)=>n+e.xp,0);
+  for(const e of habits)s[categories[e.category]?.stat||'Discipline']+=(e.durationMinutes?2*e.durationMinutes:e.xp)*Math.min(1,(habits.some(e=>e.durationMinutes)?240:200)/base);
   const challenges=challengeRewards(r),bonus=challenges.reduce((n,e)=>n+e.earned,0);
   for(const e of challenges)s[categories[e.category]?.stat||'Discipline']+=e.earned*Math.min(1,100/bonus);
  }
