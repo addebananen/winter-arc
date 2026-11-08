@@ -1,0 +1,60 @@
+import {JSDOM,VirtualConsole} from 'jsdom';
+import {build} from 'esbuild';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as D from '../src/domain.js';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const bundled=await build({entryPoints:['src/app.js'],bundle:true,write:false,format:'iife',plugins:[{name:'cloud-fault-injection',setup(b){
+ b.onLoad({filter:/[\\/]cloud\.js$/},()=>({loader:'js',contents:`
+ export const configured=true,googleReady=true,user={id:'owner',created_at:'2026-11-07T12:00:00Z'};
+ export const initialize=async()=>user,load=async()=>structuredClone(window.backend.state);
+ export const mySquad=async()=>({id:'squad',name:'Test squad'});
+ export const social=async()=>{if(window.backend.failFeed)throw Error('PGRST201 ambiguous relationship');return {activityReady:true,posts:structuredClone(window.backend.posts),members:[],missions:[]};};
+ export const save=async s=>{if(window.backend.failSave)throw Error('Save unavailable');window.backend.state=structuredClone(s);return structuredClone(s);};
+ export const publish=async(squad,body,image_path,id)=>{window.backend.publishCalls++;if(!window.backend.posts.some(p=>p.id===id))window.backend.posts.unshift({id,body,image_path,user_id:user.id,created_at:new Date().toISOString(),reactions:[]});if(window.backend.loseReply)throw Error('Reply lost');return {id};};
+ export const react=async(id,kind,active)=>{window.backend.reactionCalls++;await new Promise(r=>setTimeout(r,40));if(window.backend.failReact)throw Error('Reaction unavailable');const p=window.backend.posts.find(p=>p.id===id);p.reactions=p.reactions.filter(r=>r.kind!==kind);if(!active)p.reactions.push({user_id:'owner',kind});};
+ export const removePost=async id=>{window.backend.posts=window.backend.posts.filter(p=>p.id!==id);};
+ export const upload=async(blob,kind)=>{window.backend.uploads++;return 'owner/'+kind+'/photo'+window.backend.uploads+'.jpg';};
+ export const imageUrl=async path=>'https://images.invalid/'+path;
+ export const removeImage=async path=>{window.backend.removals.push(path);if(window.backend.failCleanup)throw Error('Storage unavailable');};
+ export const attachPostPhoto=async(id,path)=>{window.backend.attachCalls++;window.backend.posts.find(p=>p.id===id).image_path=path;};
+ export const logout=async()=>{},login=async()=>{},invite=async()=>'',createSquad=async()=>{},joinSquad=async()=>{},createMission=async()=>{};
+ `}));
+}}]});
+async function setup(failFeed=false){
+ const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+ const dom=new JSDOM('<div id="app"></div><div id="modal-root"></div><div id="toast"></div>',{url:'https://winter.example/#squad/feed',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc}),w=dom.window;
+ w.structuredClone=structuredClone;w.scrollTo=()=>{};w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
+ w.Image=class{width=100;height=100;async decode(){}};w.HTMLCanvasElement.prototype.getContext=()=>({drawImage(){}});w.HTMLCanvasElement.prototype.toBlob=function(cb){cb(new w.Blob(['JPEG'],{type:'image/jpeg'}));};
+ const state=D.normalizeState(D.blankState(),'2026-11-07T12:00:00Z');state.profile.name='Cloud Tester';state.onboarded=true;
+ w.backend={state,posts:[],failFeed,publishCalls:0,reactionCalls:0,uploads:0,removals:[],attachCalls:0};w.eval(bundled.outputFiles[0].text);await sleep(80);
+ const q=s=>w.document.querySelector(s),click=async action=>{const el=q(`[data-action="${action}"]`);assert.ok(el,action);el.click();await sleep(80);},submit=async id=>{q('#'+id).dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await sleep(80);},photo=async()=>{const input=q('input[type=file]');Object.defineProperty(input,'files',{value:[new w.File(['test'],'test.jpg',{type:'image/jpeg'})],configurable:true});input.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(30);};
+ return {dom,w,q,click,submit,photo,errors};
+}
+test('a failed social read keeps cloud profile and lets the user retry',async()=>{const x=await setup(true);try{assert.match(x.q('#app').textContent,/fortfarande inloggad/);assert.equal(x.w.localStorage.getItem('arc-mode'),'cloud');x.w.backend.failFeed=false;await x.click('refresh-social');assert.ok(x.q('[data-action=new-post]'));assert.match(x.q('#app').textContent,/Cloud Tester/);}finally{x.dom.window.close();}});
+test('text + photo publishes once even when feed is down; reload shows the saved post',async()=>{const x=await setup();try{
+ await x.click('new-post');x.q('[name=body]').value='Saved <b>literally</b>';await x.photo();x.w.backend.failFeed=true;await x.submit('post-form');assert.equal(x.q('.modal'),null);assert.equal(x.w.backend.posts.length,1);assert.equal(x.w.backend.uploads,1);assert.deepEqual(x.w.backend.removals,[]);assert.match(x.q('.post-text').textContent,/<b>literally<\/b>/);assert.equal(x.q('.post-text b'),null);
+ x.w.backend.failFeed=false;await x.click('nav:today');await x.click('nav:squad');assert.match(x.q('.post-text').textContent,/Saved/);assert.ok(x.q('.post-image'));
+ }finally{x.dom.window.close();}});
+test('uncertain publish preserves draft and uploaded photo across dialog reopen',async()=>{const x=await setup();try{
+ await x.click('new-post');x.q('[name=body]').value='My workout';await x.photo();x.w.backend.loseReply=true;await x.submit('post-form');assert.match(x.q('.form-error').textContent,/Reply lost/);assert.equal(x.w.backend.posts.length,1);assert.equal(x.w.backend.removals.length,0);await x.click('close');await sleep(250);await x.click('new-post');assert.equal(x.q('[name=body]').value,'My workout');assert.equal(x.q('[name=body]').readOnly,true);
+ x.w.backend.loseReply=false;await x.submit('post-form');assert.equal(x.w.backend.posts.length,1);assert.equal(x.w.backend.uploads,1);assert.equal(x.q('.modal'),null);
+ }finally{x.dom.window.close();}});
+test('reaction double taps serialize, failures keep count unchanged, attachment and deletion persist',async()=>{const x=await setup();try{
+ await x.click('new-post');x.q('[name=body]').value='Workout completed';await x.submit('post-form');const id=x.w.backend.posts[0].id;
+ const button=x.q(`[data-action="react:${id}:heart"]`);button.click();button.click();await sleep(100);assert.equal(x.w.backend.reactionCalls,1);assert.equal(x.w.backend.posts[0].reactions.length,1);
+ x.w.backend.failReact=true;await x.click('react:'+id+':heart');assert.equal(x.q(`[data-action="react:${id}:heart"]`).getAttribute('aria-pressed'),'true');x.w.backend.failReact=false;await x.click('react:'+id+':heart');assert.equal(x.w.backend.posts[0].reactions.length,0);
+ await x.click('post-photo:'+id);await x.photo();await x.submit('post-photo-form');assert.ok(x.w.backend.posts[0].image_path);assert.equal(x.w.backend.attachCalls,1);
+ x.w.backend.failFeed=true;x.w.backend.failCleanup=true;await x.click('delete-post:'+id);await x.click('remove-post:'+id);assert.equal(x.w.backend.posts.length,0);assert.equal(x.q('.post'),null);assert.match(x.q('#toast').textContent,/borttaget/);
+ }finally{x.dom.window.close();}});
+test('failed habit saves preserve existing account data and keep the form retryable',async()=>{const x=await setup();try{
+ await x.click('nav:habits');await x.click('new-habit');x.q('[name=name]').value='Practice';x.q('[name=unit]').value='min';x.w.backend.failSave=true;await x.submit('habit-form');assert.match(x.q('.form-error').textContent,/Save unavailable/);assert.equal(x.w.backend.state.habits.length,0);x.w.backend.failSave=false;await x.submit('habit-form');assert.equal(x.w.backend.state.habits.length,1);assert.equal(x.q('.modal'),null);
+ }finally{x.dom.window.close();}});
+
+test('private mirror photo upload survives a failed save and retry without becoming a post',async()=>{const x=await setup();try{
+ await x.click('nav:profile');await x.click('tab:body');await x.click('new-body');await x.photo();x.w.backend.failSave=true;await x.submit('body-form');assert.equal(x.w.backend.uploads,1);assert.equal(x.w.backend.removals.length,0);assert.equal(x.w.backend.posts.length,0);
+ x.w.backend.failSave=false;await x.submit('body-form');assert.equal(x.w.backend.uploads,1);assert.equal(x.w.backend.state.body.length,1);assert.match(x.w.backend.state.body[0].photo,/owner\/body\//);assert.equal(x.w.backend.posts.length,0);
+ }finally{x.dom.window.close();}});
+test('profile photo upload survives save failure with the same file on retry',async()=>{const x=await setup();try{
+ await x.click('nav:profile');await x.click('edit-profile');await x.photo();x.w.backend.failSave=true;await x.submit('profile-form');assert.equal(x.w.backend.removals.length,0);x.w.backend.failSave=false;await x.submit('profile-form');assert.equal(x.w.backend.uploads,1);assert.match(x.w.backend.state.profile.photo,/owner\/avatar\//);assert.equal(x.q('.modal'),null);
+ }finally{x.dom.window.close();}});
