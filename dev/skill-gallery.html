@@ -1,0 +1,11 @@
+<!doctype html><html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skill-animationer · granskning</title><link rel="stylesheet" href="../src/style.css">
+<style>body{padding:24px;background:var(--bg)}h1{font-size:20px;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}.cell h3{font-size:13px;margin:0 0 8px}.lint{font-size:10px;color:#f3acc4;margin-top:6px;line-height:1.5}.ok{color:var(--mint)}.strip{display:flex;gap:4px;margin-top:6px}.strip svg{width:33%;background:#152022;border-radius:8px}</style></head>
+<body><h1>Skill-animationer</h1><div class="grid" id="g"></div>
+<script type="module">
+import {mountPlayer,poseSVG,solve,sample,lint,com,prepare} from '../src/skills-anim.js';
+import {allMoves} from '../src/skills-moves.js';
+const g=document.getElementById('g');const only=new URLSearchParams(location.search).get('only');
+for(const m of allMoves()){if(only&&!only.split(',').some(o=>m.id.startsWith(o)))continue;prepare(m);const issues=new Set();for(let i=0;i<=60;i++){const s=sample(m,m.total*i/60);for(const e of lint(solve(s.pose)))issues.add(e);}
+const c=document.createElement('div');c.className='cell';c.innerHTML=`<h3>${m.id} · ${m.title}</h3><div class="pl"></div><div class="strip">${m.frames.map((_,i)=>poseSVG(m,i)).join('')}</div><div class="lint ${issues.size?'':'ok'}">${issues.size?[...issues].join(' · '):'Inga anatomiska avvikelser'}</div>`;g.append(c);mountPlayer(c.querySelector('.pl'),m,{label:m.title});}
+</script></body></html>
