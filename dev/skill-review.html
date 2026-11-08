@@ -1,0 +1,7 @@
+<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>Granskning</title><link rel="stylesheet" href="../src/style.css">
+<style>body{padding:10px;background:#0d1314}.row{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:8px}.row b{width:100%;font-size:11px;color:#cfe}.row svg{width:192px;height:auto;background:#152022;border-radius:6px}.row i{font-size:10px;color:#f3acc4;width:100%}</style></head><body><div id="g"></div>
+<script type="module">
+import {poseSVG,solve,lint,prepare,sample} from '../src/skills-anim.js';import {allMoves} from '../src/skills-moves.js';
+const q=new URLSearchParams(location.search),from=+q.get('from')||0,n=+q.get('n')||8;
+const ids=q.get('ids');const ms=ids?allMoves().filter(m=>ids.split(',').includes(m.id)):allMoves().slice(from,from+n);document.getElementById('g').innerHTML=ms.map((m,k)=>{prepare(m);const is=new Set();for(let i=0;i<=40;i++)for(const e of lint(solve(sample(m,m.total*i/40).pose)))is.add(e.replace(/[\d.\-]+°?\)?$/,''));return `<div class="row"><b>${from+k}. ${m.id}</b>${m.frames.map((_,i)=>poseSVG(m,i)).join('')}<i>${[...is].join(', ')}</i></div>`}).join('');
+</script></body></html>
