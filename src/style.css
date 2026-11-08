@@ -39,3 +39,43 @@ svg.i{overflow:visible;stroke-width:1.75}
  .bottom-nav button.active .i{stroke-width:2;filter:drop-shadow(0 0 7px #c6e7df20)}
  .quick-link{font-size:11px;gap:6px}
 }
+
+/* Motion: brief press feedback, restrained spring release, compositor-only travel. */
+:root{--ease-settle:cubic-bezier(.18,.88,.24,1.18);--ease-out:cubic-bezier(.2,.8,.2,1)}
+.btn,.icon-btn,.quick-link,.character-choice,.bottom-nav button,.check-btn,.tab,.chip,.day,.round-arrow{
+ transition:transform 280ms var(--ease-settle),background-color 140ms ease,color 140ms ease,border-color 140ms ease;
+ transform-origin:center;
+}
+.btn:active:not(:disabled),.icon-btn:active:not(:disabled),.quick-link:active:not(:disabled),.bottom-nav button:active:not(:disabled),.tab:active:not(:disabled),.chip:active:not(:disabled),.day:active:not(:disabled),.round-arrow:active:not(:disabled){transform:scale(.965);transition-duration:70ms}
+.check-btn:active:not(:disabled){transform:scale(.92)!important;transition-duration:70ms}
+.character-choice:active:not(:disabled){transform:scale(.985);transition-duration:80ms}
+@media(hover:hover) and (pointer:fine){
+ .quick-link:hover,.character-choice:hover{transform:translateY(-2px);border-color:#71958a}
+ .btn:hover:not(:disabled),.icon-btn:hover:not(:disabled){transform:translateY(-1px)}
+ .btn:active:not(:disabled),.icon-btn:active:not(:disabled){transform:scale(.965)}
+}
+.view-enter{animation:arc-view-in 260ms var(--ease-out) both}
+@keyframes arc-view-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.bottom-nav.nav-arrived button.active .i{animation:arc-symbol-settle 340ms var(--ease-out) both}
+@keyframes arc-symbol-settle{0%{transform:scale(.9)}55%{transform:scale(1.055)}100%{transform:scale(1)}}
+.modal-overlay{animation:arc-overlay-in 140ms ease-out both;backdrop-filter:none;-webkit-backdrop-filter:none}
+.modal{animation:arc-dialog-in 320ms var(--ease-out) both;transform-origin:center}
+@keyframes arc-overlay-in{from{opacity:0}to{opacity:1}}
+@keyframes arc-dialog-in{0%{transform:translateY(8px) scale(.975)}65%{transform:translateY(-.5px) scale(1.002)}100%{transform:none}}
+#toast{transition:opacity 140ms ease,transform 300ms var(--ease-settle)}
+#startup-screen{transition:opacity 180ms ease,visibility 180ms}
+.startup-emblem{animation:arc-startup-in 380ms var(--ease-out) both}
+#startup-screen strong,#startup-screen>span{animation:arc-view-in 240ms var(--ease-out) both}
+@keyframes arc-startup-in{0%{opacity:0;transform:rotate(-5deg) scale(.94)}65%{opacity:1;transform:rotate(-5deg) scale(1.015)}100%{transform:rotate(-5deg) scale(1)}}
+/* Progress updates must not cause animated layout work during a state save. */
+.bar>span{transition:none}
+.page-head>.btn{white-space:nowrap;flex-shrink:0}
+@media(max-width:760px){
+ .modal{animation-name:arc-sheet-in;transform-origin:center bottom}
+ @keyframes arc-sheet-in{0%{transform:translateY(24px) scale(.995)}65%{transform:translateY(-1px) scale(1)}100%{transform:none}}
+ .page-head>.btn{min-height:44px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ .btn:active:not(:disabled),.icon-btn:active:not(:disabled),.quick-link:active:not(:disabled),.bottom-nav button:active:not(:disabled),.check-btn:active:not(:disabled),.character-choice:active:not(:disabled),.tab:active:not(:disabled),.chip:active:not(:disabled),.day:active:not(:disabled),.round-arrow:active:not(:disabled),.btn:hover,.icon-btn:hover,.quick-link:hover,.character-choice:hover{transform:none!important}
+}

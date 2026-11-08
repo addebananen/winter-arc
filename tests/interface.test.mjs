@@ -28,3 +28,14 @@ test('interactive app workflows with isolated demo/local storage',async t=>{
 });
 test('first-time visitors choose an account or explicitly explore demo data',async()=>{const dom=new JSDOM('<div id="app"></div><div id="modal-root"></div><div id="toast"></div>',{url:'https://winter.example/',runScripts:'dangerously',pretendToBeVisual:true});dom.window.scrollTo=()=>{};dom.window.structuredClone=structuredClone;dom.window.eval(source);await sleep(100);const modal=dom.window.document.querySelector('[role=dialog]');assert.ok(modal);assert.match(modal.textContent,/Fortsätt med Google/);assert.match(modal.textContent,/Utforska demoläget/);dom.window.close();});
 test('expired OAuth states show a clear retry and are removed from the address',async()=>{const dom=new JSDOM('<div id="app"></div><div id="modal-root"></div><div id="toast"></div>',{url:'https://winter.example/?error=invalid_request&error_code=bad_oauth_state&error_description=untrusted',runScripts:'dangerously',pretendToBeVisual:true});dom.window.scrollTo=()=>{};dom.window.structuredClone=structuredClone;dom.window.eval(source);await sleep(100);const modal=dom.window.document.querySelector('[role=dialog]');assert.match(modal.textContent,/Inloggningsförsöket har gått ut/);assert.doesNotMatch(modal.textContent,/untrusted/);assert.equal(dom.window.location.search,'');dom.window.close();});
+
+test('a closing dialog cannot remove a newly opened dialog',async()=>{
+ const dom=new JSDOM('<div id="app"></div><div id="modal-root"></div><div id="toast"></div>',{url:'https://winter.example/',runScripts:'dangerously',pretendToBeVisual:true});
+ const w=dom.window;w.scrollTo=()=>{};w.structuredClone=structuredClone;w.localStorage.setItem('arc-mode','demo');w.eval(source);await sleep(100);
+ const click=a=>w.document.querySelector(`[data-action="${a}"]`).click();
+ click('new-habit');const pending=[];w.HTMLElement.prototype.animate=function(){let resolve;const finished=new Promise(r=>resolve=r);pending.push(resolve);return {finished,cancel(){}};};
+ click('close');assert.equal(pending.length,2);click('nav:profile');click('settings');
+ pending.forEach(resolve=>resolve());await sleep(10);
+ assert.match(w.document.querySelector('.modal').textContent,/Din expedition, dina val/);
+ assert.equal(w.document.body.style.overflow,'hidden');dom.window.close();
+});
