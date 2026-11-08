@@ -1,0 +1,42 @@
+import {trainingXP} from './fitness.js';
+// Rank boundaries are Winter Arc game milestones, not population percentiles.
+export const ranks=['Ograderad','Brons','Silver','Guld','Platina','Diamant','Aurora'];
+const lift=(id,name,muscle,equipment,family,pose,thresholds,cue,unit='kg')=>({id,name,muscle,equipment,family,pose,thresholds,cue,unit});
+export const lifts=[
+ lift('bench','Bänkpress','Bröst','Skivstång','push','bench',[.35,.6,.85,1.1,1.4,1.7],'Fötter i golvet, skuldror stadiga. Sänk stången kontrollerat och pressa upp. Använd passare eller säkerhetsarmar.'),
+ lift('squat','Knäböj','Ben','Skivstång','legs','squat',[.5,.8,1.1,1.5,1.9,2.3],'Spänn bålen och låt knäna följa tårna. Välj ett kontrollerat djup. Använd rackets säkerhetsarmar.'),
+ lift('deadlift','Marklyft','Rygg & ben','Skivstång','legs','hinge',[.6,1,1.4,1.8,2.2,2.6],'Håll stången nära kroppen. Skapa spänning före lyftet och res dig med höft och knän tillsammans.'),
+ lift('press','Axelpress','Axlar','Skivstång','push','press',[.2,.35,.5,.65,.8,1],'Stå stadigt, håll revbenen nere och pressa utan att översträcka ryggen.'),
+ lift('row','Skivstångsrodd','Rygg','Skivstång','pull','row',[.3,.5,.7,.9,1.1,1.3],'Fäll i höften och håll bålen stabil. Dra mot nedre revbenen utan att kasta upp vikten.'),
+ lift('db-bench','Hantelpress','Bröst','Hantlar','push','bench',[.15,.25,.35,.45,.55,.65],'Sänk hantlarna lugnt med stabila skuldror. Logga vikten för EN hantel.'),
+ lift('db-row','Hantelrodd','Rygg','Hantlar','pull','row',[.15,.25,.35,.45,.55,.7],'Stöd ena handen på en stabil bänk. Dra utan att vrida bålen. Logga EN hantel.'),
+ lift('curl','Skivstångscurl','Armar','Skivstång','pull','curl',[.15,.25,.35,.45,.55,.65],'Håll överarmarna nära kroppen. Böj armbågen utan att svinga bålen.'),
+ lift('lateral','Sidolyft','Axlar','Hantlar','push','lateral',[.03,.06,.09,.12,.15,.18],'Mjuka armbågar, lätta vikter och kontrollerad rörelse till bekväm höjd. Logga EN hantel.'),
+ lift('pulldown','Latsdrag','Rygg','Kabel','pull','pull',[.3,.5,.7,.9,1.1,1.3],'Sitt stadigt och dra framför huvudet mot övre bröstet. Jämför på samma maskin.'),
+ lift('cable-row','Sittande kabelrodd','Rygg','Kabel','pull','seated-row',[.3,.5,.7,.9,1.1,1.3],'Håll bålen stilla och dra handtaget mot magen. Jämför på samma maskin.'),
+ lift('pushdown','Tricepspress','Armar','Kabel','push','curl',[.1,.2,.3,.4,.5,.6],'Håll armbågarna nära sidan. Sträck utan att pressa axlarna framåt. Samma maskin varje gång.'),
+ lift('leg-press','Benpress','Ben','Maskin','legs','leg-press',[.5,1,1.5,2,2.5,3],'Håll bäckenet mot dynan och använd kontrollerat rörelseomfång. Maskinens kg är inte jämförbara med andra modeller.'),
+ lift('leg-curl','Lårcurl','Ben','Maskin','legs','leg-curl',[.15,.3,.45,.6,.75,.9],'Ställ in maskinen efter knäleden. Böj lugnt och håll höften mot dynan.'),
+ lift('pullup','Pull-up','Rygg','Räcke','pull','pull',[1,3,6,10,15,20],'Börja med kontrollerade skuldror. Dra utan kippning och sänk lugnt. Denna variant är utan assistans.','reps'),
+ lift('dip','Dips','Bröst & armar','Räcke','push','dip',[1,4,8,12,18,25],'Håll skuldrorna stabila. Sänk bara så långt du kan kontrollera bekvämt. Ingen assistans i denna variant.','reps'),
+ lift('pushup','Armhävning','Bröst','Kroppsvikt','push','pushup',[3,8,15,25,40,60],'Håll kroppen som en linje och sänk kontrollerat. Logga strikta repetitioner från tårna.','reps'),
+ lift('plank','Planka','Bål','Kroppsvikt','core','plank',[15,30,45,60,90,120],'Spänn bålen och andas lugnt. Avsluta när du inte kan hålla en stabil position.','sek'),
+ lift('hang','Dead hang','Grepp','Räcke','core','hang',[10,20,35,50,75,100],'Använd ett säkert räcke. Häng kontrollerat och avlasta direkt vid obehag.','sek'),
+ lift('handstand','Handstående mot vägg','Balans & axlar','Kroppsvikt','core','handstand',[5,10,20,30,45,60],'Öva med säker vägg och fri golvyta. Börja med enklare lutning och lär dig ta dig ner kontrollerat. Väggstöd är en egen färdighet, inte fritt handstående.','sek')
+];
+export const liftById=Object.fromEntries(lifts.map(e=>[e.id,e]));
+export const routines=[{name:'Push',ids:['bench','press','lateral','pushdown']},{name:'Pull',ids:['pulldown','row','curl','hang']},{name:'Legs',ids:['squat','deadlift','leg-curl','plank']},{name:'Calisthenics',ids:['pullup','dip','pushup','handstand']}];
+export function ensureStrength(s){s.strength??={sessions:[],active:null};s.strength.sessions??=[];return s.strength;}
+export function e1rm(kg,reps){return kg>0&&Number.isInteger(reps)&&reps>=1&&reps<=10?kg*36/(37-reps):null;}
+export function setScore(e,set){return e.unit==='kg'?(e1rm(set.kg,set.reps)||0):set.reps;}
+export function bestSet(session,id){const e=liftById[id];return Math.max(0,...(session.exercises.find(x=>x.id===id)?.sets||[]).filter(x=>x.done).map(x=>setScore(e,x)));}
+export function exerciseRecord(s,id){let best=0,relative=0,previous=null;for(const w of s.strength?.sessions||[]){if(w.date<s.expedition.start)continue;const n=bestSet(w,id);if(n>best){best=n;previous=w;}relative=Math.max(relative,liftById[id].unit==='kg'?(w.bodyweight?n/w.bodyweight:0):n);}const e=liftById[id],level=e.thresholds.filter(x=>relative>=x).length;return {best,relative,level,name:ranks[level],next:e.thresholds[level],previous};}
+export function overallRank(s){const groups=['push','pull','legs','core'].map(f=>Math.max(0,...lifts.filter(e=>e.family===f).map(e=>exerciseRecord(s,e.id).level)));const level=Math.floor(groups.reduce((n,x)=>n+x,0)/4);return {groups,level,name:ranks[level]};}
+export function elapsed(w,now=Date.now()){return Math.max(0,((w.pausedAt||w.finishedAt||now)-w.startedAt-(w.pausedMs||0))/60000);}
+export function creditedMinutes(w){const count=w.exercises.reduce((n,e)=>n+e.sets.filter(x=>x.done).length,0);return Math.max(0,Math.min(120,Math.floor(elapsed(w)),count*5));}
+export function prCount(s,w){return w.exercises.filter(e=>{const prev=Math.max(0,...(s.strength?.sessions||[]).filter(x=>x.date<w.date&&x.date>=s.expedition.start).map(x=>bestSet(x,e.id)));const current=bestSet(w,e.id);return prev>0&&(liftById[e.id].unit==='kg'?current>=prev+Math.max(1,prev*.01):current>=prev+1);}).length;}
+export function strengthXP(s,day){const days={};for(const w of s.strength?.sessions||[]){if(w.date<s.expedition.start||(day&&w.date!==day))continue;days[w.date]??={minutes:0,prs:new Set()};days[w.date].minutes+=creditedMinutes(w);for(const e of w.exercises){const single={...w,exercises:[e]};if(prCount(s,single))days[w.date].prs.add(e.id);}}return Object.entries(days).reduce((n,[d,x])=>{const habit=Object.values(s.history[d]?.entries||{}).filter(e=>e.category==='strength'&&e.value>=e.target).reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0);return n+Math.max(0,Math.min(240,2*x.minutes)-habit-trainingXP(s,d))+Math.min(20,5*x.prs.size);},0);}
+export function startWorkout(s,day,ids=[],now=Date.now()){const hub=ensureStrength(s);if(hub.active||s.training?.active)throw Error('Avsluta ditt pågående pass först.');hub.active={id:crypto.randomUUID(),date:day,startedAt:now,pausedMs:0,pausedAt:null,finishedAt:null,bodyweight:Number(s.profile.weight)||null,height:Number(s.profile.height)||null,note:'',exercises:[]};for(const id of ids)addExercise(s,id);return hub.active;}
+export function addExercise(s,id){const w=ensureStrength(s).active;if(!w||!liftById[id])throw Error('Starta ett pass och välj en övning.');if(w.exercises.length>=8)throw Error('Högst åtta övningar per pass.');if(w.exercises.some(x=>x.id===id))throw Error('Övningen finns redan. Lägg till ett set istället.');if(s.strength.sessions.some(x=>x.date===w.date&&x.exercises.some(e=>e.id===id)))throw Error('Övningen är redan sparad idag.');w.exercises.push({id,sets:[{kg:0,reps:0,done:false}]});}
+export function logStrengthSet(s,id,index,kg,reps){const e=liftById[id],w=s.strength.active,x=w?.exercises.find(e=>e.id===id);if(!e||!x||!x.sets[index]||w.pausedAt)throw Error('Återuppta passet innan du loggar ett set.');if(!Number.isFinite(kg)||kg<0||kg>600||!Number.isInteger(reps)||reps<1||reps>(e.unit==='sek'?600:100)||(e.unit==='kg'&&kg<=0))throw Error('Kontrollera vikt och repetitioner/tid.');x.sets[index]={kg:e.unit==='kg'?kg:0,reps,done:true};}
+export function finishWorkout(s,now=Date.now()){const hub=ensureStrength(s),w=hub.active;if(!w||!w.exercises.some(e=>e.sets.some(x=>x.done)))throw Error('Registrera minst ett set först.');if(w.pausedAt){w.pausedMs+=now-w.pausedAt;w.pausedAt=null;}w.finishedAt=now;hub.sessions.push(structuredClone(w));hub.active=null;return w;}
