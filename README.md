@@ -20,7 +20,7 @@ npm run dev
 - Det tydligt märkta demoläget innehåller påhittade vänner och historik. Ändringar sparas på den aktuella enheten.
 - Nya besökare väljer Google-inloggning eller att uttryckligen utforska demon. En utgången eller avbruten inloggning visas med möjlighet att försöka igen.
 - **Börja min egen lokala expedition** skapar en separat tom resa. Demo flyttas aldrig in i ett riktigt konto.
-- Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. SQL-migrationerna 001–004 är genomförda. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
+- Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. SQL-migrationerna 001–005 är genomförda. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
 - Google-leverantören och webbklienten är konfigurerade i Supabase. Aktiveringen är verifierad mot tjänstens riktiga auth-inställningar och appens `googleEnabled` är `true`.
 - Riktig Google-inloggning, sparad profil och återhämtning efter omladdning är verifierade på både GitHub Pages och den privata förhandsversionen. Samma konto hämtar samma molnprofil från båda adresserna. Mobilkamera på fysisk iPhone och flera verkliga vänners konton behöver fortfarande provas tillsammans.
 - Den anslutna Sites-publiceringen är en privat förhandsversion. GitHub-repositoryts synlighet styr inte vem som får läsa privata kontodata i Supabase.
@@ -37,7 +37,7 @@ Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensa
 
 ## Anslut ett nytt Supabase-projekt
 
-1. Skapa ett projekt i [Supabase](https://supabase.com/dashboard). Kör hela `supabase/001_winter_arc.sql` i SQL Editor **en gång i ett nytt projekt**. Skriptet skapar tabeller, funktioner, privata lagringsregler och bildbucketen `arc-photos`. Kör sedan `supabase/002_training_season.sql` och `supabase/003_daily_integrity.sql` och `supabase/004_calendar_integrity.sql` i ordning, en gång vardera.
+1. Skapa ett projekt i [Supabase](https://supabase.com/dashboard). Kör hela `supabase/001_winter_arc.sql` i SQL Editor **en gång i ett nytt projekt**. Skriptet skapar tabeller, funktioner, privata lagringsregler och bildbucketen `arc-photos`. Kör sedan `supabase/002_training_season.sql` och `supabase/003_daily_integrity.sql` och `supabase/004_calendar_integrity.sql` och `supabase/005_effort_rewards.sql` i ordning, en gång vardera.
 2. Aktivera Google under Authentication → Sign In / Providers. Skapa en Google OAuth-webbklient i ert Google Cloud-projekt och konfigurera Supabase-leverantören enligt [Supabase Google-guide](https://supabase.com/docs/guides/auth/social-sign-in/auth-google). Google-klientens hemlighet anges bara i Supabase, aldrig i GitHub eller frontend.
 3. Sätt appens produktionsadress som Site URL och tillåten Redirect URL i Supabase Authentication → URL Configuration. OAuth-return går till **exakt samma origin och sökväg** som appen. För GitHub Pages används adressen med `/winter-arc/` och avslutande snedstreck. Lägg bara till den lokala adressen om utveckling behövs.
 4. Lägg projektets URL och **publika publishable/anon-nyckel** i `src/config.js`. Dessa får finnas i frontend; RLS skyddar datan. Använd aldrig `service_role` eller en databashemlighet här.
@@ -101,3 +101,5 @@ Detta hindrar teknisk XP-spam och flera vanliga manipulationsvägar. Självrappo
 Startskärm och sidövergångar använder korta opacity-/transform-animationer. Reduce Motion respekteras; timers uppdaterar bara sin text i stället för att rendera om hela appen varje sekund. Visuell browser-QA ersätter inte prestandamätning på en fysisk iPhone.
 
 Kontots tidszon hålls fast efter registrering för att förhindra byte av kalenderdag som XP-genväg. En väntande måländring får tidigast träda i kraft nästa dag.
+
+Biblioteksaktiviteternas stat och enhet är fasta. Ett mindre dagligt mål ger proportionellt färre XP (avrundat, minst 1 XP); ett större mål ger inte mer än aktivitetens normalpoäng. Exempel: en sida av ett normalt läsmål på tio sidor ger 3 XP i stället för 25. Egna vanor ger fortfarande 15 XP.

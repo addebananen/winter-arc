@@ -30,7 +30,8 @@ export const library = [
  ,...extraHabits];
 export function habitTemplate(h){const id=h.templateId;return id&&/^habit-\d+$/.test(id)?library[Number(id.slice(6))]:library.find(x=>x[0].toLocaleLowerCase('sv-SE')===h.name.trim().toLocaleLowerCase('sv-SE'));}
 export function habitKey(h){const item=habitTemplate(h),i=library.indexOf(item);return item?(['Lugn andning','En minuts andningspaus'].includes(item[0])?'breathing':item[0]==='Meditation'?'meditation':'habit:'+i):'custom:'+h.name.trim().toLocaleLowerCase('sv-SE').replace(/\s+/g,' ');}
-export function normalizeHabits(state){for(const h of state.habits){const item=habitTemplate(h);h.templateId=item?'habit-'+library.indexOf(item):null;h.activityKey=habitKey(h);h.xp=item?item[4]:15;if(item)h.category=item[1];}return state;}
+export function habitXP(h){const item=habitTemplate(h);return item?Math.max(1,Math.round(item[4]*Math.min(1,Number(h.target)/item[2]))):15;}
+export function normalizeHabits(state){for(const h of state.habits){const item=habitTemplate(h);h.templateId=item?'habit-'+library.indexOf(item):null;h.activityKey=habitKey(h);h.xp=habitXP(h);if(item){h.category=item[1];h.unit=item[3];}}return state;}
 export const uid = () => globalThis.crypto.randomUUID();
 export function dateKey(d = new Date(), zone) {
  const p = new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
@@ -59,7 +60,7 @@ export function setProgress(state,id,value,day=dateKey()) {
  const h=state.habits.find(x=>x.id===id); if(!h||!due(h,day))throw Error('Vanan är inte aktiv den här dagen.');
  if(!Number.isFinite(value)||value<0||value>h.target)throw Error('Ogiltigt värde.');
  const record=ensureDay(state,day); if(!record.required.includes(id))record.required.push(id);
- record.entries[id]={value,target:h.target,xp:h.xp,category:h.category,name:h.name,activityKey:habitKey(h)};
+ record.entries[id]={value,target:h.target,xp:habitXP(h),category:h.category,name:h.name,activityKey:habitKey(h)};
  const p=progress(state,day),count=Object.values(record.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target).length;
  if(count<3)delete state.claims['three:'+day];if(!p.perfect)delete state.claims['perfect:'+day];if(count<2&&!hasRecovery(state,day))delete state.claims['comeback:'+day];
  return p;
