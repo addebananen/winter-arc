@@ -1,5 +1,6 @@
 import {SEASON_START,extraHabits,ensureTraining,trainingXP,trainingStats,hasRecovery} from './fitness.js';
 export const categories = {
+ music: {name:'Musik',stat:'Music',icon:'music',color:'#e1b6d8'},
  strength: {name:'Träning', stat:'Strength', icon:'dumbbell', color:'#a7bcfa'},
  mobility: {name:'Rörlighet', stat:'Flexibility', icon:'stretch', color:'#88d3cf'},
  health: {name:'Hälsa', stat:'Discipline', icon:'heart', color:'#82d6b4'},
@@ -69,7 +70,15 @@ export function addHabit(state,h,today=dateKey()) {if(state.habits.some(x=>!x.ar
 export function archiveHabit(state,id,today=dateKey()) { const h=state.habits.find(h=>h.id===id);if(!h)return;h.archived=true;delete h.pending;delete h.pendingDate; const r=state.history[today]; if(r && !(r.entries[id]?.value>=r.entries[id]?.target))r.required=r.required.filter(x=>x!==id); }
 export function applyScheduledChanges(state,day=dateKey()){for(const h of state.habits)if(h.pending&&h.pendingDate<=day){const pending=h.pending;delete h.pending;delete h.pendingDate;Object.assign(h,pending);}}
 export function multiplier(count){return count>=5?1.5:count>=3?1.2:1;}
-export function challengeXP(record){const done=Object.values(record?.entries||{}).filter(e=>e.value>=e.target),meditation=done.filter(e=>e.activityKey==='meditation'&&e.source!=='challenge').reduce((n,e)=>n+e.xp,0);return Math.min(100,Object.entries(record?.entries||{}).filter(([,e])=>e.source==='challenge'&&e.value>=e.target).reduce((n,[id,e])=>n+Math.max(0,e.xp-(id==='challenge:meditation-notice'?meditation:0)),0));}
+export function challengeRewards(record){
+ const done=Object.values(record?.entries||{}).filter(e=>e.value>=e.target&&e.source!=='challenge');
+ const meditation=done.filter(e=>e.activityKey==='meditation').reduce((n,e)=>n+e.xp,0),music=done.filter(e=>e.category==='music').reduce((n,e)=>n+e.xp,0);
+ const rewards=Object.entries(record?.entries||{}).filter(([,e])=>e.source==='challenge'&&e.value>=e.target).map(([id,e])=>({...e,earned:Math.max(0,e.xp-(id==='challenge:meditation-notice'?meditation:0))}));
+ const pool=rewards.filter(e=>e.category==='music').reduce((n,e)=>n+e.earned,0);
+ for(const e of rewards)if(e.category==='music')e.earned*=pool?Math.max(0,pool-music)/pool:0;
+ return rewards;
+}
+export function challengeXP(record){return Math.min(100,Math.round(challengeRewards(record).reduce((n,e)=>n+e.earned,0)));}
 export function dayXP(record) {const all=Object.values(record?.entries||{}).filter(e=>e.value>=e.target),done=all.filter(e=>e.source!=='challenge');return Math.round(Math.min(200,done.reduce((sum,e)=>sum+e.xp,0))*multiplier(done.length))+challengeXP(record);}
 export function totalXP(state){return Object.entries(state.history).filter(([d])=>d>=state.expedition.start).reduce((s,[,r])=>s+dayXP(r),0)+Object.values(state.claims).filter(c=>c.date>=state.expedition.start).reduce((s,c)=>s+c.xp,0)+trainingXP(state);}
 export function levelInfo(xp){const level=Math.floor(Math.sqrt(xp/80))+1,base=80*(level-1)**2,next=80*level**2;return {level,base,next,ratio:(xp-base)/(next-base)};}
@@ -79,12 +88,12 @@ export function streak(state,today=dateKey()) {
 }
 export function bestStreak(state){let best=0,n=0,last='';for(const d of Object.keys(state.history).sort()){if(progress(state,d).perfect){n=last&&d===shiftDate(last,1)?n+1:1;best=Math.max(best,n);}else n=0;last=d;}return best;}
 export function stats(state){
- const s={Strength:0,Flexibility:0,Discipline:0,Wisdom:0,Faith:0,Social:0};
+ const s={Strength:0,Flexibility:0,Discipline:0,Wisdom:0,Faith:0,Social:0,Music:0};
  for(const [day,r] of Object.entries(state.history)){
   if(day<state.expedition.start)continue;
   const habits=Object.values(r.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target),base=habits.reduce((n,e)=>n+e.xp,0),meditation=habits.filter(e=>e.activityKey==='meditation').reduce((n,e)=>n+e.xp,0);
   for(const e of habits)s[categories[e.category]?.stat||'Discipline']+=e.xp*Math.min(1,200/base);
-  const challenges=Object.entries(r.entries).filter(([,e])=>e.source==='challenge'&&e.value>=e.target).map(([id,e])=>({...e,earned:Math.max(0,e.xp-(id==='challenge:meditation-notice'?meditation:0))})),bonus=challenges.reduce((n,e)=>n+e.earned,0);
+  const challenges=challengeRewards(r),bonus=challenges.reduce((n,e)=>n+e.earned,0);
   for(const e of challenges)s[categories[e.category]?.stat||'Discipline']+=e.earned*Math.min(1,100/bonus);
  }
  for(const [k,v] of Object.entries(trainingStats(state)))s[k]+=v;
@@ -96,7 +105,7 @@ export function achievements(state,today=dateKey()) {
  {id:'first',name:'Första steget',description:'Klara din första vana',icon:'flag',unlocked:done>=1,progress:Math.min(done,1)},
  {id:'week',name:'Obruten',description:'7 perfekta dagar i rad',icon:'flame',unlocked:bestStreak(state)>=7,progress:Math.min(bestStreak(state)/7,1)},
  {id:'century',name:'Hundra små steg',description:'Genomför 100 vanor',icon:'gem',unlocked:done>=100,progress:Math.min(done/100,1)},
- {id:'balance',name:'I balans',description:'Utveckla alla sex stats',icon:'compass',unlocked:Object.values(stats(state)).every(x=>x>0),progress:Object.values(stats(state)).filter(x=>x>0).length/6},
+ {id:'balance',name:'I balans',description:'Utveckla minst sex stats',icon:'compass',unlocked:Object.values(stats(state)).filter(x=>x>0).length>=6,progress:Math.min(1,Object.values(stats(state)).filter(x=>x>0).length/6)},
  {id:'journal',name:'Ett visuellt minne',description:'Spara 7 progressbilder',icon:'camera',unlocked:state.body.length>=7,progress:Math.min(state.body.length/7,1)},
  {id:'reflect',name:'Självinsikt',description:'Skriv 4 veckoreflektioner',icon:'book',unlocked:state.reflections.length>=4,progress:Math.min(state.reflections.length/4,1)}
  ];

@@ -1,5 +1,6 @@
 // Shared 24px optical grid: open shapes, rounded joins, no platform emoji.
 const paths={
+ music:'M9 18V5l11-2v13M9 9l11-2M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Zm11-2a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Z',
  stretch:'M15 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM4 9l8-1 7 3m-7-3-2 7-6 5m6-5 7 5 3-1',
 
  home:'M3 10.5 12 3l9 7.5M5 9v11h5v-6h4v6h5V9',

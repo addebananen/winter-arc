@@ -1,3 +1,4 @@
+import {musicHabits,musicChallenges} from './music.js';
 export const SEASON_START='2026-11-09';
 export const characters=[
  {id:'ranger',name:'Aurora Ranger',role:'Utforskaren',motto:'Ett nytt steg, varje dag.',description:'Nyfiken, jordnära och som starkast när livet är i balans.',color:'#b9ded0',symbol:'compass'},
@@ -61,6 +62,7 @@ export const extraHabits=[
 ];
 
 // Reps are practice, not a test of maximum capacity. Every movement is adjustable.
+extraHabits.push(...musicHabits);
 export const exercises=[
  {id:'wall-push',name:'Armhävning mot vägg',family:'push',stat:'Strength',unit:'reps',reference:8,xp:6,equipment:'Vägg',difficulty:1,cue:'Händer mot väggen. Håll kroppen stabil och böj armarna lugnt.'},
  {id:'incline-push',name:'Lutande armhävning',family:'push',stat:'Strength',unit:'reps',reference:8,xp:8,equipment:'Stabil upphöjd yta',difficulty:2,cue:'Välj en stadig yta. Sänk bröstet kontrollerat och pressa tillbaka.'},
@@ -125,7 +127,8 @@ export const challenges=[
  {id:'specific-thanks',stat:'Social',name:'Ett tack med innehåll',minutes:3,xp:20,icon:'heart',prompt:'Tacka någon för något konkret och berätta varför det betydde något för dig.'},
  {id:'listen-first',stat:'Social',name:'Nyfiken före snabb',minutes:5,xp:25,icon:'users',prompt:'Ställ en öppen fråga till en vän och lyssna färdigt. Följ upp med en fråga istället för att direkt ge råd.'}
 ];
-export const statCategory={Strength:'strength',Flexibility:'mobility',Discipline:'discipline',Wisdom:'wisdom',Faith:'faith',Social:'social'};
+challenges.push(...musicChallenges);
+export const statCategory={Strength:'strength',Flexibility:'mobility',Discipline:'discipline',Wisdom:'wisdom',Faith:'faith',Social:'social',Music:'music'};
 export function ensureTraining(state){state.training??={sessions:[],plans:[],active:null};state.training.sessions??=[];state.training.plans??=[];state.privateTrackers??={};state.privateTrackers.nofap??={enabled:false,startedAt:null,resets:[],longestMs:0};state.profile.character??='ranger';state.profile.characterName??='';return state;}
 export function sessionBreakdown(session){const out={training:0,breath:0,stats:{Strength:0,Flexibility:0,Discipline:0}};if(!session?.finishedAt)return out;for(const step of (session.exercises||[]).slice(0,6)){const e=exerciseById[step.id];if(!e)continue;for(const raw of (step.done||[]).slice(0,3)){const actual=Number(raw);if(!Number.isFinite(actual)||actual<=0)continue;const value=Math.min(actual,e.unit==='sek'?600:40);const points=Math.round(e.xp*Math.min(value/e.reference,1.5));if(e.id==='breathing')out.breath+=points;else out.training+=points;out.stats[e.stat]+=points;}}const total=out.training+out.breath;if(total>80){const factor=80/total;out.training=Math.floor(out.training*factor);out.breath=80-out.training;for(const k of Object.keys(out.stats))out.stats[k]=Math.round(out.stats[k]*factor);}return out;}
 export const sessionXP=s=>{const p=sessionBreakdown(s);return p.training+p.breath;};

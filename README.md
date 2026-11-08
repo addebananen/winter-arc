@@ -17,17 +17,16 @@ npm run dev
 
 ## Status
 
-- Det tydligt märkta demoläget innehåller påhittade vänner och historik. Ändringar sparas på den aktuella enheten.
-- Nya besökare väljer Google-inloggning eller att uttryckligen utforska demon. En utgången eller avbruten inloggning visas med möjlighet att försöka igen.
-- **Börja min egen lokala expedition** skapar en separat tom resa. Demo flyttas aldrig in i ett riktigt konto.
-- Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. SQL-migrationerna 001–005 är genomförda. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
+- Den publika releasen kräver Google-inloggning. Den visar inga demo- eller lokala kontoval. Isolerade DOM-tester aktiverar utvecklingslägen via ersatt testkonfiguration; `developmentModes` är `false` i publicerad kod.
+- Befintliga molnprofiler, journaler och historik bevaras vid uppgraderingar. Appens cache innehåller kod, inte kontodata. Nya funktioner lägger till data utan att återställa tidigare stats.
+- Supabase-projektet **Winter -arc** (`noamtwazmbtrnyqdmplf`, Frankfurt) är anslutet i den publika frontendkonfigurationen. SQL-migrationerna 001–006 är genomförda. Alla sju tabeller har verifierad RLS och bildbucketen är privat. Anonym läsning av privat kontodata har verifierats nekad i den verkliga tjänsten.
 - Google-leverantören och webbklienten är konfigurerade i Supabase. Aktiveringen är verifierad mot tjänstens riktiga auth-inställningar och appens `googleEnabled` är `true`.
 - Riktig Google-inloggning, sparad profil och återhämtning efter omladdning är verifierade på både GitHub Pages och den privata förhandsversionen. Samma konto hämtar samma molnprofil från båda adresserna. Mobilkamera på fysisk iPhone och flera verkliga vänners konton behöver fortfarande provas tillsammans.
 - Den anslutna Sites-publiceringen är en privat förhandsversion. GitHub-repositoryts synlighet styr inte vem som får läsa privata kontodata i Supabase.
 
 ## Funktioner
 
-Dagens vanor, 60 biblioteksförslag inom sju kategorier, egna vanor och scheman, vanekopplingar enligt Atomic Habits, personliga mål, dagsmål, streaks, XP, nivåer, combo och multipliers. Fyra valbara karaktärer med egna namn och fyra visuella evolutioner. Sex stats: Strength, Flexibility, Discipline, Wisdom, Faith och Social. Level följer samlad XP; sju separata ranks går från Rookie till Diamond. Skill tree, achievements, belöningar, dagliga quests och comeback efter en missad dag.
+Dagens vanor, 68 biblioteksförslag inom åtta kategorier, egna vanor och scheman, vanekopplingar enligt Atomic Habits, personliga mål, dagsmål, streaks, XP, nivåer, combo och multipliers. Fyra valbara karaktärer med egna namn och fyra visuella evolutioner. Sju stats: Strength, Flexibility, Discipline, Wisdom, Faith, Social och Music. Level följer samlad XP; sju separata ranks går från Rookie till Diamond. Skill tree, achievements, belöningar, dagliga quests och comeback efter en missad dag.
 
 28 träningsövningar, sex grundpass, tre comeback-pass, egna upplägg, registrering per set, vilotimer, andningspaus med pausfunktion och träningsjournal. Övningsnivå 1–10 följer övningens egna repetitioner/sekunder. 20 utmaningar kategoriserade per stat, med en privat anteckning om vad man gjort/lärt sig. Valfri privat NoFap-räknare med dagar/timmar, omstart och personbästa; den påverkar aldrig XP, rank eller squaddata.
 
@@ -37,7 +36,7 @@ Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensa
 
 ## Anslut ett nytt Supabase-projekt
 
-1. Skapa ett projekt i [Supabase](https://supabase.com/dashboard). Kör hela `supabase/001_winter_arc.sql` i SQL Editor **en gång i ett nytt projekt**. Skriptet skapar tabeller, funktioner, privata lagringsregler och bildbucketen `arc-photos`. Kör sedan `supabase/002_training_season.sql` och `supabase/003_daily_integrity.sql` och `supabase/004_calendar_integrity.sql` och `supabase/005_effort_rewards.sql` i ordning, en gång vardera.
+1. Skapa ett projekt i [Supabase](https://supabase.com/dashboard). Kör hela `supabase/001_winter_arc.sql` i SQL Editor **en gång i ett nytt projekt**. Skriptet skapar tabeller, funktioner, privata lagringsregler och bildbucketen `arc-photos`. Kör sedan `supabase/002_training_season.sql` och `supabase/003_daily_integrity.sql` och `supabase/004_calendar_integrity.sql` och `supabase/005_effort_rewards.sql` och `supabase/006_music_course.sql` i ordning, en gång vardera.
 2. Aktivera Google under Authentication → Sign In / Providers. Skapa en Google OAuth-webbklient i ert Google Cloud-projekt och konfigurera Supabase-leverantören enligt [Supabase Google-guide](https://supabase.com/docs/guides/auth/social-sign-in/auth-google). Google-klientens hemlighet anges bara i Supabase, aldrig i GitHub eller frontend.
 3. Sätt appens produktionsadress som Site URL och tillåten Redirect URL i Supabase Authentication → URL Configuration. OAuth-return går till **exakt samma origin och sökväg** som appen. För GitHub Pages används adressen med `/winter-arc/` och avslutande snedstreck. Lägg bara till den lokala adressen om utveckling behövs.
 4. Lägg projektets URL och **publika publishable/anon-nyckel** i `src/config.js`. Dessa får finnas i frontend; RLS skyddar datan. Använd aldrig `service_role` eller en databashemlighet här.
@@ -64,7 +63,7 @@ För automatiska GitHub Pages-uppdateringar:
 
 Google/Supabase tillåter sedan denna adress som redirect. Lägg aldrig privata bilder i repositoryt eller `dist/`.
 
-Service workern cachelagrar endast appens skal. Supabase-anrop, åtkomsttoken, bild-URL:er och privata molnposter läggs inte i service worker-cachen. Nya versioner upptäcks automatiskt och användaren får välja att öppna den nya versionen. Lokala framsteg bevaras. En molnändring som inte kan sparas återställs med ett felmeddelande, så appen visar inte osparade framsteg som synkade. Samtidiga enheter skyddas av revisionskontroll; vid konflikt hämtar man senaste resan och gör om ändringen.
+Service workern cachelagrar endast appens skal. Supabase-anrop, åtkomsttoken, bild-URL:er och privata molnposter läggs inte i service worker-cachen. Nya versioner upptäcks automatiskt och aktiveras när appen är inaktiv en kort stund, inget formulär eller dialog är öppet och inget träningspass pågår. Uppdateringen kräver nätanslutning och kan vänta tills appen öppnas igen. Ingen ominstallation av hemskärmsgenvägen behövs. Molnprofiler och sparade framsteg ligger kvar i Supabase. En molnändring som inte kan sparas återställs med ett felmeddelande, så appen visar inte osparade framsteg som synkade. Samtidiga enheter skyddas av revisionskontroll; vid konflikt hämtar man senaste resan och gör om ändringen.
 
 ## På iPhone
 
@@ -103,3 +102,12 @@ Startskärm och sidövergångar använder korta opacity-/transform-animationer. 
 Kontots tidszon hålls fast efter registrering för att förhindra byte av kalenderdag som XP-genväg. En väntande måländring får tidigast träda i kraft nästa dag.
 
 Biblioteksaktiviteternas stat och enhet är fasta. Ett mindre dagligt mål ger proportionellt färre XP (avrundat, minst 1 XP); ett större mål ger inte mer än aktivitetens normalpoäng. Exempel: en sida av ett normalt läsmål på tio sidor ger 3 XP i stället för 25. Egna vanor ger fortfarande 15 XP.
+
+
+## Musik: kurs, källor och poäng
+
+Under Träning → Musikkurs finns 30 originallektioner i tio svårighetssteg, fördelade på teori/skalor, gehör och sång. Varje lektion har instruktioner, länkade övningar, reflektion och privat genomförandelogg. Svårighet är kursens pedagogiska gradering, inte en medicinsk skala, talangbedömning eller verifierad färdighetsnivå. Samma lektion kan ge XP en gång per dag. Musikvanor och musiklektioner delar grundpoäng: kursbonusen räknas bara över dagens musikvanepoäng, med det gemensamma utmaningstaket 100 bonus-XP. Befintliga template-ID:n är bevarade; åtta musikvanor ligger sist i biblioteket.
+
+Länkade övningar och underlag: [musictheory.net](https://www.musictheory.net/exercises), [teoria](https://www.teoria.com/en/exercises/), [VoiceScienceWorks SOVT](https://www.voicescienceworks.org/sovt-exercises.html), [sugrörsfonation](https://www.voicescienceworks.org/straw-phonation.html), [Berklee röstvanor](https://college.berklee.edu/bt/213/play_for_life.html), [Berklee registerarbete](https://college.berklee.edu/people/ilona-tipp) och [NIDCD rösthälsa](https://www.nidcd.nih.gov/health/taking-care-your-voice). Källorna har inte godkänt eller certifierat kursen. Länkar öppnas i nya flikar; externa övningsresultat importeras inte. Sång sker i bekvämt omfång med pauser, utan krav på maxhöjd eller volym. Kursen lovar inte ett visst röstomfång eller mixed voice.
+
+Framtida databasmigrationer ska vara nya, framåtgående filer (007 och vidare); ändra eller kör inte om redan tillämpade migrationer. Bygg, tester och uppgraderingskontroller ska passera före publicering.
