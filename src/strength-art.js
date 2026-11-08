@@ -17,4 +17,18 @@ const poses={
  hang:[[96,62,96,83,96,116,84,135,81,153,108,135,112,153,75,51,63,22,117,51,129,22]],
  handstand:[[96,128,96,107,96,70,84,42,81,16,108,42,112,16,76,128,70,148,116,128,122,148]]
 };
+Object.assign(poses,{
+ incline:poses.bench.map(v=>v.map((n,i)=>i%2?n-(120-v[i-1])*.25:n)),
+ 'chest-press':poses.bench,'supported-row':poses.row,'one-pull':poses.pull,
+ 'leg-extension':[poses['leg-curl'][1],poses['leg-curl'][0]],
+ lunge:[poses.squat[0],[96,55,96,76,96,108,72,112,63,145,120,130,138,145,77,86,72,112,115,86,120,112]],
+ nordic:poses.hinge,fly:[[96,42,96,63,96,100,82,121,80,145,111,121,113,145,61,64,33,75,131,64,159,75],[96,42,96,63,96,100,82,121,80,145,111,121,113,145,79,76,92,76,113,76,100,76]],
+ 'reverse-fly':[],facepull:[],overhead:[poses.press[1],poses.press[1].map((n,i)=>i===17||i===21?n+36:n)],
+ 'y-raise':[poses.lateral[0],poses.press[1]],'side-lying':poses.bench,'seated-press':poses.press,
+ skullcrusher:poses.bench,pullover:[poses.bench[0],poses.bench[1]],kickback:[poses.row[1],poses.row[0]],
+ preacher:poses.curl,bayesian:poses.curl,'incline-curl':poses.curl,pushdown:[poses.curl[1],poses.curl[0]],
+ run:[[96,34,96,55,96,96,72,111,55,142,120,120,137,143,70,68,78,43,122,83,133,67],[96,38,96,59,96,100,117,118,140,139,75,119,56,140,70,86,58,67,122,70,113,45]],
+ walk:[],volleyball:[poses.press[0],poses.press[1]],climb:[poses.pull[0],poses.pull[1]]
+});
+poses['reverse-fly']=[...poses.fly].reverse();poses.facepull=[poses['seated-row'][0],poses.pull[1]];poses.walk=poses.run;
 export function movementArt(e,animated=false){let [a,b]=poses[e.pose]||poses.curl;b=b||a;if(a.length<22){a=[...a,53,83,65,105,88,83,96,102];b=[...b,53,83,65,105,88,83,96,102];}const pairs=[[2,3,4,5],[4,5,6,7,8,9],[4,5,10,11,12,13],[2,3,14,15,16,17],[2,3,18,19,20,21]];const p=(v,ids)=>ids.map(i=>v[i]).join(' ');const anim=(attr,v1,v2)=>animated?`<animate attributeName="${attr}" values="${v1};${v2};${v1}" dur="3.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".4 0 .2 1;.4 0 .2 1"/>`:'';const bars=e.equipment==='Räcke'?'<path d="M44 20H148M48 20V152M144 20V152"/>':e.pose==='bench'?'<path d="M48 112H125M60 112V151M118 112V151"/>':e.equipment==='Maskin'||e.equipment==='Kabel'?'<path d="M36 20V151H162M158 20V151M36 20H158M54 111H118"/>':e.id==='handstand'?'<path d="M126 8V152"/>':'';return `<svg class="movement-art ${animated?'moving':''}" viewBox="0 0 192 170" role="img" aria-label="${e.name}: förenklad rörelsedemonstration"><defs><linearGradient id="skin-${e.id}" x2="0" y2="1"><stop stop-color="#c9e7df"/><stop offset="1" stop-color="#6eaaa1"/></linearGradient></defs><ellipse cx="96" cy="154" rx="75" ry="5" fill="#0003"/><g fill="none" stroke="#526a70" stroke-width="4" stroke-linecap="round">${bars}</g><g fill="none" stroke-linecap="round" stroke-linejoin="round">${pairs.map((ids,i)=>`<polyline points="${p(a,ids)}" stroke="${i===0?'#8fb8e8':i<3?'#425d79':'#c6ded0'}" stroke-width="${i===0?20:i<3?11:9}">${anim('points',p(a,ids),p(b,ids))}</polyline>`).join('')}</g><circle cx="${a[0]}" cy="${a[1]}" r="10" fill="url(#skin-${e.id})">${anim('cx',a[0],b[0])}${anim('cy',a[1],b[1])}</circle>${e.unit==='kg'?`<g stroke="#a8bbc4" stroke-width="4"><line x1="${a[16]-14}" y1="${a[17]}" x2="${a[20]+14}" y2="${a[21]}">${anim('x1',a[16]-14,b[16]-14)}${anim('y1',a[17],b[17])}${anim('x2',a[20]+14,b[20]+14)}${anim('y2',a[21],b[21])}</line></g>`:''}</svg>`;}

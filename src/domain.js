@@ -1,3 +1,4 @@
+import {cardioXP} from './cardio.js';
 import {ensureStrength,strengthXP} from './strength.js';
 import {SEASON_START,extraHabits,ensureTraining,trainingXP,trainingStats,hasRecovery} from './fitness.js';
 export const categories = {
@@ -81,7 +82,7 @@ export function challengeRewards(record){
 }
 export function challengeXP(record){return Math.min(100,Math.round(challengeRewards(record).reduce((n,e)=>n+e.earned,0)));}
 export function dayXP(record) {if(Object.values(record?.entries||{}).some(e=>e.durationMinutes)){const done=Object.values(record.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target);return Math.min(240,done.reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0))+challengeXP(record);}const all=Object.values(record?.entries||{}).filter(e=>e.value>=e.target),done=all.filter(e=>e.source!=='challenge');return Math.round(Math.min(200,done.reduce((sum,e)=>sum+e.xp,0))*multiplier(done.length))+challengeXP(record);}
-export function totalXP(state){return Object.entries(state.history).filter(([d])=>d>=state.expedition.start).reduce((s,[,r])=>s+dayXP(r),0)+Object.values(state.claims).filter(c=>c.date>=state.expedition.start).reduce((s,c)=>s+c.xp,0)+trainingXP(state)+strengthXP(state);}
+export function totalXP(state){return Object.entries(state.history).filter(([d])=>d>=state.expedition.start).reduce((s,[,r])=>s+dayXP(r),0)+Object.values(state.claims).filter(c=>c.date>=state.expedition.start).reduce((s,c)=>s+c.xp,0)+trainingXP(state)+strengthXP(state)+cardioXP(state);}
 export function levelInfo(xp){const level=Math.floor(Math.sqrt(xp/80))+1,base=80*(level-1)**2,next=80*level**2;return {level,base,next,ratio:(xp-base)/(next-base)};}
 export function streak(state,today=dateKey()) {
  let d=progress(state,today).perfect?today:shiftDate(today,-1),n=0;
@@ -89,7 +90,7 @@ export function streak(state,today=dateKey()) {
 }
 export function bestStreak(state){let best=0,n=0,last='';for(const d of Object.keys(state.history).sort()){if(progress(state,d).perfect){n=last&&d===shiftDate(last,1)?n+1:1;best=Math.max(best,n);}else n=0;last=d;}return best;}
 export function stats(state){
- const s={Strength:strengthXP(state),Flexibility:0,Discipline:0,Wisdom:0,Faith:0,Social:0,Music:0};
+ const s={Strength:strengthXP(state)+cardioXP(state),Flexibility:0,Discipline:0,Wisdom:0,Faith:0,Social:0,Music:0};
  for(const [day,r] of Object.entries(state.history)){
   if(day<state.expedition.start)continue;
   const habits=Object.values(r.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target),base=habits.reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0),meditation=habits.filter(e=>e.activityKey==='meditation').reduce((n,e)=>n+e.xp,0);
