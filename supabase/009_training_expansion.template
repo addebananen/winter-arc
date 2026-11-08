@@ -1,0 +1,66 @@
+-- Additive catalogue and cardio support. Apply once; preserve existing accounts.
+begin;
+-- Avatar uploads were validated by state rules but missing from Storage INSERT policy.
+drop policy arc_photo_insert on storage.objects;
+create policy arc_photo_insert on storage.objects for insert to authenticated with check(bucket_id='arc-photos' and (storage.foldername(name))[1]=auth.uid()::text and (storage.foldername(name))[2] in ('body','posts','avatar'));
+create or replace function public.arc_strength_meta(id text) returns jsonb language sql immutable set search_path=public,pg_temp as $$select value from jsonb_array_elements('__CATALOG__'::jsonb) where value->>'id'=$1 limit 1$$;
+create function public.arc_cardio_xp(p jsonb,until_day text) returns bigint language plpgsql immutable set search_path=public,pg_temp as $$
+declare d record; habit numeric; result numeric=0;
+begin
+ for d in select w->>'date' v_day,sum(2*floor((w->>'seconds')::numeric/60)) amount from jsonb_array_elements(coalesce(p#>'{cardio,sessions}','[]')) w where w->>'date'>=(p#>>'{expedition,start}') and w->>'date'<=until_day group by w->>'date' loop
+  select coalesce(sum(case when e ? 'durationMinutes' then 2*(e->>'durationMinutes')::numeric else (e->>'xp')::numeric end),0) into habit from jsonb_each(coalesce(p->'history'->d.v_day->'entries','{}')) x(k,e) where e->>'category' in ('health','strength') and (e->>'value')::numeric>=(e->>'target')::numeric;
+  result=result+greatest(0,least(240,d.amount)-habit-(public.arc_strength_xp(p,d.v_day)-public.arc_strength_xp(p,(d.v_day::date-1)::text))-(public.arc_training_xp(p,d.v_day)-public.arc_training_xp(p,(d.v_day::date-1)::text)));
+ end loop;
+ return result::bigint;
+end;$$;
+alter function public.arc_total_xp(jsonb,text) rename to arc_total_xp_v8;
+create function public.arc_total_xp(p jsonb,until_day text) returns bigint language sql immutable set search_path=public,pg_temp as $$select public.arc_total_xp_v8(p,until_day)+public.arc_cardio_xp(p,until_day)$$;
+
+alter function public.save_arc_state(jsonb,bigint) rename to save_arc_state_v8;
+create function public.save_arc_state(p_payload jsonb,p_expected_revision bigint) returns bigint
+language plpgsql security definer set search_path=public,pg_temp as $$
+declare old jsonb; a jsonb=p_payload#>'{cardio,active}'; b jsonb; w jsonb; prior jsonb; ts numeric=floor(extract(epoch from clock_timestamp())*1000); v_day text;
+begin
+ if auth.uid() is null then raise exception 'Logga in först.';end if;
+ select payload into old from public.user_states where user_id=auth.uid() for update;
+ b=old#>'{cardio,active}';v_day=(now() at time zone coalesce(old->>'timezone',p_payload->>'timezone','UTC'))::date::text;
+ if old->'cardio' is not null and p_payload->'cardio' is null then raise exception 'Aktivitetsjournalen måste behållas.';end if;
+ if p_payload->'cardio' is not null then
+  if jsonb_typeof(p_payload#>'{cardio,sessions}') is distinct from 'array' or jsonb_array_length(p_payload#>'{cardio,sessions}')>1000 then raise exception 'Ogiltig aktivitetsjournal.';end if;
+  for w in select value from jsonb_array_elements(coalesce(old#>'{cardio,sessions}','[]')) loop
+   if not exists(select 1 from jsonb_array_elements(p_payload#>'{cardio,sessions}') x where x=w) then raise exception 'Sparade aktiviteter är låsta.';end if;
+  end loop;
+  if exists(select 1 from jsonb_array_elements(p_payload#>'{cardio,sessions}') x group by x->>'id' having count(*)>1) or exists(select 1 from jsonb_array_elements(p_payload#>'{cardio,sessions}') x group by x->>'date',x->>'kind' having count(*)>1) then raise exception 'Aktiviteten räknas en gång per dag.';end if;
+  for w in select value from jsonb_array_elements(p_payload#>'{cardio,sessions}') loop
+   select value into prior from jsonb_array_elements(coalesce(old#>'{cardio,sessions}','[]')) x where x->>'id'=w->>'id';
+   if prior is not null then if prior<>w then raise exception 'Sparad aktivitet är låst.';end if;continue;end if;
+   if b is null or b='null'::jsonb or (w-'seconds'-'km'-'finishedAt')<>b or w->>'date'<>v_day or jsonb_typeof(w->'seconds') is distinct from 'number' or jsonb_typeof(w->'km') is distinct from 'number' or jsonb_typeof(w->'finishedAt') is distinct from 'number' or (w->>'seconds')::numeric not between 60 and 14400 or (w->>'seconds')::numeric<>floor((w->>'seconds')::numeric) or (w->>'seconds')::numeric*1000>ts-(b->>'startedAt')::numeric+2000 or abs((w->>'finishedAt')::numeric-ts)>120000 or (w->>'km')::numeric not between 0 and 100 or (w->>'kind'='run' and (w->>'km')::numeric<=0) or (w->>'km')::numeric*3600/(w->>'seconds')::numeric>45 then raise exception 'Kontrollera distans och verklig träningstid.';end if;
+   if a is distinct from 'null'::jsonb then raise exception 'Avsluta aktiviteten innan den sparas.';end if;
+  end loop;
+  if a is not null and a<>'null'::jsonb then
+   if p_payload#>>'{strength,active,id}' is not null or p_payload#>>'{training,active,id}' is not null then raise exception 'Bara ett pass kan pågå.';end if;
+   if b is not null and b<>'null'::jsonb then if a<>b then raise exception 'Aktivitetens start är låst.';end if;
+   else
+    if a->>'kind' not in ('run','walk','volleyball','climb') or a->>'kind' is null or a->>'date' is distinct from v_day or length(coalesce(a->>'id','')) not between 1 and 100 or exists(select 1 from jsonb_array_elements(p_payload#>'{cardio,sessions}') x where x->>'date'=v_day and x->>'kind'=a->>'kind') then raise exception 'Välj en ny aktivitet idag.';end if;
+    a=a||jsonb_build_object('startedAt',ts,'weight',p_payload#>'{profile,weight}','height',p_payload#>'{profile,height}');p_payload=jsonb_set(p_payload,'{cardio,active}',a);
+   end if;
+  end if;
+ end if;
+ return public.save_arc_state_v8(p_payload,p_expected_revision);
+end;$$;
+
+alter function public.arc_squad_events(jsonb) rename to arc_squad_events_v8;
+create function public.arc_squad_events(p jsonb) returns jsonb language plpgsql immutable set search_path=public,pg_temp as $$
+declare result jsonb=public.arc_squad_events_v8(p); w jsonb;
+begin
+ for w in select value from jsonb_array_elements(coalesce(p#>'{cardio,sessions}','[]')) loop
+  result=result||jsonb_build_object('cardio:'||(w->>'id'),case w->>'kind' when 'run' then 'Löpning' when 'walk' then 'Promenad' when 'volleyball' then 'Volleyboll' else 'Klättring' end||' klart · '||(w->>'km')||' km · '||round((w->>'seconds')::numeric/60,1)||' min · '||(w->>'date'));
+ end loop;return result;
+end;$$;
+revoke all on function public.arc_cardio_xp(jsonb,text),public.arc_total_xp(jsonb,text),public.save_arc_state_v8(jsonb,bigint),public.save_arc_state(jsonb,bigint),public.arc_squad_events(jsonb) from public,anon,authenticated;
+grant execute on function public.save_arc_state(jsonb,bigint) to authenticated;
+create function public.training_expansion_ready() returns integer language sql stable as $$select 9$$;
+revoke all on function public.training_expansion_ready() from public,anon;
+grant execute on function public.training_expansion_ready() to authenticated;
+notify pgrst,'reload schema';
+commit;
