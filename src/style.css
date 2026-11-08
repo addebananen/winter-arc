@@ -25,3 +25,17 @@
 @media(prefers-reduced-motion:reduce){#startup-screen,.btn,.icon-btn,.quick-link,.character-choice,.bottom-nav button,.check-btn,.bar>span{transition:none!important}.view-enter,.startup-emblem,#startup-screen strong,#startup-screen span,#startup-screen i:after{animation:none!important}}
 @media(max-width:760px){.top-actions .top-avatar{display:flex;width:auto}.top-actions{gap:10px}}
 @media(max-width:760px){.top-actions .top-avatar .avatar{display:grid}.top-actions .top-avatar{min-width:34px;min-height:44px;justify-content:center}}
+
+/* Optical consistency and restrained thumb navigation. */
+svg.i{overflow:visible;stroke-width:1.75}
+.quick-link .i{width:18px;height:18px}
+.habit-icon .i{width:22px;height:22px}
+.icon-btn{min-width:44px;min-height:44px}
+@media(max-width:760px){
+ .bottom-nav{padding-top:8px;border-top-color:#ffffff0d;gap:8px;box-shadow:0 -8px 30px #07101018}
+ .bottom-nav button{gap:5px;font-size:11px;font-weight:500;min-height:55px;color:#a0b2b0;border-radius:16px}
+ .bottom-nav button.active{background:#c6e7df0e;color:#dbf3e9}
+ .bottom-nav .i,.bottom-nav button:nth-child(2) .i{width:23px;height:23px}
+ .bottom-nav button.active .i{stroke-width:2;filter:drop-shadow(0 0 7px #c6e7df20)}
+ .quick-link{font-size:11px;gap:6px}
+}

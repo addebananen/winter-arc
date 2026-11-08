@@ -1,7 +1,7 @@
 import {SEASON_START,extraHabits,ensureTraining,trainingXP,trainingStats,hasRecovery} from './fitness.js';
 export const categories = {
  strength: {name:'Träning', stat:'Strength', icon:'dumbbell', color:'#a7bcfa'},
- mobility: {name:'Rörlighet', stat:'Flexibility', icon:'refresh', color:'#88d3cf'},
+ mobility: {name:'Rörlighet', stat:'Flexibility', icon:'stretch', color:'#88d3cf'},
  health: {name:'Hälsa', stat:'Discipline', icon:'heart', color:'#82d6b4'},
  discipline: {name:'Disciplin', stat:'Discipline', icon:'bolt', color:'#ffca84'},
  wisdom: {name:'Läsning', stat:'Wisdom', icon:'book', color:'#c4b3ec'},
