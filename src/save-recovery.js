@@ -1,7 +1,7 @@
 // Compare user intent while retaining server authority over workout clocks.
 function intent(state){
  const copy=structuredClone(state);
- for(const kind of ['training','strength']){
+ for(const kind of ['training','strength','cardio']){
   const workouts=[copy[kind]?.active,...(copy[kind]?.sessions||[])].filter(Boolean);
   for(const w of workouts){
    for(const key of ['startedAt','finishedAt','pausedAt'])if(key in w)w[key]=w[key]==null?null:'server-time';
