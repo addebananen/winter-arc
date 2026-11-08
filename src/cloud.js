@@ -10,7 +10,7 @@ export async function initialize(){if(!client)return null;const session=check(aw
 export async function login(){if(!googleReady)throw Error('Google-inloggningen väntar på att OAuth-klienten aktiveras i Supabase.');check(await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}}));}
 export async function logout(){if(client)check(await client.auth.signOut());user=null;}
 export async function load(){const row=check(await client.from('user_states').select('payload,revision').eq('user_id',user.id).maybeSingle());revision=row?.revision||0;return row?.payload||null;}
-export async function save(payload){const result=check(await client.rpc('save_arc_state',{p_payload:payload,p_expected_revision:revision}));revision=result;}
+export async function save(payload){const result=check(await client.rpc('save_arc_state_v3',{p_payload:payload,p_expected_revision:revision}));revision=result.revision;return result.payload;}
 export async function mySquad(){const memberships=check(await client.from('squad_members').select('squad_id').eq('user_id',user.id));if(!memberships?.length)return null;return check(await client.from('squads').select('id,name,created_by').eq('id',memberships[0].squad_id).single());}
 export async function createSquad(name){return check(await client.rpc('create_squad',{p_name:name}));}
 export async function joinSquad(code){return check(await client.rpc('join_squad',{p_code:code.trim()}));}

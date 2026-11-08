@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as D from '../src/domain.js';
 const day='2026-11-07';
-function fixture(n=5){const s=D.blankState(day);s.habits=D.library.slice(0,n).map(h=>D.makeHabit(h,day));return s;}
+function fixture(n=5){const s=D.blankState(day);s.expedition.start=D.shiftDate(day,-10);s.habits=D.library.slice(0,n).map(h=>D.makeHabit(h,day));return s;}
 test('calendar dates respect the account timezone around midnight',()=>{assert.equal(D.dateKey(new Date('2026-11-07T23:30:00Z'),'Europe/Stockholm'),'2026-11-08');assert.equal(D.dateKey(new Date('2026-11-07T23:30:00Z'),'America/New_York'),'2026-11-07');});
 test('date arithmetic survives DST and year boundaries',()=>{assert.equal(D.shiftDate('2026-03-29',1),'2026-03-30');assert.equal(D.shiftDate('2026-12-31',1),'2027-01-01');});
 test('week starts Monday including Sundays',()=>{assert.equal(D.weekKey('2026-11-08'),'2026-11-02');assert.equal(D.weekKey('2026-11-09'),'2026-11-09');});
