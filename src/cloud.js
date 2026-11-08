@@ -1,3 +1,4 @@
+import {createSocialClient} from './social-client.js';
 import {createClient} from '@supabase/supabase-js';
 import {config} from './config.js';
 export const configured = Boolean(config.supabaseUrl && config.supabaseKey);
@@ -15,12 +16,15 @@ export async function mySquad(){const memberships=check(await client.from('squad
 export async function createSquad(name){return check(await client.rpc('create_squad',{p_name:name}));}
 export async function joinSquad(code){return check(await client.rpc('join_squad',{p_code:code.trim()}));}
 export async function invite(squadId){return check(await client.rpc('get_squad_code',{p_squad:squadId}));}
-export async function social(squad){if(!squad)return {posts:[],members:[],missions:[]};const [posts,members,missions,missionCounts]=await Promise.all([
- client.from('posts').select('id,user_id,body,image_path,created_at,profiles(display_name),reactions(user_id,kind)').eq('squad_id',squad.id).order('created_at',{ascending:false}).limit(50),
+const socialClient=createSocialClient(client,()=>user);
+export async function social(squad){if(!squad)return {posts:[],members:[],missions:[]};const [posts,members,missions,missionCounts,activityStatus]=await Promise.all([
+ socialClient.feed(squad),
  client.rpc('squad_progress',{p_squad:squad.id}),
- client.from('missions').select('*').eq('squad_id',squad.id).order('created_at',{ascending:false}),client.rpc('mission_progress',{p_squad:squad.id})]);const counts=check(missionCounts);return {posts:check(posts),members:check(members),missions:check(missions).map(m=>({...m,completed:counts.find(c=>c.id===m.id)?.completed||0}))};}
-export async function publish(squad,body,image_path){return check(await client.from('posts').insert({user_id:user.id,squad_id:squad.id,body,image_path}).select('id').single());}
-export async function react(post,kind,active){if(active)return check(await client.from('reactions').delete().eq('post_id',post).eq('user_id',user.id).eq('kind',kind));return check(await client.from('reactions').insert({post_id:post,user_id:user.id,kind}));}
+ client.from('missions').select('*').eq('squad_id',squad.id).order('created_at',{ascending:false}),client.rpc('mission_progress',{p_squad:squad.id}),client.rpc('squad_activity_ready')]);const counts=check(missionCounts);return {activityReady:activityStatus.data===true,posts,members:check(members),missions:check(missions).map(m=>({...m,completed:counts.find(c=>c.id===m.id)?.completed||0}))};}
+export const publish=(...args)=>socialClient.publish(...args);
+export const react=(...args)=>socialClient.react(...args);
+export const removePost=id=>socialClient.remove(id);
+export const attachPostPhoto=(id,path)=>socialClient.attach(id,path);
 export async function upload(blob,kind){const path=`${user.id}/${kind}/${crypto.randomUUID()}.jpg`;check(await client.storage.from('arc-photos').upload(path,blob,{contentType:'image/jpeg',upsert:false}));return path;}
 const signed=new Map();
 export async function imageUrl(path){if(!path)return '';const cached=signed.get(path);if(cached&&cached.expires>Date.now())return cached.url;const data=check(await client.storage.from('arc-photos').createSignedUrl(path,300));signed.set(path,{url:data.signedUrl,expires:Date.now()+240000});return data.signedUrl;}
