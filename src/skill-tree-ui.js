@@ -1,4 +1,4 @@
-// Skill tree: an own bottom-nav destination with a category dropdown.
+// Skill tree: an own destination in the bottom tab bar with a category dropdown.
 //
 // Add a new category in two steps:
 // 1. Add an entry to `skillCategories` below (id, name, icon, color, tagline).
