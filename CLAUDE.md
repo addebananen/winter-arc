@@ -24,6 +24,12 @@ Supabase används för inloggning (Google) och data. Se README.md för detaljer.
 - `src/app.js`, `src/domain.js`, `src/style.css`: används av alla funktioner. Ändra bara det som behövs.
 - Funktionsområden har egna filer: träning (`src/fitness.js`, `src/fitness-ui.js`) och musik (`src/music.js`, `src/music-ui.js`). Lägg ny funktionalitet i egna filer när det går.
 
+## Språk (engelska som standard, svenska som val)
+- Appen visas på engelska som standard och kan bytas till svenska under Inställningar. Källtexterna i koden skrivs på svenska.
+- Översättningen sker i `src/i18n.js` när texten visas. **Lägg till varje ny gränssnittstext i `src/i18n-en.js`** (svenska → engelska). Siffror skrivs som `{#}`, t.ex. `"{#} dagar": "{#} days"`.
+- Övningsnamn som skrivs på engelska i katalogen behöver en svensk översättning i `src/i18n-sv.js`.
+- Text som användare själva skriver (inlägg, anteckningar) översätts aldrig.
+
 ## Databas (Supabase)
 - Migrationerna i `supabase/` är numrerade (001, 002 …). Ändra eller kör ALDRIG om en befintlig migration.
 - Nya databasändringar läggs i en ny fil med nästa lediga nummer. Kolla högsta numret på senaste `main` först.
