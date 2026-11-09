@@ -12,7 +12,7 @@ async function open(standalone) {
   w.localStorage.setItem('arc-mode', 'demo'); w.localStorage.setItem('arc-lang', 'sv');
   w.matchMedia = q => ({matches: standalone && q.includes('standalone'), media: q, addEventListener() {}, removeEventListener() {}});
   w.eval(bundled.outputFiles[0].text); await sleep(150);
-  w.document.querySelector('.page-head [data-action="settings"]').click(); await sleep(40);
+  w.document.querySelector('.top-actions [data-action="settings"]').click(); await sleep(40);
   return w;
 }
 

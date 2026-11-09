@@ -77,7 +77,7 @@ test('the app opens in English by default and switches to Swedish from settings'
   assert.equal(JSON.parse(w.localStorage.getItem('arc-state-demo')).strength.active.exercises[0].id, 'captains-chair');
   assert.match(q('.lift-log').textContent, /Captain's chair leg raise/);
   await click('hub:cancel'); await click('hub:discard');
-  for (const r of ['today', 'habits', 'squad', 'training']) { await click('nav:' + r); assert.ok(q('.page-head [data-action="settings"]'), 'Settings reachable on ' + r); }
+  for (const r of ['today', 'habits', 'squad', 'training']) { await click('nav:' + r); const gear = q('.top-actions [data-action="settings"]'); assert.ok(gear, 'Settings reachable on ' + r); assert.equal(gear.nextElementSibling?.dataset.action, 'nav:profile', 'Left of the profile picture on ' + r); assert.equal(q('.page-head [data-action="settings"]'), null); }
   await click('quick'); await click('quick:settings');
   assert.match(q('.modal').textContent, /Language/); await click('close');
   await click('nav:profile');
