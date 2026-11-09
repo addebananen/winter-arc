@@ -1,7 +1,7 @@
 import {workoutCatalog,workoutById,workoutVariant} from './skills.js';
 import {additions,technique} from './strength-catalog.js';
 import {trainingXP} from './fitness.js';
-// Rank boundaries are Winter Arc game milestones, not population percentiles.
+// Rank boundaries are Beyond Self game milestones, not population percentiles.
 export const ranks=['Ograderad','Brons','Silver','Guld','Platina','Diamant','Aurora'];
 const lift=(id,name,muscle,equipment,family,pose,thresholds,cue,unit='kg')=>({id,name,muscle,equipment,family,pose,thresholds,cue,unit});
 export const lifts=[
