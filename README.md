@@ -155,3 +155,9 @@ Nya nivåer härleds från avslutade pass efter expeditionens start. Rätt varia
 Befintliga manuellt angivna nivåer bevaras som historiskt utgångsläge. Nya manuella höjningar blockeras i UI och databas. Derived nivåer ger samma karaktärspoäng som tidigare; ingen extra XP delas ut för att visa eller öppna trädet. Passens vanliga tidsbaserade XP-regler gäller. Likadana skill-varianter kan inte registreras under flera katalog-ID:n samma dag. Skill-övningar påverkar inte styrkehubens sammanvägda rank.
 
 Kör endast migration 010 efter 001–009. Gamla migrationer ska inte regenereras eller köras igen. 010 genereras före installation via `node scripts/skill-workout-migration.mjs`; därefter fryses den som övriga migrationer.
+
+
+## Stabilitetskontroll och migration 012
+Bildbehandling hör till det formulär där bilden valdes. En långsam privat bild kan inte följa med till profilbild eller squad-inlägg efter att rutan stängts. Setutkast, inklusive teknikbekräftelsen, bevaras om sparandet misslyckas och användaren växlar flik. En oläsbar gammal social cache blockerar inte starten.
+
+Migration 012 rättar enbart enheten för enarms-handstandens sista mål (ett håll på 10 sekunder). Tidigare workouts, profiler, XP och nivåer ändras inte. Kör 012 en gång efter 011; regenerera aldrig tidigare migrationer.
