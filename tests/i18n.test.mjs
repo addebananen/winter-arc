@@ -77,6 +77,12 @@ test('the app opens in English by default and switches to Swedish from settings'
   assert.equal(JSON.parse(w.localStorage.getItem('arc-state-demo')).strength.active.exercises[0].id, 'captains-chair');
   assert.match(q('.lift-log').textContent, /Captain's chair leg raise/);
   await click('hub:cancel'); await click('hub:discard');
+  for (const r of ['today', 'habits', 'squad', 'training']) { await click('nav:' + r); assert.ok(q('.page-head [data-action="settings"]'), 'Settings reachable on ' + r); }
+  await click('quick'); await click('quick:settings');
+  assert.match(q('.modal').textContent, /Language/); await click('close');
+  await click('nav:profile');
+  assert.match(q('.profile-lang').textContent, /Language/);
+  assert.ok(q('.profile-lang [data-action="lang:sv"]'));
   await click('settings');
   assert.match(q('.modal').textContent, /Language/);
   assert.equal(q('[data-action="lang:en"]').getAttribute('aria-pressed'), 'true');

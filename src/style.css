@@ -232,3 +232,9 @@ button.skt-opt:hover{background:#ffffff08}
 /* Language switch (settings and sign-in screen) */
 .lang-switch{display:flex;gap:8px;flex-wrap:wrap}
 .release-welcome .lang-switch{margin-top:18px;justify-content:center;width:100%}
+
+/* Settings within reach on every page; language on the profile */
+.page-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.profile-lang{margin:16px 0 4px;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:var(--panel);gap:14px}
+.profile-lang h3{font-size:14px}
+.profile-lang p{font-size:11px;color:var(--muted);margin-top:3px}
