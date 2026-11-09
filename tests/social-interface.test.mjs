@@ -58,3 +58,18 @@ test('private mirror photo upload survives a failed save and retry without becom
 test('profile photo upload survives save failure with the same file on retry',async()=>{const x=await setup();try{
  await x.click('nav:profile');await x.click('edit-profile');await x.photo();x.w.backend.failSave=true;await x.submit('profile-form');assert.equal(x.w.backend.removals.length,0);x.w.backend.failSave=false;await x.submit('profile-form');assert.equal(x.w.backend.uploads,1);assert.match(x.w.backend.state.profile.photo,/owner\/avatar\//);assert.equal(x.q('.modal'),null);
  }finally{x.dom.window.close();}});
+
+test('a slow private photo cannot leak into a newly opened profile form',async()=>{const x=await setup();try{
+ let finishDecode;x.w.Image=class{width=100;height=100;decode(){return new Promise(r=>finishDecode=r);}};
+ await x.click('nav:profile');await x.click('tab:body');await x.click('new-body');
+ const input=x.q('input[type=file]');Object.defineProperty(input,'files',{value:[new x.w.File(['private'],'mirror.jpg',{type:'image/jpeg'})]});input.dispatchEvent(new x.w.Event('change',{bubbles:true}));
+ await x.click('close');await sleep(250);await x.click('edit-profile');finishDecode();await sleep(30);await x.submit('profile-form');
+ assert.equal(x.w.backend.uploads,0,'The closed mirror form must not supply the avatar image');assert.equal(x.w.backend.state.profile.photo||null,null);
+ }finally{x.dom.window.close();}});
+
+test('a failed strength save retains set values and technique confirmation across navigation',async()=>{const x=await setup();try{
+ await x.click('nav:training');await x.click('hub:start');await x.click('hub:pick');await x.click('hub:add:sk-wrists-1');
+ let f=x.q('#hub-set-sk-wrists-1-0');f.elements.namedItem('reps').value='10';f.elements.namedItem('reps').dispatchEvent(new x.w.Event('input',{bubbles:true}));f.elements.namedItem('quality').checked=true;f.elements.namedItem('quality').dispatchEvent(new x.w.Event('input',{bubbles:true}));
+ x.w.backend.failSave=true;await x.submit(f.id);assert.match(x.q('#'+f.id+' .form-error').textContent,/Save unavailable/);await x.click('hub:workout-pane:skills');await x.click('hub:workout-pane:sets');f=x.q('#hub-set-sk-wrists-1-0');
+ assert.equal(f.elements.namedItem('reps').value,'10');assert.equal(f.elements.namedItem('quality').checked,true);x.w.backend.failSave=false;await x.submit(f.id);assert.equal(x.w.backend.state.strength.active.exercises[0].sets[0].done,true);
+ }finally{x.dom.window.close();}});

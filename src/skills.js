@@ -299,7 +299,7 @@ export function summary(state) {
 // Numeric goals are read from the existing progression, never from translated names.
 export function workoutGoal(l){
  const match=l.goal.match(/(\d+)\s*×\s*(\d+)(?:[–-]\d+)?(\s*s\b)?/);
- const sets=match?Number(match[1]):1,unit=match?.[3]?'sek':'reps';
+ const sets=match?Number(match[1]):1,unit=(match?.[3]||!match&&/\d+(?:[–-]\d+)?\s*s\b/.test(l.goal))?'sek':'reps';
  let amount=match?Number(match[2]):Number(l.goal.match(/\d+/)?.[0]||1);
  const later=l.goal.match(/sedan\s+(\d+)/);if(later)amount=Math.max(amount,Number(later[1]));
  return {sets,amount,unit};
