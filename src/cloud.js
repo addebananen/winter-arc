@@ -14,6 +14,11 @@ export async function logout(){if(client)check(await client.auth.signOut());user
 export async function load(){const row=check(await client.from('user_states').select('payload,revision').eq('user_id',user.id).maybeSingle());revision=row?.revision||0;return row?.payload||null;}
 export async function save(payload){const result=check(await client.rpc('save_arc_state_v3',{p_payload:payload,p_expected_revision:revision}));revision=result.revision;return result.payload;}
 export async function mySquad(){const memberships=check(await client.from('squad_members').select('squad_id').eq('user_id',user.id));if(!memberships?.length)return null;return check(await client.from('squads').select('id,name,created_by').eq('id',memberships[0].squad_id).single());}
+export async function friendsOverview(){return check(await client.rpc('friends_overview'))||[];}
+export async function myFriendCode(){return check(await client.rpc('my_friend_code'));}
+export async function requestFriend(code){return check(await client.rpc('request_friend',{p_code:code}));}
+export async function respondFriend(id,accept){return check(await client.rpc('respond_friend',{p_id:id,p_accept:accept}));}
+export async function removeFriend(id){return check(await client.rpc('remove_friend',{p_id:id}));}
 export async function createSquad(name){return check(await client.rpc('create_squad',{p_name:name}));}
 export async function joinSquad(code){return check(await client.rpc('join_squad',{p_code:code.trim()}));}
 export async function invite(squadId){return check(await client.rpc('get_squad_code',{p_squad:squadId}));}
