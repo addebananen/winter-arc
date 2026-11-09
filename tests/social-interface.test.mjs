@@ -27,7 +27,7 @@ async function setup(failFeed=false){
  w.structuredClone=structuredClone;w.scrollTo=()=>{};w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
  w.Image=class{width=100;height=100;async decode(){}};w.HTMLCanvasElement.prototype.getContext=()=>({drawImage(){}});w.HTMLCanvasElement.prototype.toBlob=function(cb){cb(new w.Blob(['JPEG'],{type:'image/jpeg'}));};
  const state=D.normalizeState(D.blankState(),'2026-11-07T12:00:00Z');state.profile.name='Cloud Tester';state.onboarded=true;
- w.backend={state,posts:[],failFeed,publishCalls:0,reactionCalls:0,uploads:0,removals:[],attachCalls:0};w.eval(bundled.outputFiles[0].text);await sleep(80);
+ w.backend={state,posts:[],failFeed,publishCalls:0,reactionCalls:0,uploads:0,removals:[],attachCalls:0};w.localStorage.getItem('arc-lang')||w.localStorage.setItem('arc-lang','sv');w.eval(bundled.outputFiles[0].text);await sleep(80);
  const q=s=>w.document.querySelector(s),click=async action=>{const el=q(`[data-action="${action}"]`);assert.ok(el,action);el.click();await sleep(80);},submit=async id=>{q('#'+id).dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await sleep(80);},photo=async()=>{const input=q('input[type=file]');Object.defineProperty(input,'files',{value:[new w.File(['test'],'test.jpg',{type:'image/jpeg'})],configurable:true});input.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(30);};
  return {dom,w,q,click,submit,photo,errors};
 }

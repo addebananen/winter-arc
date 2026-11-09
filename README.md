@@ -147,6 +147,14 @@ Glömde du trycka Avsluta kan du korta passtiden när du sparar passet. Tiden ka
 
 `supabase/013_workout_time_and_set_types.sql` låter servern godkänna en kortare passtid (`adjustedMinutes`, klampas till den riktiga tiden) och räkna XP på den, och nekar okända settyper. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 012. Kör den direkt efter merge: innan den är körd sparas den kortare tiden och settyperna, men servern räknar fortfarande XP och leaderboard på den fulla tiden.
 
+## Språk
+Appen är på **engelska som standard** och kan bytas till **svenska** under Inställningar → Språk (även på inloggningsskärmen). Valet sparas på enheten. Källtexterna är svenska; `src/i18n.js` översätter det som visas med ordlistorna `src/i18n-en.js` (svenska → engelska) och `src/i18n-sv.js` (engelska övningsnamn → svenska). Siffror skrivs som `{#}` i nycklarna, och långa texter översätts mening för mening. Användarskrivet innehåll översätts aldrig.
+
+## Mage- och rörlighetsövningar (migration 014)
+Styrkehubben har två nya muskelgrupper: **Mage** (bl.a. situps, crunches, leg raise, captain's chair leg raise, hängande knä- och benlyft, ab wheel och kabelcrunch) och **Rörlighet** (bl.a. höftböjarstretch, couch stretch, duvan, world's greatest stretch, 90/90, kobran och fotledsrörlighet). Övningarna finns i `src/strength-catalog-core.js`. Rörlighet påverkar aldrig helhetsranken.
+
+`supabase/014_core_mobility_catalog.sql` lägger till övningarna i serverns katalog och genereras med `node scripts/core-catalog-migration.mjs`. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 013. Innan den är körd visar appen ett meddelande om man försöker lägga till de nya övningarna i ett pass.
+
 ## Träningsstreak (migration 011)
 En flamma per dag med ett sparat pass i Styrkehubben. En vilodag mellan passen är okej, men två dagar i rad utan pass nollställer streaken. Flera pass samma dag ger en flamma. Streaken visas på startsidan, i Styrkehubben och i squadets leaderboard. Andra pass (Pass & andning, kondition) räknas inte.
 

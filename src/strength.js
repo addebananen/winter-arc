@@ -1,6 +1,7 @@
 import {workoutCatalog,workoutById,workoutVariant} from './skills.js';
 import {additions,technique} from './strength-catalog.js';
 import {trainingXP} from './fitness.js';
+import {coreLifts} from './strength-catalog-core.js';
 // Rank boundaries are Beyond Self game milestones, not population percentiles.
 export const ranks=['Ograderad','Brons','Silver','Guld','Platina','Diamant','Aurora'];
 const lift=(id,name,muscle,equipment,family,pose,thresholds,cue,unit='kg')=>({id,name,muscle,equipment,family,pose,thresholds,cue,unit});
@@ -31,6 +32,7 @@ for(const e of lifts){if(['reverse-nordic','sissy'].includes(e.id)){e.muscle='Be
 const cueOverrides={goblet:'Håll en hantel framför bröstet. Sätt dig ned kontrollerat med hela foten i golvet. Logga hantelns totala kg.',bulgarian:'Placera bakre foten på en stabil låg bänk. Sänk kontrollerat med tyngden över främre benet. Logga kg per hantel och reps per ben.', 'hack-squat':'Placera ryggen mot dynan och fötterna stabilt på plattan. Lossa säkerhetsspärren och sänk inom kontrollerat omfång. Jämför bara samma maskin.', 'pendulum-squat':'Ställ in maskinens axeldynor och välj ett kontrollerat djup. Behåll hela foten mot plattan och följ maskinens säkerhetsrutiner.', 'smith-squat':'Placera fötterna för ett bekvämt rörelseomfång, ställ säkerhetsstoppen och sänk lugnt. Maskinens motvikt påverkar belastningen; jämför samma maskin.', 'cheat-curl':'Avancerad variant: håll en liten, konsekvent höfthjälp och sänk långsamt. Logga separat från strikt curl och prioritera kontroll framför tunga kg.', 'strict-curl':'Stöd ryggen mot en vägg och håll överarmarna stilla. Böj armbågen utan höfthjälp; använd ett konsekvent kontrollerat omfång.', modified21:'Gör sju kontrollerade reps i nedre delen, sju i övre delen och sju hela reps. Logga 21 totalt. Detta ger ingen 1RM-uppskattning eftersom setet är längre än tio reps.'};
 for(const e of lifts){if(cueOverrides[e.id])e.cue=cueOverrides[e.id];if(e.id==='leg-curl')e.aliases='Seated Hamstring Curl Seated Leg Curl';if(e.id==='incline-bench')e.aliases='Incline Press';if(e.id==='pulldown')e.aliases='Pulldowns';if(e.id==='pushdown'){e.aliases='Triceps Pressdown (Bar)';e.pose='pushdown';}}
 lifts.push(...workoutCatalog);
+lifts.push(...coreLifts);
 export const liftById=Object.fromEntries(lifts.map(e=>[e.id,e]));
 export const routines=[{name:'Push',ids:['bench','press','lateral','pushdown']},{name:'Pull',ids:['pulldown','row','curl','hang']},{name:'Legs',ids:['squat','deadlift','leg-curl','plank']},{name:'Calisthenics',ids:['pullup','dip','pushup','handstand']}];
 export function ensureStrength(s){s.strength??={sessions:[],active:null};s.strength.sessions??=[];return s.strength;}
