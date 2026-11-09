@@ -9,7 +9,7 @@ const bundled=await build({entryPoints:['src/app.js'],bundle:true,write:false,fo
  export const configured=true,googleReady=true,trainingReady=true,skillWorkoutsReady=true,user={id:'owner',created_at:'2026-11-07T12:00:00Z'};
  export const initialize=async()=>user,load=async()=>structuredClone(window.backend.state);
  export const mySquad=async()=>({id:'squad',name:'Test squad'});
- export const social=async()=>{if(window.backend.failFeed)throw Error('PGRST201 ambiguous relationship');return {activityReady:true,posts:structuredClone(window.backend.posts),members:[],missions:[]};};
+ export const social=async()=>{if(window.backend.failFeed)throw Error('PGRST201 ambiguous relationship');return {workoutReady:true,activityReady:true,posts:structuredClone(window.backend.posts),members:[],missions:[]};};
  export const save=async s=>{if(window.backend.failSave)throw Error('Save unavailable');window.backend.state=structuredClone(s);return structuredClone(s);};
  export const publish=async(squad,body,image_path,id)=>{window.backend.publishCalls++;if(!window.backend.posts.some(p=>p.id===id))window.backend.posts.unshift({id,body,image_path,user_id:user.id,created_at:new Date().toISOString(),reactions:[]});if(window.backend.loseReply)throw Error('Reply lost');return {id};};
  export const react=async(id,kind,active)=>{window.backend.reactionCalls++;await new Promise(r=>setTimeout(r,40));if(window.backend.failReact)throw Error('Reaction unavailable');const p=window.backend.posts.find(p=>p.id===id);p.reactions=p.reactions.filter(r=>r.kind!==kind);if(!active)p.reactions.push({user_id:'owner',kind});};
@@ -32,6 +32,16 @@ async function setup(failFeed=false){
  return {dom,w,q,click,submit,photo,errors};
 }
 test('a failed social read keeps cloud profile and lets the user retry',async()=>{const x=await setup(true);try{assert.match(x.q('#app').textContent,/fortfarande inloggad/);assert.equal(x.w.localStorage.getItem('arc-mode'),'cloud');x.w.backend.failFeed=false;await x.click('refresh-social');assert.ok(x.q('[data-action=new-post]'));assert.match(x.q('#app').textContent,/Cloud Tester/);}finally{x.dom.window.close();}});
+
+test('friend workout opens read-only details and reactions sync between sheet and feed without rebuilding the page',async()=>{const x=await setup();try{
+ x.w.backend.posts=[{id:'friend-workout',user_id:'friend',profiles:{display_name:'A friend'},created_at:new Date().toISOString(),body:'Styrkepass klart',reactions:[],workout:{kind:'strength',title:'Styrkepass',minutes:45,exercises:[{id:'bench',sets:[{kg:60,reps:8,type:'failure'},{kg:55,reps:10,type:'drop'}]}]}}];
+ await x.click('nav:today');await x.click('nav:squad');const original=x.q('.post');await x.click('post-workout:friend-workout');assert.match(x.q('.modal').textContent,/A friend/);assert.match(x.q('.shared-sets').textContent,/60 kg.*8.*Failure.*55 kg.*10.*Drop-set/s);assert.equal(x.q('.modal input'),null,'Read-only');
+ const picker=x.q('.modal .reaction-picker');picker.open=true;const rocket=x.q('.modal [data-action="react:friend-workout:rocket"]');rocket.click();rocket.click();await sleep(100);
+ assert.equal(x.w.backend.reactionCalls,1);assert.equal(x.q('.post'),original,'Feed card is not recreated');assert.equal(x.q('.modal .reaction-picker').open,false);
+ for(const scope of [x.q('.modal'),x.q('.post')])assert.equal(scope.querySelector('[data-action="react:friend-workout:rocket"]').getAttribute('aria-pressed'),'true');
+ x.w.backend.failReact=true;x.q('.modal [data-action="react:friend-workout:rocket"]').click();await sleep(100);assert.equal(x.q('.modal [data-action="react:friend-workout:rocket"]').getAttribute('aria-pressed'),'true');assert.equal(x.q('.modal [data-action="react:friend-workout:rocket"]').disabled,false);
+ await x.click('close');await x.click('nav:today');await x.click('nav:squad');assert.equal(x.q('[data-action="react:friend-workout:rocket"]').getAttribute('aria-pressed'),'true');assert.equal(x.w.backend.state.strength?.sessions?.length||0,0,'Viewing a friend cannot alter own XP or sessions');
+ }finally{x.dom.window.close();}});
 test('text + photo publishes once even when feed is down; reload shows the saved post',async()=>{const x=await setup();try{
  await x.click('new-post');x.q('[name=body]').value='Saved <b>literally</b>';await x.photo();x.w.backend.failFeed=true;await x.submit('post-form');assert.equal(x.q('.modal'),null);assert.equal(x.w.backend.posts.length,1);assert.equal(x.w.backend.uploads,1);assert.deepEqual(x.w.backend.removals,[]);assert.match(x.q('.post-text').textContent,/<b>literally<\/b>/);assert.equal(x.q('.post-text b'),null);
  x.w.backend.failFeed=false;await x.click('nav:today');await x.click('nav:squad');assert.match(x.q('.post-text').textContent,/Saved/);assert.ok(x.q('.post-image'));

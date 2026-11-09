@@ -35,6 +35,7 @@ test('Postgres migration, state conflicts, squad isolation and photo policies',a
  const beforeHoldFix=(await db.query('select payload from public.user_states where user_id=$1',[legacyId])).rows[0].payload;
  await db.exec(await readFile(new URL('../supabase/012_skill_hold_units.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../supabase/013_workout_time_and_set_types.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../supabase/014_squad_workout_details.sql',import.meta.url),'utf8'));
  await t.test('hold unit migration preserves every existing account field and corrects only seconds',async()=>{assert.deepEqual((await db.query('select payload from public.user_states where user_id=$1',[legacyId])).rows[0].payload,beforeHoldFix);const meta=(await db.query("select public.arc_strength_meta('sk-oahs-7') m")).rows[0].m;assert.equal(meta.unit,'sek');assert.equal(meta.skillAmount,10);assert.equal(meta.skillSets,1);});
  await t.test('upgrade preserves existing journals and increments revision',async()=>{const row=(await db.query('select payload,revision from public.user_states where user_id=$1',[legacyId])).rows[0];assert.deepEqual(row.payload.history,legacy.history);assert.deepEqual(row.payload.body,legacy.body);assert.equal(row.payload.expedition.start,'2026-11-09');assert.equal(Number(row.revision),2);});
  await t.test('database and client agree on training, challenge caps and total XP',async()=>{const day='2026-11-10',s=D.normalizeState(D.blankState(day),'2026-11-07T12:00:00Z');s.habits=D.library.slice(0,5).map(h=>D.makeHabit(h,day));s.habits.forEach(h=>D.setProgress(s,h.id,h.target,day));for(const c of F.challenges)F.saveChallenge(s,c.id,day,'A useful insight');D.claimQuest(s,'three:'+day,day);D.claimQuest(s,'perfect:'+day,day);F.startSession(s,'full-body',day);s.training.active.exercises.forEach((e,index)=>{for(let j=0;j<e.sets;j++)F.logSet(s,index,e.target);});const first=F.finishSession(s);for(let i=0;i<6;i++)s.training.sessions.push({...structuredClone(first),id:crypto.randomUUID()});F.startBreathing(s,day,300,1000);F.finishSession(s,301001);s.training.sessions.push(structuredClone(s.training.sessions[0]));const result=(await db.query('select public.arc_total_xp($1::jsonb,$2) as xp,public.arc_training_xp($1::jsonb,$2) as training',[JSON.stringify(s),day])).rows[0];assert.equal(Number(result.xp),D.totalXP(s));assert.equal(Number(result.training),F.trainingXP(s));F.startNofap(s,'2026-11-01T12:00:00Z');assert.equal(Number((await db.query('select public.arc_total_xp($1::jsonb,$2) as xp',[JSON.stringify(s),day])).rows[0].xp),D.totalXP(s));assert.equal(Number((await db.query('select public.arc_total_xp($1::jsonb,$2) as xp',[JSON.stringify(s),'2026-11-08'])).rows[0].xp),0);});
@@ -101,6 +102,26 @@ test('Postgres migration, state conflicts, squad isolation and photo policies',a
   assert.equal((await db.query('select count(*)::int n from public.posts where id=$1',[habit.id])).rows[0].n,0,'deleted activity must not resurrect');
   await db.exec('begin');next.goals=[{id:'goal1',name:'Read books',current:2,target:10,unit:'books'}];await save(next);await db.exec('rollback');assert.equal((await db.query("select count(*)::int n from public.posts where body like '%Read books%'")).rows[0].n,0);
  });
+ await t.test('workout details are shared only through existing posts and never include private fields',async()=>{
+  await db.exec('reset role');
+  const before=(await db.query('select payload from public.user_states where user_id=$1',[a])).rows[0].payload;
+  const next=structuredClone(before);
+  next.strength={sessions:[{id:'shared-strength',date:'2026-11-11',startedAt:1000,finishedAt:3601000,adjustedMinutes:25,pausedMs:0,bodyweight:81,height:180,note:'SECRET NOTE',exercises:[{id:'bench',sets:[{kg:60,reps:8,done:true,type:'failure',private:'SECRET SET'},{kg:80,reps:1,done:false}]},{id:'sk-oahs-7',sets:[{kg:0,reps:10,done:true}]}]}]};
+  next.training={sessions:[{id:'shared-training',date:'2026-11-11',title:'Mobility',startedAt:0,finishedAt:600000,exercises:[{id:'breathing',done:[60,0]}],note:'SECRET BREATH'}]};
+  next.cardio={sessions:[{id:'shared-cardio',date:'2026-11-11',kind:'run',startedAt:0,finishedAt:1800000,seconds:1800,km:5,weight:81,height:180,note:'SECRET RUN'}]};
+  await db.query('update public.user_states set payload=$2 where user_id=$1',[a,JSON.stringify(next)]);
+  await as(b);let rows=(await db.query('select * from public.squad_workout_feed($1)',[squad])).rows;
+  assert.equal(rows.length,3);assert.doesNotMatch(JSON.stringify(rows),/SECRET|bodyweight|height|weight|note|private|photo|nofap/i);
+  const strength=rows.find(r=>r.workout.kind==='strength');assert.equal(strength.workout.minutes,25);assert.equal(strength.workout.exercises[0].sets.length,1);assert.equal(strength.workout.exercises[0].sets[0].type,'failure');assert.equal(strength.workout.exercises[1].sets[0].reps,10);
+  assert.equal(rows.find(r=>r.workout.kind==='training').workout.exercises[0].sets.length,1);assert.equal(rows.find(r=>r.workout.kind==='cardio').workout.km,5);
+  for(const kind of ['strong','mind','rocket','respect','party'])await db.query('insert into public.reactions values($1,$2,$3)',[strength.post_id,b,kind]);
+  await assert.rejects(db.query('insert into public.reactions values($1,$2,$3)',[strength.post_id,b,'invalid']),/check/i);
+  await as(c);await assert.rejects(db.query('select * from public.squad_workout_feed($1)',[squad]),/denied/i);
+  await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub','',false)");await assert.rejects(db.query('select * from public.squad_workout_feed($1)',[squad]),/denied/i);
+  await as(a);await db.query('delete from public.posts where id=$1',[strength.post_id]);await as(b);rows=(await db.query('select * from public.squad_workout_feed($1)',[squad])).rows;assert.equal(rows.length,2,'Deleted posts never expose a workout');
+  await db.exec('reset role');await db.query('update public.user_states set payload=$2 where user_id=$1',[a,JSON.stringify(before)]);
+  await as(b);rows=(await db.query('select * from public.squad_workout_feed($1)',[squad])).rows;assert.ok(rows.every(r=>r.workout.unavailable),'Removed histories are explicit, not fabricated');
+ });
  await t.test('photo attachment is owner-only, retry-safe and rejects body/avatar paths',async()=>{
   await as(a);await db.query('select public.attach_post_photo($1,$2)',[post,a+'/posts/accountability.jpg']);await db.query('select public.attach_post_photo($1,$2)',[post,a+'/posts/accountability.jpg']);
   await assert.rejects(db.query('select public.attach_post_photo($1,$2)',[post,a+'/body/private.jpg']),/Privata/);
@@ -134,4 +155,5 @@ test('Postgres migration, state conflicts, squad isolation and photo policies',a
  });
  }finally{await db.close();}
 });
+
 
