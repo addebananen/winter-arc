@@ -235,7 +235,7 @@ export function ensureSkills(state) {
   state.skills = clean;
   return state;
 }
-export const levelOf = (state, id) => state.skills?.[id]?.level || 0;
+export const levelOf = (state, id) => workoutLevels(state)[id] || 0;
 
 export function setLevel(state, id, level, date) {
   ensureSkills(state);
@@ -293,3 +293,35 @@ export function summary(state) {
   for (const t of trees) { const l = levelOf(state, t.id); levels += l; total += t.levels.length; if (l >= t.levels.length) mastered++; }
   return {levels, total, mastered, trees: trees.length};
 }
+
+
+
+// Numeric goals are read from the existing progression, never from translated names.
+export function workoutGoal(l){
+ const match=l.goal.match(/(\d+)\s*×\s*(\d+)(?:[–-]\d+)?(\s*s\b)?/);
+ const sets=match?Number(match[1]):1,unit=match?.[3]?'sek':'reps';
+ let amount=match?Number(match[2]):Number(l.goal.match(/\d+/)?.[0]||1);
+ const later=l.goal.match(/sedan\s+(\d+)/);if(later)amount=Math.max(amount,Number(later[1]));
+ return {sets,amount,unit};
+}
+const families={push:'push',dip:'push',hspu:'push',planche:'push',pull:'pull','muscle-up':'pull','front-lever':'pull','back-lever':'pull',legs:'legs',ankles:'legs'};
+export const workoutCatalog=trees.flatMap(t=>t.levels.map(l=>{const g=workoutGoal(l);return {id:`sk-${t.id}-${l.n}`,name:l.name,muscle:t.branch==='mobility'?'Rörlighet':'Calisthenics',equipment:['pull','dip','muscle-up','front-lever','back-lever','flag'].includes(t.id)?'Räcke':'Kroppsvikt',family:families[t.id]||'core',pose:'skill',unit:g.unit,thresholds:[1,2,3,4,5,6].map(n=>g.amount*n),cue:l.cues.join(' ')+' Mål: '+l.goal+'. Logga den svagare sidan efter båda sidor och följ målets tempo.',skillTree:t.id,skillLevel:l.n,skillAnim:l.anim,skillSets:g.sets,skillAmount:g.amount};}));
+export const workoutById=Object.fromEntries(workoutCatalog.map(e=>[e.id,e]));
+const legacyStrength={pushup:'push-up',pullup:'pull-up',dip:'dip',plank:'plank',hang:'dead-hang',diamond:'diamond-push-up'};
+const legacyTraining={'incline-push':'incline-push-up','push-up':'push-up','close-push':'diamond-push-up','pike-push':'pike-push-up','squat':'squat','split-squat':'split-squat','plank':'plank','side-plank':'side-plank','dead-hang':'dead-hang','pull-up':'pull-up','hollow-hold':'hollow'};
+const cache=new WeakMap();
+export function workoutLevels(state){
+ const strength=state.strength?.sessions||[],training=state.training?.sessions||[],baseline=trees.map(t=>state.skills?.[t.id]?.level||0).join(','),saved=cache.get(state);
+ if(saved&&saved.strength===strength&&saved.training===training&&saved.sn===strength.length&&saved.tn===training.length&&saved.baseline===baseline)return saved.levels;
+ const levels=Object.fromEntries(trees.map(t=>[t.id,Math.max(0,Math.min(t.levels.length,Number(state.skills?.[t.id]?.level)||0))]));
+ const events=[...strength.map(w=>({w,kind:'strength'})),...training.map(w=>({w,kind:'training'}))].filter(({w})=>w.finishedAt&&w.date>=(state.expedition?.start||'0000-00-00')).sort((a,b)=>a.w.date.localeCompare(b.w.date)||a.w.finishedAt-b.w.finishedAt);
+ const meets=reqs=>(reqs||[]).every(([id,n])=>levels[id]>=n);
+ for(const {w,kind} of events){
+  const performed=(w.exercises||[]).map(e=>{const meta=workoutById[e.id];return {anim:meta?.skillAnim||(kind==='strength'?legacyStrength[e.id]:legacyTraining[e.id]),unit:meta?.unit||(['plank','hang','dead-hang','side-plank','hollow-hold'].includes(e.id)?'sek':'reps'),values:kind==='strength'?(e.sets||[]).filter(v=>v.done&&(!meta||v.quality===true)).map(v=>v.reps):(e.done||[])};});
+  let changed=true;while(changed){changed=false;for(const t of trees){const l=t.levels[levels[t.id]];if(!l||!meets(t.requires)||!meets(l.requires))continue;const g=workoutGoal(l);if(performed.some(e=>e.anim===l.anim&&e.unit===g.unit&&e.values.filter(n=>Number.isFinite(n)&&n>=g.amount).length>=g.sets)){levels[t.id]++;changed=true;}}}
+ }
+ cache.set(state,{strength,training,sn:strength.length,tn:training.length,baseline,levels});return levels;
+}
+export function canTrain(state,tree,n){const t=treeById[tree],l=t?.levels[n-1];return !!l&&n<=levelOf(state,tree)+1&&!missing(state,t.requires).length&&!missing(state,l.requires).length;}
+
+export const workoutVariant=id=>workoutById[id]?.skillAnim||legacyStrength[id]||null;

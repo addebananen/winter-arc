@@ -59,5 +59,6 @@ export function createFitnessUI({getState,D,I,character,esc,button,bar,fmt,today
  default:return false;
  }closeModal();return true;}
  function tick(){const a=getState()?.training?.active,b=document.querySelector('[data-breath-time]'),rest=document.querySelector('[data-rest-time]');if(a&&b){const remaining=a.duration-F.breathingElapsed(a);b.textContent=remaining<=0?'Stunden är klar':time(remaining);}if(a&&rest)rest.textContent=a.restUntil>Date.now()?'Vila '+time(a.restUntil-Date.now()):'Redo när du är.';const count=document.querySelector('[data-nofap-count]'),elapsed=F.nofapElapsed(getState());if(count&&elapsed!==null)count.innerHTML=`<strong>${Math.floor(elapsed/86400000)}</strong> dagar <strong>${Math.floor(elapsed/3600000)%24}</strong> timmar`;}
- return {trainingView,action,submit,tick,season,rankCard,characterStudio,nofapCard,mountAnims:skills.mountAnims};
+ return {trainingView,action,submit,tick,season,rankCard,characterStudio,nofapCard,mountAnims:skills.mountAnims,skillsView:skills.view,skillThumb:skills.workoutThumb,openSkill:(tree,n)=>skills.action(['show',tree,n])};
 }
+

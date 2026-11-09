@@ -27,7 +27,7 @@ function readPostDraft(){try{return JSON.parse(localStorage.getItem(draftKey()))
 let demoSocial=JSON.parse(localStorage.getItem('arc-demo-social')||'null');
 const today=()=>D.dateKey(new Date(),state?.timezone);
 const fitness=createFitnessUI({getState:()=>state,D,I,character,esc,button:(...a)=>button(...a),bar:(...a)=>bar(...a),fmt,today,modal,form,commit,render,navTo,toast,closeModal});
-const strength=createStrengthUI({enabled:()=>mode!=='cloud'||cloud.trainingReady,getState:()=>state,I,esc,button:(...a)=>button(...a),modal,form,commit,render,today,closeModal,toast});
+const strength=createStrengthUI({skillsEnabled:()=>mode!=='cloud'||cloud.skillWorkoutsReady,skillsView:fitness.skillsView,skillThumb:fitness.skillThumb,openSkill:fitness.openSkill,showWorkout:()=>{fitness.action(['section','strength']);navTo('training');},enabled:()=>mode!=='cloud'||cloud.trainingReady,getState:()=>state,I,esc,button:(...a)=>button(...a),modal,form,commit,render,today,closeModal,toast});
 const localKey=()=>`arc-state-${mode}`;
 function readLocal(){try{return JSON.parse(localStorage.getItem(localKey()));}catch{return null;}}
 function persistLocal(){localStorage.setItem(localKey(),JSON.stringify(state));}
@@ -218,3 +218,4 @@ start();
 
 window.addEventListener('focus',()=>{if(mode==='cloud'&&route==='squad')refreshSocial();});
 setInterval(()=>{if(mode==='cloud'&&route==='squad'&&document.visibilityState==='visible')refreshSocial();},30000);
+
