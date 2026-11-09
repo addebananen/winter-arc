@@ -98,7 +98,7 @@ export function createFriendsUI({I, esc, button, avatar, character, D, F, getMod
     let p;
     if (getMode() === 'cloud') {
       try { p = await cloud.memberProfile(userId); }
-      catch (e) { toast(/member_profile|schema cache|does not exist/i.test(e?.message || '') ? 'Profiler aktiveras med databasuppdatering 016.' : e?.message || 'Profilen kunde inte hämtas.'); return; }
+      catch (e) { toast(/member_profile|schema cache|does not exist/i.test(e?.message || '') ? 'Profiler aktiveras med databasuppdatering 017.' : e?.message || 'Profilen kunde inte hämtas.'); return; }
     } else {
       const f = (data() || []).find(x => x.user_id === userId && x.relation === 'friend');
       p = known || f ? {char_kind: demoKinds[userId], ...f, ...known} : null;
