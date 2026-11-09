@@ -2474,4 +2474,9 @@ export default {
  "Fortsätt med Google": "Continue with Google",
  "Lägg till på hemskärmen": "Add to home screen",
  "Försök hämta kontot igen": "Try loading the account again",
+ "Profiler aktiveras med databasuppdatering {#}.": "Profiles are activated with database update {#}.",
+ "Profilen kunde inte hämtas.": "The profile could not be loaded.",
+ "Profilen är privat.": "The profile is private.",
+ "Pass totalt": "Workouts in total",
+ "Vanestreak": "Habit streak",
 };

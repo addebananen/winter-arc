@@ -28,6 +28,7 @@ const patterns = {
     [/^(.+), här är spåren av alla små beslut som gjorde dig till en starkare version av dig själv\.$/, (m, name) => `${name}, here are the traces of all the small decisions that made you a stronger version of yourself.`],
     [/^Var är du i (.+)\?$/, (m, tree) => `Where are you in ${translate(tree)}?`],
     [/^Vill du ta bort (.+) som vän\?$/, (m, name) => `Remove ${name} as a friend?`],
+    [/^Visa profil för (.+)$/, (m, name) => `View ${name}'s profile`],
     [/^Ta bort (.+) som vän$/, (m, name) => `Remove ${name} as a friend`],
     [/^Startnivå sparad: (.+)\.$/, (m, level) => `Starting level saved: ${translate(level)}.`],
     [/^Nästa pass senast (idag|imorgon|på [a-zåäö]+)\.$/, (m, when) => `Next workout by ${whenEn(when)}.`],
