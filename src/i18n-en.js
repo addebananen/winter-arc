@@ -2398,4 +2398,5 @@ export default {
  "Öppna höften, knäna fortfarande böjda.": "Open the hips, knees still bent.",
  "Anslut": "Connect",
  "Logga ut": "Sign out",
+ "Språk, konto och installation": "Language, account and installation",
 };
