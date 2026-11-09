@@ -250,3 +250,18 @@ button.skt-opt:hover{background:#ffffff08}
 .theme-swatch{display:flex;width:100%;height:30px;border-radius:9px;overflow:hidden;border:1px solid #ffffff14}
 .theme-swatch i{flex:1}
 .theme-swatch i:last-child{flex:.6}
+
+/* Skill tree: self-assessed starting level */
+.sk-start{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.sk-start strong{display:block;font-size:13px}
+.sk-start small{display:block;font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.sk-start .btn{flex:0 0 auto;margin:0}
+.sk-start-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--gold);background:#e0c7991f;vertical-align:middle}
+.sk-start-list{display:grid;gap:6px;margin:14px 0}
+.sk-start-option{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer}
+.sk-start-option:has(input:checked){border-color:var(--mint);background:var(--surface)}
+.sk-start-option input{accent-color:var(--mint);width:18px;height:18px;flex:0 0 18px;margin:0}
+.sk-start-option strong{display:block;font-size:13px}
+.sk-start-option small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.form .sk-start-option{display:flex;flex-direction:row;align-items:center;gap:12px;margin:0;font-size:inherit;color:var(--text)}
+.form .sk-start-option input[type=radio]{display:inline-block;width:18px;height:18px;min-height:0;padding:0;margin:0;flex:0 0 18px;border:0;background:none}
