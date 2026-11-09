@@ -1,11 +1,11 @@
 import {createMusicUI} from './music-ui.js';
 import {createSkillsUI} from './skills-ui.js';
 import * as F from './fitness.js';
-export function createFitnessUI({getState,D,I,character,esc,button,bar,fmt,today,modal,form,commit,render,navTo,toast,closeModal}){
+export function createFitnessUI({skillStartReady=()=>true,getState,D,I,character,esc,button,bar,fmt,today,modal,form,commit,render,navTo,toast,closeModal}){
  let section='strength',stat='all';
  const state=()=>F.ensureTraining(getState());
  const music=createMusicUI({state,D,F,I,esc,button,bar,today,modal,form});
- const skills=createSkillsUI({getState,I,esc,button,bar,today,modal,commit,toast,render});
+ const skills=createSkillsUI({getState,I,esc,button,bar,today,modal,commit,toast,render,startReady:skillStartReady});
  const cmeta=k=>D.categories[F.statCategory[k]];
  const time=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
  const hint=t=>`<p class="fitness-hint">${t}</p>`;
@@ -47,7 +47,7 @@ export function createFitnessUI({getState,D,I,character,esc,button,bar,fmt,today
  case 'session':{const x=s.training.sessions.find(x=>x.id===arg);modal(esc(x.title),`${hint(x.date+' · sparad träningslogg')}${x.exercises.map(step=>`<div class="settings-row"><div><h3>${F.exerciseById[step.id].name}</h3><p>${step.done.join(' / ')} ${F.exerciseById[step.id].unit}</p></div></div>`).join('')}${hint(`${F.sessionXP(x)} grund-XP. Dagsgränsen avgör hur mycket som räknas till totalen.`)}`);break;}
  }}
  async function submit(id,v){switch(id){
- case 'fitness-skill-setup':await skills.submit(v);break;
+ case 'fitness-skill-setup':await skills.submit(v);return true;
  case 'fitness-start':await commit(s=>F.startSession(s,v.program,today(),Number(v.level)));navTo('training');break;
  case 'fitness-breathe':await commit(s=>F.startBreathing(s,today(),Number(v.seconds)));navTo('training');break;
  case 'fitness-set':await commit(s=>F.logSet(s,Number(v.index),Number(v.actual)));break;

@@ -26,6 +26,8 @@ const patterns = {
     [/^Välkommen tillbaka, (.+)\. Varje litet steg räknas\.$/, (m, name) => `Welcome back, ${name}. Every small step counts.`],
     [/^Välkommen tillbaka, (.+)\.$/, (m, name) => `Welcome back, ${name}.`],
     [/^(.+), här är spåren av alla små beslut som gjorde dig till en starkare version av dig själv\.$/, (m, name) => `${name}, here are the traces of all the small decisions that made you a stronger version of yourself.`],
+    [/^Var är du i (.+)\?$/, (m, tree) => `Where are you in ${translate(tree)}?`],
+    [/^Startnivå sparad: (.+)\.$/, (m, level) => `Starting level saved: ${translate(level)}.`],
     [/^Nästa pass senast (idag|imorgon|på [a-zåäö]+)\.$/, (m, when) => `Next workout by ${whenEn(when)}.`],
     [/^Träna senast (idag|imorgon|på [a-zåäö]+) för att hålla flamman vid liv\.$/, (m, when) => `Train by ${whenEn(when)} to keep the flame alive.`],
     [/^Förkunskap krävs: (.+)$/, (m, rest) => 'Prerequisite: ' + rest.split(/, (?![^(]*\))/).map(part => part.replace(/^(.+) nivå (\d+) \((.+)\)(\.?)$/, (x, tree, n, level, dot) => `${translate(tree)} level ${n} (${translate(level)})${dot}`)).join(', ')],

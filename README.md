@@ -150,6 +150,11 @@ Glömde du trycka Avsluta kan du korta passtiden när du sparar passet. Tiden ka
 ## Språk
 Appen är på **engelska som standard** och kan bytas till **svenska** under Inställningar → Språk (även på inloggningsskärmen). Valet sparas på enheten. Källtexterna är svenska; `src/i18n.js` översätter det som visas med ordlistorna `src/i18n-en.js` (svenska → engelska) och `src/i18n-sv.js` (engelska övningsnamn → svenska). Siffror skrivs som `{#}` i nycklarna, och långa texter översätts mening för mening. Användarskrivet innehåll översätts aldrig.
 
+## Startnivå i skill-trädet (migration 015)
+I varje skill-träd kan man trycka **Ange min nivå** och välja den högsta nivå man redan klarar. Nivåerna upp till den räknas som klara (märkta "startnivå"), och nästa nivå låses fortfarande upp med ett sparat pass. Startnivån är självskattad: den ger karaktärens stats men aldrig XP eller rank, och kan ändras eller tas bort.
+
+`supabase/015_skill_start_level.sql` låter servern godkänna en startnivå om trädet och nivån finns. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 014. Innan den är körd förklarar appen att databasuppdateringen behövs.
+
 ## Färgteman
 Under kugghjulet → Färgtema finns fyra vinterteman: **Nordljus** (standard), **Frost** (isblått), **Polarnatt** (indigo) och **Beyond Self** (svart, vitt och rött som appikonen). Valet sparas på enheten. `src/themes.js` läser appens CSS vid start och räknar om de svala färgerna för valt tema, medan varma accenter (guld, flamma, rött) behålls. Ny CSS får därför automatiskt alla teman, så skriv nya färger i appens svala grundpalett.
 

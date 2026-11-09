@@ -38,7 +38,7 @@ function readPostDraft(){try{return JSON.parse(localStorage.getItem(draftKey()))
 let demoSocial=null;
 try{const cached=JSON.parse(localStorage.getItem('arc-demo-social')||'null');if(Array.isArray(cached))demoSocial=cached;}catch{}
 const today=()=>D.dateKey(new Date(),state?.timezone);
-const fitness=createFitnessUI({getState:()=>state,D,I,character,esc,button:(...a)=>button(...a),bar:(...a)=>bar(...a),fmt,today,modal,form,commit,render,navTo,toast,closeModal});
+const fitness=createFitnessUI({skillStartReady:()=>mode!=='cloud'||cloud.skillStartReady,getState:()=>state,D,I,character,esc,button:(...a)=>button(...a),bar:(...a)=>bar(...a),fmt,today,modal,form,commit,render,navTo,toast,closeModal});
 const skillTree=createSkillTreeUI({I,esc,render:()=>render(),categories:{calisthenics:{view:()=>fitness.skillsView(),progress:()=>{const x=SK.summary(state);return {done:x.levels,total:x.total};}}}});
 const strength=createStrengthUI({skillsEnabled:()=>mode!=='cloud'||cloud.skillWorkoutsReady,coreReady:()=>mode!=='cloud'||cloud.coreCatalogReady,skillsView:fitness.skillsView,skillThumb:fitness.skillThumb,openSkill:fitness.openSkill,showWorkout:()=>{fitness.action(['section','strength']);navTo('training');},enabled:()=>mode!=='cloud'||cloud.trainingReady,getState:()=>state,I,esc,button:(...a)=>button(...a),modal,form,commit,render,today,closeModal,toast});
 const localKey=()=>`arc-state-${mode}`;
