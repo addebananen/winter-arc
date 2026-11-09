@@ -142,6 +142,11 @@ Migration 009 rättar även Storage INSERT-regeln så att en inloggad användare
 
 
 
+## Träningsstreak (migration 011)
+En flamma per dag med ett sparat pass i Styrkehubben. En vilodag mellan passen är okej, men två dagar i rad utan pass nollställer streaken. Flera pass samma dag ger en flamma. Streaken visas på startsidan, i Styrkehubben och i squadets leaderboard. Andra pass (Pass & andning, kondition) räknas inte.
+
+`supabase/011_training_streak.sql` lägger till `squad_training_streaks` som räknar streaken på servern med samma regel som appen (`trainingStreak` i `src/strength.js`). Migrationen läser bara data och ändrar inget sparat. Kör den en gång i SQL Editor efter att 010 är körd. Innan den är körd visar squadet en notis i stället för streaks.
+
 ## Skill tree kopplat till workouts (migration 010)
 Trädets befintliga progressioner har varsin katalogövning med samma animation, teknik och mål. Övningsbibliotekets chip Calisthenics · skill tree öppnar Skill tree-fliken. Under ett pågående styrkepass växlar Passet / Skill tree mellan setloggen och trädet utan att avsluta passet. Lägg till i workout köar rätt antal målset; inget pass behöver startas om.
 
