@@ -21,6 +21,7 @@ const bundled=await build({entryPoints:['src/app.js'],bundle:true,write:false,fo
  export const friendsOverview=async()=>{if(window.backend.friendsMissing)throw Error('Could not find the function public.friends_overview in the schema cache');return structuredClone(window.backend.friends);},myFriendCode=async()=>'OWNER123';
  export const requestFriend=async code=>{if(code==='NOBODY00')throw Error('Hittade ingen med den vänkoden.');window.backend.friends.push({friendship_id:'f-'+code,user_id:code,display_name:'Ny vän',relation:'outgoing'});return 'pending';};
  export const respondFriend=async(id,accept)=>{const f=window.backend.friends.find(f=>f.friendship_id===id);if(accept)Object.assign(f,{relation:'friend',xp:900,streak:2,training_streak:3,trained_today:true,char_kind:'monk'});else window.backend.friends=window.backend.friends.filter(f=>f.friendship_id!==id);};
+ export const memberProfile=async id=>{if(id==='stranger')throw Error('Profilen är privat.');return {user_id:id,display_name:'Cleo',relation:'friend',xp:900,streak:2,training_streak:3,trained_today:true,workouts:12,char_kind:'monk',char_name:'Frostmunk'};};
  export const removeFriend=async id=>{window.backend.friends=window.backend.friends.filter(f=>f.friendship_id!==id);};
  export const logout=async()=>{},login=async()=>{},invite=async()=>'',createSquad=async()=>{},joinSquad=async()=>{},createMission=async()=>{};
  `}));
@@ -80,6 +81,7 @@ test('a failed strength save retains set values and technique confirmation acros
 test('friends in the cloud: accept a request, send one by code, and show the update notice before migration 016',async()=>{const x=await setup();try{
  await x.click('tab:friends');await new Promise(r=>setTimeout(r,80));assert.equal(x.q('#friend-code').textContent,'OWNER123');assert.match(x.q('#view').textContent,/Cleo/);
  await x.click('friend:accept:f-1');await new Promise(r=>setTimeout(r,80));assert.ok(x.q('.friend-card'));assert.match(x.q('.friend-card').textContent,/Cleo/);
+ await x.click('profile-of:u1');await new Promise(r=>setTimeout(r,60));assert.match(x.q('.member-profile').textContent,/Frostmunk/);assert.match(x.q('.member-profile').textContent,/12/);await x.click('close');
  await x.click('friend:add');x.q('[name=code]').value='nobody00';await x.submit('friend-form');assert.match(x.q('.form-error').textContent,/Hittade ingen/);
  x.q('[name=code]').value='k7q2m9xa';await x.submit('friend-form');await new Promise(r=>setTimeout(r,80));assert.equal(x.q('.modal'),null);assert.match(x.q('#view').textContent,/Väntar på svar/);
  await x.click('friend:remove:f-K7Q2M9XA');await new Promise(r=>setTimeout(r,80));assert.doesNotMatch(x.q('#view').textContent,/Väntar på svar/);

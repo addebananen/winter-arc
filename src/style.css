@@ -289,3 +289,17 @@ button.skt-opt:hover{background:#ffffff08}
 .friend-row{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line)}
 .friend-row .leader-name{flex:1;min-width:0}
 .friend-row .btn{padding:8px 12px}
+/* Profiler: tryck på en vän, en leaderboard-rad eller ett namn i flödet */
+.member-link{display:flex;align-items:center;gap:inherit;flex:1;min-width:0;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:12px}
+.post-head .member-link{gap:10px}
+.member-link:focus-visible,.friend-open:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+.friend-open{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:12px}
+.member-profile{text-align:center}
+.member-character{width:180px;height:200px;margin:0 auto 6px}
+.member-character .character,.member-character svg{width:100%;height:100%}
+.member-profile h3{margin:8px 0 6px;font-size:22px}
+.member-profile .muted{font-size:12px}
+.member-xp{height:6px;margin:14px 0 18px;border-radius:6px;background:#ffffff14;overflow:hidden}
+.member-xp i{display:block;height:100%;border-radius:inherit;background:var(--mint)}
+.member-profile .mini-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));text-align:left}
+.member-profile .friend-today{margin-top:12px}

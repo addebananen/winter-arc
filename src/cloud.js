@@ -18,6 +18,7 @@ export async function friendsOverview(){return check(await client.rpc('friends_o
 export async function myFriendCode(){return check(await client.rpc('my_friend_code'));}
 export async function requestFriend(code){return check(await client.rpc('request_friend',{p_code:code}));}
 export async function respondFriend(id,accept){return check(await client.rpc('respond_friend',{p_id:id,p_accept:accept}));}
+export async function memberProfile(id){return check(await client.rpc('member_profile',{p_user:id}))?.[0]||null;}
 export async function removeFriend(id){return check(await client.rpc('remove_friend',{p_id:id}));}
 export async function createSquad(name){return check(await client.rpc('create_squad',{p_name:name}));}
 export async function joinSquad(code){return check(await client.rpc('join_squad',{p_code:code.trim()}));}

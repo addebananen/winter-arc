@@ -7,6 +7,10 @@ const demoFriends = () => [
   {friendship_id: 'demo-sara', user_id: 'sara', display_name: 'Sara', relation: 'outgoing'},
 ];
 
+// Demo profiles get a character each so the profile view is complete without an account.
+const demoKinds = {maya: 'striker', noah: 'scholar', elliot: 'monk'};
+const tiers = ['Vandrare', 'Frostvandrare', 'Norrskensväktare', 'Vinterlegend'];
+
 export function createFriendsUI({I, esc, button, avatar, character, D, F, getMode, cloud, modal, closeModal, toast, render}) {
   let list = null, code = '', loading = false, error = '', demo = null;
 
@@ -22,9 +26,9 @@ export function createFriendsUI({I, esc, button, avatar, character, D, F, getMod
   function friendCard(f) {
     const level = D.levelInfo(Number(f.xp) || 0).level;
     return `<section class="card friend-card">
-      <div class="friend-char" aria-hidden="true">${character(level, false, f.char_kind || 'ranger')}</div>
+      <button class="friend-open" data-action="profile-of:${esc(f.user_id)}" aria-label="Visa profil för ${esc(f.display_name)}"><div class="friend-char" aria-hidden="true">${character(level, false, f.char_kind || 'ranger')}</div>
       <div class="friend-main"><strong>${esc(f.display_name)}</strong><small>${esc(F.rankInfo(Number(f.xp) || 0).name)} · LVL ${level}</small>
-        <div class="friend-stats"><span class="flame-badge ${f.trained_today ? 'lit' : ''} ${f.training_streak ? '' : 'out'}" title="Träningsstreak">${I('flame')}${f.training_streak || 0}</span><span class="pill">${f.streak || 0} dagars vanestreak</span>${f.trained_today ? '<span class="friend-today">Har tränat idag</span>' : ''}</div></div>
+        <div class="friend-stats"><span class="flame-badge ${f.trained_today ? 'lit' : ''} ${f.training_streak ? '' : 'out'}" title="Träningsstreak">${I('flame')}${f.training_streak || 0}</span><span class="pill">${f.streak || 0} dagars vanestreak</span>${f.trained_today ? '<span class="friend-today">Har tränat idag</span>' : ''}</div></div></button>
       ${button(I('close'), 'friend:ask-remove:' + f.friendship_id, 'icon-btn friend-remove', `aria-label="Ta bort ${esc(f.display_name)} som vän"`)}
     </section>`;
   }
@@ -89,5 +93,30 @@ export function createFriendsUI({I, esc, button, avatar, character, D, F, getMod
     render();
   }
 
-  return {view, action, submit, reset: () => { list = null; }};
+  // Opens someone's profile: their character big, rank, level and streaks. Only public fields are shown.
+  async function profile(userId, known) {
+    let p;
+    if (getMode() === 'cloud') {
+      try { p = await cloud.memberProfile(userId); }
+      catch (e) { toast(/member_profile|schema cache|does not exist/i.test(e?.message || '') ? 'Profiler aktiveras med databasuppdatering 016.' : e?.message || 'Profilen kunde inte hämtas.'); return; }
+    } else {
+      const f = (data() || []).find(x => x.user_id === userId && x.relation === 'friend');
+      p = known || f ? {char_kind: demoKinds[userId], ...f, ...known} : null;
+    }
+    if (!p) { toast('Profilen kunde inte hämtas.'); return; }
+    const xp = Number(p.xp) || 0, l = D.levelInfo(xp), rank = F.rankInfo(xp), kind = p.char_kind || 'ranger';
+    const charName = p.char_name || F.characters.find(c => c.id === kind)?.name || 'Aurora Ranger';
+    const stat = (icon, value, label) => `<div class="mini-stat">${I(icon)}<strong>${value}</strong><span>${label}</span></div>`;
+    modal(esc(p.display_name), `<div class="member-profile">
+      <div class="member-character">${character(l.level, true, kind)}</div>
+      <span class="eyebrow">${esc(p.title || tiers[Math.min(3, Math.floor((l.level - 1) / 5))])}</span>
+      <h3>${esc(charName)}</h3>
+      <p class="muted">${esc(rank.name)} · LVL ${l.level} · ${xp.toLocaleString('sv-SE')} XP</p>
+      <div class="member-xp"><i style="width:${Math.round(l.ratio * 100)}%"></i></div>
+      <div class="mini-stats">${stat('flame', p.training_streak || 0, 'Träningsstreak')}${stat('check', p.streak || 0, 'Vanestreak')}${p.workouts != null ? stat('dumbbell', p.workouts, 'Pass totalt') : ''}</div>
+      ${p.trained_today ? '<p class="friend-today">Har tränat idag</p>' : ''}
+    </div>`);
+  }
+
+  return {view, action, submit, profile, reset: () => { list = null; }};
 }
