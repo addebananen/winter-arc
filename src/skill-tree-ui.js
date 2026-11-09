@@ -5,8 +5,11 @@
 //    Entries with `soon: true` show in the dropdown as "Kommer snart" and cannot be chosen.
 // 2. Remove `soon` and pass a view for the same id to createSkillTreeUI({categories}) in app.js:
 //    {view: () => html, progress: () => ({done, total})}.
+// Förslag på nivåer för kommande kategorier finns i docs/skill-tree-kategorier.md.
 export const skillCategories = [
   {id: 'calisthenics', name: 'Calisthenics', icon: 'dumbbell', color: '#c6e7df', tagline: 'Kroppsvikt från grund till skill'},
+  {id: 'core', name: 'Core', icon: 'plank', color: '#ffca84', tagline: 'Bålstyrka från plankan till dragon flag', soon: true},
+  {id: 'running', name: 'Löpning', icon: 'run', color: '#a7bcfa', tagline: 'Från första kilometern till milen och längre', soon: true},
   {id: 'music', name: 'Musik', icon: 'music', color: '#e0c799', tagline: 'Teori, gehör och spel', soon: true},
 ];
 
