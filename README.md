@@ -150,6 +150,9 @@ Glömde du trycka Avsluta kan du korta passtiden när du sparar passet. Tiden ka
 ## Språk
 Appen är på **engelska som standard** och kan bytas till **svenska** under Inställningar → Språk (även på inloggningsskärmen). Valet sparas på enheten. Källtexterna är svenska; `src/i18n.js` översätter det som visas med ordlistorna `src/i18n-en.js` (svenska → engelska) och `src/i18n-sv.js` (engelska övningsnamn → svenska). Siffror skrivs som `{#}` i nycklarna, och långa texter översätts mening för mening. Användarskrivet innehåll översätts aldrig.
 
+## Färgteman
+Under kugghjulet → Färgtema finns fyra vinterteman: **Nordljus** (standard), **Frost** (isblått), **Polarnatt** (indigo) och **Beyond Self** (svart, vitt och rött som appikonen). Valet sparas på enheten. `src/themes.js` läser appens CSS vid start och räknar om de svala färgerna för valt tema, medan varma accenter (guld, flamma, rött) behålls. Ny CSS får därför automatiskt alla teman, så skriv nya färger i appens svala grundpalett.
+
 ## Mage- och rörlighetsövningar (migration 014)
 Styrkehubben har två nya muskelgrupper: **Mage** (bl.a. situps, crunches, leg raise, captain's chair leg raise, hängande knä- och benlyft, ab wheel och kabelcrunch) och **Rörlighet** (bl.a. höftböjarstretch, couch stretch, duvan, world's greatest stretch, 90/90, kobran och fotledsrörlighet). Övningarna finns i `src/strength-catalog-core.js`. Rörlighet påverkar aldrig helhetsranken.
 
