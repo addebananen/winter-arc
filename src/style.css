@@ -269,3 +269,23 @@ button.skt-opt:hover{background:#ffffff08}
 /* Settings always in the same place: top bar, left of the profile picture */
 .top-actions>.top-settings{display:grid;place-items:center;width:40px;height:40px;min-width:40px;min-height:40px;border-radius:50%}
 .top-actions>.top-settings .i{width:20px;height:20px}
+/* Social → Vänner */
+.friend-code{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.friend-code strong{display:block;margin:8px 0 6px;font-size:26px;letter-spacing:.18em;font-variant-numeric:tabular-nums}
+.friend-code small{display:block;max-width:420px;color:var(--muted);font-size:12px;line-height:1.6}
+.friend-code-actions{display:flex;flex-wrap:wrap;gap:8px}
+.friend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.friend-card{display:flex;align-items:center;gap:12px;padding:12px 14px;position:relative}
+.friend-char{flex:0 0 64px;width:64px;height:72px;display:grid;place-items:center;overflow:hidden}
+.friend-char svg{width:100%;height:100%}
+.friend-main{flex:1;min-width:0}
+.friend-main strong{display:block;font-size:15px}
+.friend-main small{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.friend-stats{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px}
+.friend-stats .flame-badge{margin-left:0}
+.friend-today{font-size:11px;color:var(--mint);font-weight:700}
+.friend-remove{position:absolute;top:8px;right:8px;width:28px;height:28px;opacity:.55}
+.friend-remove:hover,.friend-remove:focus-visible{opacity:1}
+.friend-row{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line)}
+.friend-row .leader-name{flex:1;min-width:0}
+.friend-row .btn{padding:8px 12px}

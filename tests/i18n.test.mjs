@@ -26,6 +26,7 @@ test('numbers, sentences, " · " parts, verbs, dates and names are translated', 
   assert.equal(translate('Välj övningar. Logga dina set.', 'en'), 'Choose exercises. Log your sets.');
   assert.equal(translate('Träning · Strength', 'en'), 'Training · Strength');
   assert.equal(translate('Redigera Läs en bok', 'en'), 'Edit Read a book');
+  assert.equal(translate('Vill du ta bort Maya som vän? Ni slutar se varandras level och streaks.', 'en'), 'Remove Maya as a friend? You stop seeing each other’s level and streaks.');
   assert.equal(translate('lördag 9 november', 'en'), 'Saturday 9 November');
   assert.equal(translate('Välkommen tillbaka, Tim. Varje litet steg räknas.', 'en'), 'Welcome back, Tim. Every small step counts.');
   assert.equal(translate('Dagens pass är sparat. Nästa pass senast på onsdag.', 'en'), "Today's workout is saved. Next workout by Wednesday.");
@@ -61,7 +62,7 @@ test('the app opens in English by default and switches to Swedish from settings'
   const q = s => w.document.querySelector(s), click = async a => { q(`[data-action="${a}"]`).click(); await sleep(40); };
   assert.equal(w.document.documentElement.lang, 'en');
   assert.equal(w.document.title, 'Beyond Self — Your expedition');
-  assert.deepEqual([...w.document.querySelectorAll('.tabbar button')].map(b => b.textContent), ['Today', 'Training', 'Skill tree', 'Squad']);
+  assert.deepEqual([...w.document.querySelectorAll('.tabbar button')].map(b => b.textContent), ['Today', 'Training', 'Skill tree', 'Social']);
   assert.equal(q('.page-head h1').textContent, 'One step forward.');
   await click('nav:training'); await click('fit:section:strength'); await click('hub:catalog');
   assert.match(q('#view').textContent, /Exercise library/);
@@ -78,6 +79,11 @@ test('the app opens in English by default and switches to Swedish from settings'
   assert.match(q('.lift-log').textContent, /Captain's chair leg raise/);
   await click('hub:cancel'); await click('hub:discard');
   for (const r of ['today', 'habits', 'squad', 'training']) { await click('nav:' + r); const gear = q('.top-actions [data-action="settings"]'); assert.ok(gear, 'Settings reachable on ' + r); assert.equal(gear.nextElementSibling?.dataset.action, 'nav:profile', 'Left of the profile picture on ' + r); assert.equal(q('.page-head [data-action="settings"]'), null); }
+  await click('nav:squad');
+  assert.deepEqual([...w.document.querySelectorAll('.tabs .tab')].map(b => b.textContent), ['Friends', 'Squad', 'Leaderboard', 'Missions']);
+  assert.match(q('#view').textContent, /YOUR FRIEND CODE/);
+  assert.match(q('#view').textContent, /Friend requests/);
+  assert.match(q('#view').textContent, /Your friends/);
   await click('quick'); await click('quick:settings');
   assert.match(q('.modal').textContent, /Language/); await click('close');
   await click('nav:profile');
