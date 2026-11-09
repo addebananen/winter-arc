@@ -1,24 +1,43 @@
-"""Reproducible code-native PWA icon; Python standard library only."""
-import math, struct, zlib
+"""Builds the Beyond Self app icons from assets/beyond-self-logo.png.
+
+Requires Pillow (pip install pillow). The source is the logo on a white canvas;
+the black square is detected, its rounded corners are filled black so iOS and
+Android can apply their own mask, and each size is resampled with Lanczos.
+Run: python scripts/make-icons.py
+"""
+import base64, io
 from pathlib import Path
-root=Path(__file__).resolve().parents[1]/'src'
-segments=[((95,174),(163,345)),((163,345),(256,174)),((256,174),(349,345)),((349,345),(417,174))]
-stars=[((256,100),(256,126)),((243,113),(269,113))]
-def distance(x,y,a,b):
- dx=b[0]-a[0];dy=b[1]-a[1];t=max(0,min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy)))
- return math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)
-def chunk(kind,data):return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
-for size,name in [(192,'icon-192.png'),(512,'icon-512.png'),(180,'apple-touch-icon.png')]:
- rows=[]
- for py in range(size):
-  row=bytearray([0])
-  for px in range(size):
-   x=(px+.5)*512/size;y=(py+.5)*512/size
-   d=min(distance(x,y,*s) for s in segments)-12
-   ds=min(distance(x,y,*s) for s in stars)-4.5
-   cover=max(0,min(1,.5-d*size/512));sc=max(0,min(1,.5-ds*size/512))
-   bg=(16,23,25);fg=(198,231,223);gold=(223,197,148)
-   row.extend(round((bg[i]*(1-cover)+fg[i]*cover)*(1-sc)+gold[i]*sc) for i in range(3))
-  rows.append(row)
- data=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',size,size,8,2,0,0,0))+chunk(b'IDAT',zlib.compress(b''.join(rows),9))+chunk(b'IEND',b'')
- (root/name).write_bytes(data)
+from PIL import Image, ImageDraw
+
+root = Path(__file__).resolve().parents[1]
+source = Image.open(root / 'assets' / 'beyond-self-logo.png').convert('RGB')
+px = source.load()
+w, h = source.size
+dark = lambda x, y: sum(px[x, y]) < 200
+xs = [x for x in range(w) if any(dark(x, y) for y in range(0, h, 2))]
+ys = [y for y in range(h) if any(dark(x, y) for x in range(0, w, 2))]
+square = source.crop((min(xs), min(ys), max(xs) + 1, max(ys) + 1))
+side = max(square.size)
+logo = Image.new('RGB', (side, side), 'black')
+logo.paste(square, ((side - square.width) // 2, (side - square.height) // 2))
+# Paint everything outside an inset rounded rectangle black, so no white corners remain.
+mask = Image.new('L', logo.size, 0)
+ImageDraw.Draw(mask).rounded_rectangle((2, 2, side - 3, side - 3), radius=side // 12, fill=255)
+logo = Image.composite(logo, Image.new('RGB', logo.size, 'black'), mask)
+
+def render(size, content=1.0):
+    canvas = Image.new('RGB', (size, size), 'black')
+    inner = round(size * content)
+    canvas.paste(logo.resize((inner, inner), Image.LANCZOS), ((size - inner) // 2, (size - inner) // 2))
+    return canvas
+
+# 512 doubles as a maskable icon: keep the text inside the 80 % safe circle.
+render(512, 0.86).save(root / 'src' / 'icon-512.png', optimize=True)
+render(192, 0.86).save(root / 'src' / 'icon-192.png', optimize=True)
+render(180).save(root / 'src' / 'apple-touch-icon.png', optimize=True)
+buf = io.BytesIO(); render(128).save(buf, 'PNG', optimize=True)
+data = base64.b64encode(buf.getvalue()).decode()
+(root / 'src' / 'icon.svg').write_text(
+    f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="28" fill="#000"/>'
+    f'<image width="128" height="128" href="data:image/png;base64,{data}"/></svg>\n')
+print('Icons written from', side, 'px source')

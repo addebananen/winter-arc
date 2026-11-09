@@ -1,4 +1,4 @@
-# Winter Arc – regler för Claude
+# Beyond Self – regler för Claude
 
 Flera personer jobbar i det här projektet, var och en med sin egen Claude.
 Följ reglerna nedan så att vi inte krockar med varandra.

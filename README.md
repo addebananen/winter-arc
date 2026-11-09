@@ -1,4 +1,6 @@
-# Winter Arc
+# Beyond Self
+
+Appen hette tidigare Winter Arc. "Winter Arc" lever kvar som namnet på 90-dagarsutmaningen i appen, och interna nycklar (`arc-*` i lagringen, fotodatabasen `winter-arc-photos`, cachenamnet) är oförändrade så att sparad data finns kvar.
 
 En svensk, mobilanpassad PWA för vanor, karaktärsutveckling och en expedition med vänner. HTML, CSS och JavaScript, med Supabase för Google-konton, gemensam data och privata bilder.
 
@@ -13,7 +15,7 @@ npm run build
 npm run dev
 ```
 
-Öppna `http://127.0.0.1:4173`. Node 22.13 eller senare krävs. Färdiga PWA-ikoner är incheckade; `python scripts/make-icons.py` återskapar dem utan externa Pythonpaket.
+Öppna `http://127.0.0.1:4173`. Node 22.13 eller senare krävs. Färdiga PWA-ikoner är incheckade. De skapas från logotypen `assets/beyond-self-logo.png` med `python scripts/make-icons.py` (kräver Pillow: `pip install pillow`).
 
 ## Status
 
