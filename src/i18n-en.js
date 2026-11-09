@@ -2408,4 +2408,10 @@ export default {
  "Polarnatt": "Polar Night",
  "Mörkt indigo och norrsken": "Dark indigo and aurora",
  "Svart, snövitt och rött som appikonen": "Black, snow white and red like the app icon",
+ "Google-konto · molnsynkat": "Google account · cloud synced",
+ "Lokal expedition · bara den här enheten": "Local expedition · this device only",
+ "Google-konto": "Google account",
+ "molnsynkat": "cloud synced",
+ "Molnsynkat": "Cloud synced",
+ "Sparar…": "Saving…",
 };
