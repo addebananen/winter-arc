@@ -120,3 +120,6 @@ html{min-height:100%;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px
 .sk-setup{border:0;padding:0;margin:0 0 6px;display:flex;flex-direction:column;gap:12px}.sk-setup legend{margin-bottom:10px}
 .sk-link{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.sk-link h3{margin:8px 0 6px}.sk-link p{font-size:12px}
 @media(max-width:760px){.sk-hero{flex-direction:column;align-items:stretch}.sk-hero .btn{width:100%}.sk-grid{grid-template-columns:1fr}.sk-card-art{width:92px}.sk-link{flex-direction:column;align-items:stretch}}
+
+
+.skill-form-check{grid-column:1/-1;display:flex!important;align-items:center;gap:10px;color:var(--muted);font-size:11px;line-height:1.6;padding:10px 0}.skill-form-check input{width:20px!important;height:20px;flex:0 0 20px;accent-color:var(--mint)}

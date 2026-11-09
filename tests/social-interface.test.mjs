@@ -6,7 +6,7 @@ import * as D from '../src/domain.js';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const bundled=await build({entryPoints:['src/app.js'],bundle:true,write:false,format:'iife',plugins:[{name:'cloud-fault-injection',setup(b){
  b.onLoad({filter:/[\\/]cloud\.js$/},()=>({loader:'js',contents:`
- export const configured=true,googleReady=true,trainingReady=true,user={id:'owner',created_at:'2026-11-07T12:00:00Z'};
+ export const configured=true,googleReady=true,trainingReady=true,skillWorkoutsReady=true,user={id:'owner',created_at:'2026-11-07T12:00:00Z'};
  export const initialize=async()=>user,load=async()=>structuredClone(window.backend.state);
  export const mySquad=async()=>({id:'squad',name:'Test squad'});
  export const social=async()=>{if(window.backend.failFeed)throw Error('PGRST201 ambiguous relationship');return {activityReady:true,posts:structuredClone(window.backend.posts),members:[],missions:[]};};

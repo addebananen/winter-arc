@@ -137,3 +137,14 @@ Vikt och längd sparas vid passstart. Styrkevarianter använder samma princip f�
 Underlag: https://pubmed.ncbi.nlm.nih.gov/27570626/ (löptidsprognos), https://pubmed.ncbi.nlm.nih.gov/18172672/ (kroppsstorlek), https://pubmed.ncbi.nlm.nih.gov/15705030/ (Smith kontra fria vikter), https://pubmed.ncbi.nlm.nih.gov/16937972/ (1RM-prognoser). Videokällor för teknik/övningsval finns i katalogens detaljvyer. Källorna fastställer inte appens egna rankgränser.
 
 Migration 009 rättar även Storage INSERT-regeln så att en inloggad användare kan ladda upp profilbild i sin egen avatar-mapp. Andras mappar och privat läsning förblir skyddade. Kör endast nya migrationen en gång; tidigare konton och historik bevaras. Från ett nytt projekt tillämpas 001–009 i ordning. Nästa nya migration efter detta är 010. Generera 009 från dess mall och katalogen med `node scripts/cardio-migration.mjs` innan den tillämpas; ändra aldrig filen efter installation.
+
+
+
+## Skill tree kopplat till workouts (migration 010)
+Trädets befintliga progressioner har varsin katalogövning med samma animation, teknik och mål. Kategorin Calisthenics · progressioner finns i övningsbiblioteket. Under ett pågående styrkepass växlar Passet / Skill tree mellan setloggen och trädet utan att avsluta passet. Lägg till i workout köar rätt antal målset; inget pass behöver startas om.
+
+Nya nivåer härleds från avslutade pass efter expeditionens start. Rätt variant och minst målets set/reps/sekunder krävs i samma pass, tillsammans med föregående nivå och trädets förkunskaper. Teknik, tempo och båda sidor bekräftas vid loggning. En sparad generisk armhävning, pull-up, dips, planka eller häng kan också uppfylla motsvarande mål. Pågående eller ofullständiga set räknas inte. Avancerade resultat före nödvändiga förkunskaper behöver göras om efter att förkunskaperna uppnåtts.
+
+Befintliga manuellt angivna nivåer bevaras som historiskt utgångsläge. Nya manuella höjningar blockeras i UI och databas. Derived nivåer ger samma karaktärspoäng som tidigare; ingen extra XP delas ut för att visa eller öppna trädet. Passens vanliga tidsbaserade XP-regler gäller. Likadana skill-varianter kan inte registreras under flera katalog-ID:n samma dag. Skill-övningar påverkar inte styrkehubens sammanvägda rank.
+
+Kör endast migration 010 efter 001–009. Gamla migrationer ska inte regenereras eller köras igen. 010 genereras före installation via `node scripts/skill-workout-migration.mjs`; därefter fryses den som övriga migrationer.
