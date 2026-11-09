@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createSkillTreeUI, skillCategories} from '../src/skill-tree-ui.js';
+import {icon} from '../src/graphics.js';
 
 const I = n => `<i data-icon="${n}"></i>`;
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
@@ -8,8 +9,11 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};
 test('category registry has unique ids and the required fields', () => {
   const ids = skillCategories.map(c => c.id);
   assert.equal(new Set(ids).size, ids.length);
+  const fallback = icon('compass').match(/d="([^"]+)"/)[1];
+  for (const c of skillCategories) if (c.icon !== 'compass') assert.notEqual(icon(c.icon).match(/d="([^"]+)"/)[1], fallback, c.id + ' har ingen egen ikon');
   for (const c of skillCategories) for (const k of ['id', 'name', 'icon', 'color', 'tagline']) assert.ok(c[k], `${c.id} saknar ${k}`);
   assert.ok(skillCategories.some(c => c.id === 'calisthenics' && !c.soon));
+  for (const id of ['core', 'running', 'music']) assert.equal(skillCategories.find(c => c.id === id)?.soon, true, id + ' ska visas som Kommer snart');
 });
 
 test('only categories with a view can be chosen; soon ones are listed but locked', () => {
@@ -29,7 +33,7 @@ test('only categories with a view can be chosen; soon ones are listed but locked
 });
 
 test('adding a category is one registry entry plus one view', () => {
-  const list = [...skillCategories.map(c => c.id === 'music' ? {...c, soon: false} : c), {id: 'running', name: 'Löpning', icon: 'flame', color: '#f00', tagline: 'Fart', soon: true}];
+  const list = [...skillCategories.map(c => c.id === 'music' ? {...c, soon: false} : c), {id: 'swim', name: 'Simning', icon: 'flame', color: '#f00', tagline: 'Längder', soon: true}];
   const ui = createSkillTreeUI({I, esc, render: () => {}, list, categories: {
     calisthenics: {view: () => 'cali'},
     music: {view: () => 'musik-vy', progress: () => ({done: 1, total: 4})},
@@ -41,8 +45,8 @@ test('adding a category is one registry entry plus one view', () => {
   assert.match(html, /musik-vy/);
   assert.match(html, /<strong>Musik<\/strong>/);
   assert.match(html, /1\/4 nivåer/);
-  assert.match(html, /Löpning/);
-  assert.match(html, /2 av 3 öppna/);
+  assert.match(html, /Simning/);
+  assert.match(html, /2 av 5 öppna/);
 });
 
 test('a missing view never breaks the page', () => {
