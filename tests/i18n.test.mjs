@@ -86,6 +86,13 @@ test('the app opens in English by default and switches to Swedish from settings'
   await click('settings');
   assert.match(q('.modal').textContent, /Language/);
   assert.equal(q('[data-action="lang:en"]').getAttribute('aria-pressed'), 'true');
+  assert.match(q('.settings-theme').textContent, /Colour theme/);
+  assert.deepEqual([...w.document.querySelectorAll('.theme-choice strong')].map(x => x.textContent), ['Northern Lights', 'Frost', 'Polar Night', 'Beyond Self']);
+  assert.equal(q('[data-action="theme:aurora"]').getAttribute('aria-pressed'), 'true');
+  await click('theme:beyond');
+  assert.equal(w.localStorage.getItem('arc-theme'), 'beyond');
+  assert.equal(w.document.documentElement.dataset.theme, 'beyond');
+  assert.equal(q('[data-action="theme:beyond"]').getAttribute('aria-pressed'), 'true');
   assert.equal(q('[data-action="lang:sv"]').textContent, 'Svenska');
   await click('lang:sv');
   assert.equal(w.localStorage.getItem('arc-lang'), 'sv');

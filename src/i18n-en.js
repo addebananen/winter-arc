@@ -2399,4 +2399,13 @@ export default {
  "Anslut": "Connect",
  "Logga ut": "Sign out",
  "Språk, konto och installation": "Language, account and installation",
+ "Färgtema": "Colour theme",
+ "Välj ett vintertema.": "Choose a winter theme.",
+ "Sparas på den här enheten.": "Saved on this device.",
+ "Nordljus": "Northern Lights",
+ "Mint och djupt havsgrönt": "Mint and deep sea green",
+ "Isblått och kall morgon": "Ice blue and a cold morning",
+ "Polarnatt": "Polar Night",
+ "Mörkt indigo och norrsken": "Dark indigo and aurora",
+ "Svart, snövitt och rött som appikonen": "Black, snow white and red like the app icon",
 };
