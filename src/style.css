@@ -265,3 +265,7 @@ button.skt-opt:hover{background:#ffffff08}
 .sk-start-option small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
 .form .sk-start-option{display:flex;flex-direction:row;align-items:center;gap:12px;margin:0;font-size:inherit;color:var(--text)}
 .form .sk-start-option input[type=radio]{display:inline-block;width:18px;height:18px;min-height:0;padding:0;margin:0;flex:0 0 18px;border:0;background:none}
+
+/* Settings always in the same place: top bar, left of the profile picture */
+.top-actions>.top-settings{display:grid;place-items:center;width:40px;height:40px;min-width:40px;min-height:40px;border-radius:50%}
+.top-actions>.top-settings .i{width:20px;height:20px}
