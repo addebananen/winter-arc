@@ -215,3 +215,16 @@ button.skt-opt:hover{background:#ffffff08}
 .streak-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 .streak-row.me .leader-name strong{color:var(--mint)}
 @media(max-width:760px){.streak-card{flex-wrap:wrap;gap:16px}.streak-flame{flex-basis:64px;height:64px}.streak-flame .i{width:38px;height:38px}.streak-cta{width:100%}}
+
+/* Set types (normal / failure / drop) and adjustable workout time */
+.set-num{display:grid;place-items:center;width:25px;height:30px;border-radius:9px;font-weight:800;font-size:13px;color:var(--text);background:#ffffff08;border:1px solid transparent;-webkit-tap-highlight-color:transparent}
+.set-num:active{transform:scale(.92)}
+.set-num.failure{color:#ff8a7a;background:#ff6b5b1f;border-color:#ff6b5b55}
+.set-num.drop{color:#ffca84;background:#ffca841a;border-color:#ffca8455}
+.quick-row .set-num{flex:0 0 38px;width:38px;height:38px;font-size:15px}
+.set-type-row.selected{border-color:#65837b;background:#2a403c}
+.set-tag{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700}
+.set-tag.failure{color:#ff8a7a;background:#ff6b5b1f}
+.set-tag.drop{color:#ffca84;background:#ffca841a}
+.forgot-notice{margin:12px 0}
+.finish-time{margin:16px 0 6px}

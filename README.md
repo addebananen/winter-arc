@@ -142,6 +142,11 @@ Migration 009 rättar även Storage INSERT-regeln så att en inloggad användare
 
 
 
+## Passtid och settyper (migration 013)
+Glömde du trycka Avsluta kan du korta passtiden när du sparar passet. Tiden kan bara kortas, aldrig förlängas, och XP räknas på den nya tiden. Har passet pågått i minst tre timmar visar appen en påminnelse. Varje set kan markeras som vanligt set, till failure (F) eller drop-set (D) genom att trycka på setets nummer. Sparade pass är fortfarande låsta.
+
+`supabase/013_workout_time_and_set_types.sql` låter servern godkänna en kortare passtid (`adjustedMinutes`, klampas till den riktiga tiden) och räkna XP på den, och nekar okända settyper. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 012. Kör den direkt efter merge: innan den är körd sparas den kortare tiden och settyperna, men servern räknar fortfarande XP och leaderboard på den fulla tiden.
+
 ## Träningsstreak (migration 011)
 En flamma per dag med ett sparat pass i Styrkehubben. En vilodag mellan passen är okej, men två dagar i rad utan pass nollställer streaken. Flera pass samma dag ger en flamma. Streaken visas på startsidan, i Styrkehubben och i squadets leaderboard. Andra pass (Pass & andning, kondition) räknas inte.
 
