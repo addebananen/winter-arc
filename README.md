@@ -155,6 +155,14 @@ I varje skill-träd kan man trycka **Ange min nivå** och välja den högsta niv
 
 `supabase/015_skill_start_level.sql` låter servern godkänna en startnivå om trädet och nivån finns. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 014. Innan den är körd förklarar appen att databasuppdateringen behövs.
 
+## XP-regler (migration 018)
+
+Från och med 2026-11-10 ger bara fem aktiviteter XP, högst en gång per dag var: styrkepass 40 (avslutat pass i styrkehubben eller vanan Styrketräning, oavsett längd), löpningspass 35 (löppass eller vanan Löpning), Läs en bok 25, Rörlighet 20 och Kall avslutning på duschen 15. En vana med lägre mål ger proportionellt mindre.
+
+Egna vanor, övriga vanor, dagens uppdrag, combo, träningsprogram, andning, musik, annan kondition och skill tree bygger fortfarande karaktärens stats i sin kategori men ger ingen XP. XP som tjänats till och med 2026-11-09 räknas som förut, så ingen förlorar något.
+
+Reglerna finns i `src/xp-rules.js` och speglas på servern i `supabase/018_xp_rules.sql`, som byter ut `arc_total_xp` (leaderboard, vänner, profiler). Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 017.
+
 ## Social och vänner (migration 016)
 
 Fliken längst ner heter nu **Social** och har fyra delar: **Vänner**, **Squad** (gemensamt flöde med vanor och pass), **Leaderboard** och **Uppdrag**.

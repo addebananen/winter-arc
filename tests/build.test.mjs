@@ -6,7 +6,7 @@ import vm from 'node:vm';
 test('release assets are versioned and updates bypass stale HTTP caches',async()=>{
  execFileSync(process.execPath,['scripts/build.mjs'],{stdio:'pipe'});
  const html=await readFile('dist/index.html','utf8'),script=await readFile('dist/sw.js','utf8'),version=html.match(/app\.js\?v=([a-f0-9]{12})/)[1];
- assert.ok(html.includes('style.css?v='+version));assert.ok(script.includes('winter-arc-'+version));
+ assert.ok(html.includes('style.css?v='+version));assert.ok(html.includes('apple-touch-icon.png?v='+version),'Home screen icon URL changes with each release');const manifest=JSON.parse(await readFile('dist/manifest.webmanifest','utf8'));assert.ok(manifest.icons.every(i=>i.src.endsWith('?v='+version)));assert.equal(manifest.name,'Beyond Self');assert.ok(script.includes('apple-touch-icon.png?v='+version));assert.ok(script.includes('winter-arc-'+version));
  const events={},requests=[],fetched=[],stored=[];const cache={addAll:async reqs=>requests.push(...reqs),put:async(req)=>stored.push(req.url)};
  const url=new URL('https://winter.example/winter-arc/sw.js');
  vm.runInNewContext(script,{self:{location:url,addEventListener:(name,fn)=>events[name]=fn,clients:{claim:async()=>{}},skipWaiting:()=>{}},location:url,caches:{open:async()=>cache,match:async()=>new Response('offline shell')},Request,Response,URL,Set,fetch:async(req,opts)=>{fetched.push({url:req.url,cache:opts.cache});return new Response('current build');}});

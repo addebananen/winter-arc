@@ -311,3 +311,13 @@ button.skt-opt:hover{background:#ffffff08}
 .sk-levels-row strong{display:block;font-size:14px}
 .sk-levels-row small{display:block;margin-top:3px;color:var(--muted);font-size:11px}
 .sk-levels-row .i{flex:0 0 auto;width:16px;height:16px;color:var(--muted)}
+/* XP-regler: bara fem aktiviteter ger XP, övriga vanor ger stats */
+.xp.stat-only{color:var(--muted)}
+.xp-rules .section-head{margin-bottom:10px}
+.xp-rule-list{display:grid;gap:6px}
+.xp-rule{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:#ffffff08;font-size:13px}
+.xp-rule .i{width:16px;height:16px;color:var(--muted)}
+.xp-rule span{flex:1}
+.xp-rule b{font-size:12px;color:var(--muted)}
+.xp-rule.done .i,.xp-rule.done b{color:var(--mint)}
+.xp-rules .fitness-hint{margin-top:10px}
