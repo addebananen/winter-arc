@@ -303,3 +303,11 @@ button.skt-opt:hover{background:#ffffff08}
 .member-xp i{display:block;height:100%;border-radius:inherit;background:var(--mint)}
 .member-profile .mini-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));text-align:left}
 .member-profile .friend-today{margin-top:12px}
+/* Skill tree: ange var man är i alla träd från översikten */
+.sk-levels-btn{margin-top:14px}
+.sk-levels-head{margin:16px 0 8px;font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.sk-levels-list{display:grid;gap:8px}
+.sk-levels-row{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#ffffff08;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.sk-levels-row strong{display:block;font-size:14px}
+.sk-levels-row small{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.sk-levels-row .i{flex:0 0 auto;width:16px;height:16px;color:var(--muted)}

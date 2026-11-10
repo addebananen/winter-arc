@@ -2479,4 +2479,13 @@ export default {
  "Profilen är privat.": "The profile is private.",
  "Pass totalt": "Workouts in total",
  "Vanestreak": "Habit streak",
+ "Ange var jag är": "Set where I am",
+ "Var är du i dina skill-träd?": "Where are you in your skill trees?",
+ "Välj ett träd och ange den högsta nivån du redan klarar.": "Choose a tree and set the highest level you can already do.",
+ "Då börjar trädet därifrån.": "The tree then starts from there.",
+ "Inte påbörjad": "Not started",
+ "Nivå {#} av {#}": "Level {#} of {#}",
+ "startnivå {#}": "starting level {#}",
+ "Har du redan kommit en bit?": "Already some way along?",
+ "Tryck på Ange var jag är.": "Tap Set where I am.",
 };
