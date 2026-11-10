@@ -4,23 +4,54 @@ import * as C from '../src/cardio.js';
 import * as D from '../src/domain.js';
 import * as S from '../src/strength.js';
 import {movementArt} from '../src/strength-art.js';
+import {framesOf, bones} from '../src/figure.js';
 const base=()=>{const s=D.blankState('2026-11-09');D.normalizeState(s);return s;};
 test('running rank is monotonic, estimates only supported distances and does not invent body-size bonuses',()=>{assert.equal(C.runningRank(5,1800).name,'Guld');assert.ok(C.runningRank(5,1500).level>C.runningRank(5,2100).level);assert.equal(C.runningRank(.5,120).level,0);assert.equal(C.runningRank(42.2,10000).level,0);assert.equal(C.activities.filter(a=>a.ranked).length,1);});
 test('cardio timer validates duration and single daily activity and preserves unranked sports',()=>{const s=base();C.start(s,'volleyball','2026-11-09',1000);assert.throws(()=>C.finish(s,0,1800,2000),/Kontrollera/);C.finish(s,0,1800,1801000);assert.equal(C.cardioXP(s),60);assert.equal(C.record(s).level,0);assert.throws(()=>C.start(s,'volleyball','2026-11-09'),/redan/);assert.equal(D.totalXP(s),60);});
 test('cardio shares daily XP with strength habits and avoids rewarding the same time twice',()=>{const s=base();C.start(s,'run','2026-11-09',1000);C.finish(s,5,1800,1801000);const h=D.makeHabit(D.library[0],'2026-11-09');h.durationMinutes=30;s.habits.push(h);D.setProgress(s,h.id,1,'2026-11-09');assert.equal(C.cardioXP(s),0);assert.equal(D.totalXP(s),60);});
 test('every catalog entry and sport produces valid animated art with its own accessible title',()=>{for(const e of [...S.lifts,...C.activities.map(a=>({...a,equipment:'Kroppsvikt',unit:'tid'}))]){const art=movementArt(e,true);assert.ok(art.includes(e.name));assert.doesNotMatch(art,/NaN|undefined/);assert.match(art,/<animate/);}});
-test('exercise art: seated chest press, separate dumbbells, barbell plates and a muscular figure', () => {
-  const art = id => movementArt(S.liftById[id], true);
-  const chest = art('machine-chest');
-  assert.match(chest, /<polygon points="[^"]*"/, 'Torso is a shaped body, not a line');
-  assert.ok(chest.includes('M74 54L78 110'), 'The chest press has a seat with a backrest');
-  assert.doesNotMatch(chest, /M48 112H125/, 'The chest press is not a lying bench press');
-  for (const id of ['db-curl', 'lateral', 'seated-db-press', 'lunge']) {
-    const svg = art(id);
-    assert.equal((svg.match(/<rect x="-11"/g) || []).length, 2, id + ': one dumbbell in each hand');
-    assert.doesNotMatch(svg, /stroke="#a8bbc4" stroke-width="4" stroke-linecap="round"/, id + ': no long bar between the hands');
+test('exercise figure: rigid bones in every frame, planted feet, knees forward, elbows back', () => {
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  for (const e of [...S.lifts.filter(l => !l.skillTree), ...C.activities.map(a => ({...a, equipment: '', muscle: ''}))]) {
+    const frames = framesOf(e);
+    assert.ok(frames.length > 1, e.id + ' has a figure');
+    for (const fr of frames) for (const L of Object.values(fr.limbs)) {
+      assert.ok(Math.abs(dist(L.root, L.mid) - (L.leg ? bones.thigh : bones.uarm)) < .05, e.id + ': upper bone keeps its length');
+      assert.ok(Math.abs(dist(L.mid, L.end) - (L.leg ? bones.shin : bones.farm)) < .05, e.id + ': lower bone keeps its length');
+    }
   }
-  assert.match(art('squat'), /height="28"/, 'A barbell has plates');
-  assert.match(art('bench'), /<circle r="13"/, 'Seen from the side, a barbell is a plate');
-  assert.match(art('db-curl'), /stroke-width="12"/, 'Thick upper arms');
+  const squat = framesOf(S.liftById.squat), bottom = squat.at(-1).limbs.ln;
+  for (const fr of squat) assert.ok(dist(fr.limbs.ln.end, squat[0].limbs.ln.end) < .5, 'The feet stay planted through the squat');
+  assert.ok(bottom.mid[0] > bottom.root[0] && bottom.mid[0] > bottom.end[0] - 4, 'Knees travel forward in the squat');
+  assert.ok(squat.at(-1).P[1] - squat[0].P[1] > 30, 'The hips go down');
+  const bench = framesOf(S.liftById.bench), press = bench.at(-1).limbs.an;
+  assert.ok(press.mid[1] < bench[0].limbs.an.mid[1], 'The bar moves up in the bench press');
+  assert.ok(bench[0].limbs.an.mid[1] > bench[0].limbs.an.end[1], 'Elbows point down under the bar');
+});
+
+test('exercise figure: seated chest press, separate dumbbells, barbell plates and the worked muscle highlighted', () => {
+  const chest = framesOf(S.liftById['machine-chest']);
+  assert.ok(Math.abs(chest[0].P[1] - chest[0].S[1]) > 35 && chest[0].P[1] > 100, 'Chest press sits upright on a seat');
+  assert.ok(chest.at(-1).limbs.an.end[0] - chest[0].limbs.an.end[0] > 20, 'and pushes the handles forward');
+  const still = id => movementArt(S.liftById[id], false);
+  assert.equal((still('db-curl').match(/a8 8 0 1 0 16 0/g) || []).length, 2, 'One dumbbell in each hand');
+  assert.equal((still('lateral').match(/fill="#1f2a30"/g) || []).length, 4, 'Two dumbbells with two plates each in front view');
+  assert.match(still('bench'), /a16 16 0 1 0 32 0/, 'A barbell seen from the side is a plate');
+  assert.match(still('bench'), /fill="#ff7a59"/, 'The chest is highlighted for bench press');
+  assert.match(still('plank'), /movement-art/);
+  assert.match(movementArt(S.liftById.plank, true), /animateTransform/, 'A hold breathes');
+  assert.match(movementArt(S.liftById.squat, true), /<animate attributeName="d"/, 'Moves are animated frame by frame');
+});
+
+test('exercise figure: hands close around what they hold, rest flat on the floor and open when reaching', () => {
+  const bench = framesOf(S.liftById.bench)[0].limbs.an.hand;
+  assert.equal(bench.style, 'fist');
+  assert.equal(bench.curl, 1, 'A fist around the bar');
+  const push = framesOf(S.liftById.pushup)[0].limbs.an;
+  assert.equal(push.hand.style, 'flat');
+  assert.deepEqual(push.hand.d.map(v => Math.round(v * 100) / 100), [1, 0], 'Fingers point forward along the floor');
+  assert.equal(framesOf(S.liftById.situp)[0].limbs.an.hand.style, 'open');
+  const svg = movementArt(S.liftById.bench, false);
+  assert.match(svg, /stroke-width=".7"/, 'Knuckle creases are drawn');
+  assert.ok(svg.indexOf('a16 16 0 1 0 32 0') < svg.lastIndexOf('stroke-width=".7"'), 'The plate is behind the gripping fingers');
 });

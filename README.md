@@ -161,8 +161,9 @@ Under Profil → Karaktär finns Utrustning med tre platser: aura, mantel och em
 
 ## Övningsanimationer
 
-`src/strength-art.js` ritar en muskulös figur (formad överkropp, tjocka överarmar och lår, bortre sidan mörkare) och redskap efter utrustning: skivstång med viktskivor, en hantel i varje hand, kabel från ett fäste, gummiband och bänk eller säte. Chest press och sittande press sitter ner. Statiska håll som planka andas lugnt.
+Övningarna ritas av en människofigur i `src/figure.js` med fasta benlängder och mänskliga proportioner. Varje övning i `src/figure-poses.js` beskrivs med två nyckellägen: höftens position, bålens lutning och var händer och fötter ska vara. Knän och armbågar räknas fram med invers kinematik, så att knän alltid böjs framåt, armbågar bakåt och fötter som står i golvet står still. Mellanlägena räknas om i varje steg, och bålen, låren, vaderna, biceps och bröstet har anatomiska former med kläder och skor. Muskelgruppen som tränas markeras. Händerna har handflata, fyra fingrar i tre leder och tumme: de sluter sig runt stången, hanteln eller handtaget, ligger platt mot golvet i armhävningar och är öppna när man sträcker sig. Redskap följer händerna: viktskiva för skivstång i sidovy, en hantel i varje hand, kabel från ett fäste, band och hjul. Bänkar, säten, räcken och maskiner står i bakgrunden.
 
+Lägg till en ny övning genom att ge den en `pose` som finns i `figure-poses.js`, eller lägg till en ny pose där. Testerna kontrollerar att benlängderna är konstanta i alla mellanlägen.
 ## Hemskärmsikon
 
 Service workern hämtar och sparar aldrig ikonerna eller manifestet. iPhone visar annars en bokstav i stället för ikonen när service workern svarar på ikonhämtningen.
