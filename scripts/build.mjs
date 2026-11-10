@@ -13,7 +13,9 @@ const html=(await readFile('dist/index.html','utf8')).replace('./app.js','./app.
  .replace('href="./apple-touch-icon.png"','href="./apple-touch-icon.png?v='+version+'"').replace('href="./icon.svg"','href="./icon.svg?v='+version+'"');
 const manifest=JSON.parse(await readFile('dist/manifest.webmanifest','utf8'));for(const icon of manifest.icons)icon.src+='?v='+version;await writeFile('dist/manifest.webmanifest',JSON.stringify(manifest));
 await writeFile('dist/index.html',html);
-const assets=['./','./index.html','./app.js?v='+version,'./style.css?v='+version,'./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png','./apple-touch-icon.png',...['icon.svg','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png'].map(f=>'./'+f+'?v='+version),'./manifest.webmanifest'];
+// Home screen icons are never cached or intercepted by the service worker: iOS shows a letter instead of
+// the icon when the service worker answers the touch-icon request. The manifest is left to the browser too.
+const assets=['./','./index.html','./app.js?v='+version,'./style.css?v='+version,'./icon-192.png'];
 await writeFile('dist/sw.js',`const CACHE='winter-arc-${version}';const ASSETS=${JSON.stringify(assets)};const URLS=new Set(ASSETS.map(a=>new URL(a,self.location.href).href));
 async function installShell(){const cache=await caches.open(CACHE);await cache.addAll(ASSETS.map(a=>new Request(new URL(a,self.location.href),{cache:'reload'})));}
 self.addEventListener('install',e=>e.waitUntil(installShell()));

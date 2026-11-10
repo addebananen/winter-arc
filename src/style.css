@@ -326,3 +326,22 @@ button.skt-opt:hover{background:#ffffff08}
 .quick-row .set-num .i{width:16px;height:16px}
 .xp-rule-add{padding:4px 9px;font-size:11px}
 .xp-rule-add .i{width:12px;height:12px}
+/* Karaktärens utrustning: platshållare tills riktig grafik finns */
+.gear-wrap{position:relative;display:inline-block;isolation:isolate}
+.gear-aura{position:absolute;inset:-6% -10%;z-index:-2;border-radius:50%;background:radial-gradient(closest-side,var(--aura),transparent);opacity:.45;animation:gear-glow 3.6s ease-in-out infinite}
+.gear-cape{position:absolute;left:28%;right:28%;top:30%;bottom:12%;z-index:-1;background:var(--cape);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%);border-radius:4px;opacity:.9}
+.gear-emblem{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);display:grid;place-items:center;width:22%;max-width:34px;aspect-ratio:1;border-radius:50%;background:#101719cc;border:2px solid var(--emblem);color:var(--emblem)}
+.gear-emblem .i{width:60%;height:60%}
+@keyframes gear-glow{50%{opacity:.7}}
+@media (prefers-reduced-motion:reduce){.gear-aura{animation:none}}
+.gear-slot{margin:18px 0 8px;font-size:14px}
+.gear-slot small{color:var(--muted);font-weight:400;font-size:11px;margin-left:4px}
+.gear-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.gear-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border:1px solid var(--line);border-radius:14px;background:#ffffff08;color:inherit;font:inherit;font-size:12px;text-align:center;cursor:pointer}
+.gear-item small{display:block;color:var(--muted);font-size:10px;line-height:1.4}
+.gear-item small .i{width:11px;height:11px;margin-right:3px;vertical-align:-1px}
+.gear-item.selected{border-color:var(--mint);background:#c6e7df14}
+.gear-item.locked{opacity:.55}
+.gear-swatch{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6,transparent 60%),var(--c);color:#101719}
+.gear-swatch .i{width:18px;height:18px}
+.gear-swatch.none{background:transparent;border:2px dashed var(--line)}

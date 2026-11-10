@@ -155,6 +155,18 @@ I varje skill-träd kan man trycka **Ange min nivå** och välja den högsta niv
 
 `supabase/015_skill_start_level.sql` låter servern godkänna en startnivå om trädet och nivån finns. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 014. Innan den är körd förklarar appen att databasuppdateringen behövs.
 
+## Karaktärens utrustning (förberedelse)
+
+Under Profil → Karaktär finns Utrustning med tre platser: aura, mantel och emblem. Föremålen låses upp av level, antal styrkepass, bästa träningsstreak och nivåer i skill tree, och valet sparas i `profile.look`. Grafiken är enkla platshållare (färgsken, mantelfärg, märke på bröstet) tills riktiga karaktärsbilder finns. Byt då bara ut `gearLayer()` i `src/character-gear.js`; platser, upplåsning och sparade val stannar som de är. Ingen databasändring behövs.
+
+## Övningsanimationer
+
+`src/strength-art.js` ritar en muskulös figur (formad överkropp, tjocka överarmar och lår, bortre sidan mörkare) och redskap efter utrustning: skivstång med viktskivor, en hantel i varje hand, kabel från ett fäste, gummiband och bänk eller säte. Chest press och sittande press sitter ner. Statiska håll som planka andas lugnt.
+
+## Hemskärmsikon
+
+Service workern hämtar och sparar aldrig ikonerna eller manifestet. iPhone visar annars en bokstav i stället för ikonen när service workern svarar på ikonhämtningen.
+
 ## Träningspass: ordning, borttagning och uppvärmningsset (migration 019)
 
 Varje övning i ett pågående pass har en meny (⋯) med Flytta upp, Flytta ner och Ta bort övning. Har övningen loggade set frågar appen först. Ett set kan märkas som uppvärmning (W), failure (F) eller drop-set (D). Uppvärmningsset räknas aldrig som personbästa.
