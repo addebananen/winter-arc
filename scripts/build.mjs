@@ -3,9 +3,9 @@ import {mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 await mkdir('dist',{recursive:true});
 await build({entryPoints:['src/app.js'],bundle:true,minify:true,format:'esm',target:['safari16'],outfile:'dist/app.js'});
-for(const file of ['index.html','style.css','icon.svg','icon-192.png','icon-512.png','apple-touch-icon.png','manifest.webmanifest'])await copyFile('src/'+file,'dist/'+file);
+for(const file of ['index.html','style.css','icon.svg','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','manifest.webmanifest'])await copyFile('src/'+file,'dist/'+file);
 const fingerprint=createHash('sha256');
-for(const file of ['app.js','style.css','index.html','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png','apple-touch-icon.png'])fingerprint.update(await readFile('dist/'+file));
+for(const file of ['app.js','style.css','index.html','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png'])fingerprint.update(await readFile('dist/'+file));
 fingerprint.update(await readFile('scripts/build.mjs'));
 const version=fingerprint.digest('hex').slice(0,12);
 const html=(await readFile('dist/index.html','utf8')).replace('./app.js','./app.js?v='+version).replace('./style.css','./style.css?v='+version)
@@ -13,7 +13,7 @@ const html=(await readFile('dist/index.html','utf8')).replace('./app.js','./app.
  .replace('href="./apple-touch-icon.png"','href="./apple-touch-icon.png?v='+version+'"').replace('href="./icon.svg"','href="./icon.svg?v='+version+'"');
 const manifest=JSON.parse(await readFile('dist/manifest.webmanifest','utf8'));for(const icon of manifest.icons)icon.src+='?v='+version;await writeFile('dist/manifest.webmanifest',JSON.stringify(manifest));
 await writeFile('dist/index.html',html);
-const assets=['./','./index.html','./app.js?v='+version,'./style.css?v='+version,'./icon.svg','./icon-192.png','./icon-512.png','./apple-touch-icon.png',...['icon.svg','icon-192.png','icon-512.png','apple-touch-icon.png'].map(f=>'./'+f+'?v='+version),'./manifest.webmanifest'];
+const assets=['./','./index.html','./app.js?v='+version,'./style.css?v='+version,'./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png','./apple-touch-icon.png',...['icon.svg','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png'].map(f=>'./'+f+'?v='+version),'./manifest.webmanifest'];
 await writeFile('dist/sw.js',`const CACHE='winter-arc-${version}';const ASSETS=${JSON.stringify(assets)};const URLS=new Set(ASSETS.map(a=>new URL(a,self.location.href).href));
 async function installShell(){const cache=await caches.open(CACHE);await cache.addAll(ASSETS.map(a=>new Request(new URL(a,self.location.href),{cache:'reload'})));}
 self.addEventListener('install',e=>e.waitUntil(installShell()));
