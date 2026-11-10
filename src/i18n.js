@@ -30,6 +30,7 @@ const patterns = {
     [/^Vill du ta bort (.+) som vän\?$/, (m, name) => `Remove ${name} as a friend?`],
     [/^Visa profil för (.+)$/, (m, name) => `View ${name}'s profile`],
     [/^Lägg till vanan (.+)$/, (m, name) => `Add the habit ${translate(name)}`],
+    [/^(.+) för att låsa upp (.+)\.$/, (m, req, item) => `${translate(req)} to unlock ${translate(item)}.`],
     [/^Alternativ för (.+)$/, (m, name) => `Options for ${translate(name)}`],
     [/^(.+) har (\d+) loggade set\.$/, (m, name, n) => `${translate(name)} has ${n} logged ${n === '1' ? 'set' : 'sets'}.`],
     [/^Ta bort (.+) som vän$/, (m, name) => `Remove ${name} as a friend`],
