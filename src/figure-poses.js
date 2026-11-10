@@ -89,7 +89,7 @@ export const poses = {
   dip: {keys: [
     {p: [96, 62], t: 6, limbs: {ln: {a1: 8, a2: 70, foot: 20}, lf: {a1: 2, a2: 76, foot: 20}, an: {w: [100, 70]}, af: {w: [100, 70]}}},
     {p: [88, 88], t: 22, limbs: {ln: {a1: 16, a2: 70, foot: 20}, lf: {a1: 10, a2: 76, foot: 20}, an: {w: [100, 70], pref: [-1, -.2]}, af: {w: [100, 70], pref: [-1, -.2]}}},
-  ], equipment: 'none', scene: [['bar', 86, 140, 73], ['post', 134, 73]]},
+  ], equipment: 'none', scene: [['bar', 86, 140, 77], ['post', 134, 77]]},
   fly: {view: 'front', keys: [
     {p: [96, 76], t: 0, limbs: {...{ln: {w: [104, G], foot: 0}}, an: {r: [42, 6], pref: [0, 1]}}},
     {p: [96, 76], t: 0, limbs: {...{ln: {w: [104, G], foot: 0}}, an: {r: [-11, 26], pref: [.6, 1]}}},
@@ -123,7 +123,7 @@ export const poses = {
   pull: {view: 'front', keys: [
     {p: [96, 70], t: 0, limbs: {ln: {a1: 3, a2: 6, foot: 3}, an: {w: [128, -16]}}},
     {p: [96, 38], t: 0, limbs: {ln: {a1: 4, a2: 8, foot: 4}, an: {w: [128, -16], pref: [1, 1]}}},
-  ], equipment: 'none', scene: [['bar', 40, 152, -16], ['post', 44, -16], ['post', 148, -16]]},
+  ], equipment: 'none', scene: [['bar', 40, 152, -23], ['post', 44, -23], ['post', 148, -23]]},
   pulldown: {keys: [
     {p: [88, 108], t: -8, limbs: {...seatedLegs(118), an: {r: [6, -46]}, af: {r: [6, -46]}}},
     {p: [88, 108], t: -16, limbs: {...seatedLegs(118), an: {r: [12, 2], pref: [-.6, 1]}, af: {r: [12, 2], pref: [-.6, 1]}}},
@@ -140,7 +140,7 @@ export const poses = {
     {p: [92, 75], t: -4, limbs: {...legs(98, 92), an: {r: [44, -10]}, af: {r: [44, -10]}}},
     {p: [92, 75], t: -6, limbs: {...legs(98, 92), an: {r: [10, -16], pref: [-.4, -1]}, af: {r: [10, -16], pref: [-.4, -1]}}},
   ], anchor: [182, 28], scene: [['post', 182, 10], ['pulley', 182, 28]]},
-  hang: {view: 'front', keys: [{p: [96, 74], t: 0, limbs: {ln: {a1: 4, a2: 8, foot: 4}, an: {w: [124, -16]}}}], scene: [['bar', 40, 152, -16], ['post', 44, -16], ['post', 148, -16]]},
+  hang: {view: 'front', keys: [{p: [96, 74], t: 0, limbs: {ln: {a1: 4, a2: 8, foot: 4}, an: {w: [124, -16]}}}], scene: [['bar', 40, 152, -23], ['post', 44, -23], ['post', 148, -23]]},
   climb: {view: 'front', keys: [
     {p: [96, 80], t: 0, limbs: {ln: {a1: 30, a2: 70, foot: 10}, lf: {a1: -4, a2: 30, foot: -4}, an: {w: [116, 2]}, af: {w: [80, 30]}}},
     {p: [96, 74], t: 0, limbs: {ln: {a1: 4, a2: 30, foot: 4}, lf: {a1: -30, a2: -70, foot: -10}, an: {w: [114, 32]}, af: {w: [78, 0]}}},
@@ -224,11 +224,11 @@ export const poses = {
   'hanging-knee': {keys: [
     {p: [100, 72], t: 0, limbs: {ln: {a1: 2, a2: 12, foot: 20}, lf: {a1: -2, a2: 14, foot: 20}, an: {w: [104, -16]}, af: {w: [104, -16]}}},
     {p: [100, 68], t: -12, limbs: {ln: {a1: 104, a2: 104, foot: 40}, lf: {a1: 100, a2: 108, foot: 40}, an: {w: [104, -16]}, af: {w: [104, -16]}}},
-  ], scene: [['bar', 60, 150, -16], ['post', 146, -16]]},
+  ], scene: [['bar', 60, 150, -22], ['post', 146, -22]]},
   'hanging-raise': {keys: [
     {p: [100, 72], t: 0, limbs: {ln: {a1: 2, a2: 6, foot: 20}, lf: {a1: -2, a2: 8, foot: 20}, an: {w: [104, -16]}, af: {w: [104, -16]}}},
     {p: [100, 68], t: -16, limbs: {ln: {a1: 100, a2: 2, foot: 184}, lf: {a1: 98, a2: 4, foot: 184}, an: {w: [104, -16]}, af: {w: [104, -16]}}},
-  ], scene: [['bar', 60, 150, -16], ['post', 146, -16]]},
+  ], scene: [['bar', 60, 150, -22], ['post', 146, -22]]},
   'ab-wheel': {keys: [
     {p: [76, 108], t: 58, limbs: {ln: {w: [40, 144], foot: 0, pref: [0, 1]}, lf: {w: [38, 144], foot: 0, pref: [0, 1]}, an: {w: [110, 140]}, af: {w: [110, 140]}}},
     {p: [96, 128], t: 82, limbs: {ln: {w: [40, 144], foot: 0, pref: [0, 1]}, lf: {w: [38, 144], foot: 0, pref: [0, 1]}, an: {w: [168, 140]}, af: {w: [168, 140]}}},
@@ -302,3 +302,14 @@ poses['pullover-cable'] = {keys: [
   {p: [86, 76], t: 30, limbs: {...legs(104, 98), an: {a1: 150, a2: 8}, af: {a1: 150, a2: 8}}},
   {p: [86, 76], t: 30, limbs: {...legs(104, 98), an: {a1: 8, a2: 8}, af: {a1: 8, a2: 8}}},
 ], anchor: [176, 20], scene: [['post', 182, 20], ['pulley', 176, 20]]};
+
+// Hands: fists grip by default. Flat hands rest on the floor, open hands reach or rest, loose hands run.
+const palms = {pushup: 'flat', cobra: 'flat', child: 'flat', pigeon: 'flat', handstand: 'flat', 'leg-raise': 'flat', 'reverse-crunch': 'flat', ninety: 'flat',
+  situp: 'open', crunch: 'open', 'seated-fold': 'open', 'deep-squat': 'open', 'open-book': 'open', nordic: 'open', volleyball: 'open', 'kneel-lunge': 'open', run: 'loose', walk: 'loose'};
+for (const [name, style] of Object.entries(palms)) for (const key of poses[name].keys) key.palms ??= style;
+{
+  const [a, b] = poses['reach-lunge'].keys;
+  for (const k of [a, b]) k.limbs.af = {...k.limbs.af, palm: 'flat'};
+  a.limbs.an = {...a.limbs.an, palm: 'flat'};
+  b.limbs.an = {...b.limbs.an, palm: 'open'};
+}

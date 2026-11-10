@@ -42,3 +42,16 @@ test('exercise figure: seated chest press, separate dumbbells, barbell plates an
   assert.match(movementArt(S.liftById.plank, true), /animateTransform/, 'A hold breathes');
   assert.match(movementArt(S.liftById.squat, true), /<animate attributeName="d"/, 'Moves are animated frame by frame');
 });
+
+test('exercise figure: hands close around what they hold, rest flat on the floor and open when reaching', () => {
+  const bench = framesOf(S.liftById.bench)[0].limbs.an.hand;
+  assert.equal(bench.style, 'fist');
+  assert.equal(bench.curl, 1, 'A fist around the bar');
+  const push = framesOf(S.liftById.pushup)[0].limbs.an;
+  assert.equal(push.hand.style, 'flat');
+  assert.deepEqual(push.hand.d.map(v => Math.round(v * 100) / 100), [1, 0], 'Fingers point forward along the floor');
+  assert.equal(framesOf(S.liftById.situp)[0].limbs.an.hand.style, 'open');
+  const svg = movementArt(S.liftById.bench, false);
+  assert.match(svg, /stroke-width=".7"/, 'Knuckle creases are drawn');
+  assert.ok(svg.indexOf('a16 16 0 1 0 32 0') < svg.lastIndexOf('stroke-width=".7"'), 'The plate is behind the gripping fingers');
+});

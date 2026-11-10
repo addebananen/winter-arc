@@ -43,7 +43,7 @@ function resolve(spec, root, frame) {
 // Interpolates two key poses: numbers and points blend, limb targets of the same kind blend in their
 // own frame (so a bar held on the back follows the shoulders), other kinds blend as world points.
 function blend(a, b, k, solveA, solveB) {
-  const out = {p: lerpV(a.p, b.p, k), t: lerp(a.t, b.t, k), h: lerp(a.h || 0, b.h || 0, k), limbs: {}};
+  const out = {p: lerpV(a.p, b.p, k), t: lerp(a.t, b.t, k), h: lerp(a.h || 0, b.h || 0, k), palms: k < .5 ? a.palms : b.palms, limbs: {}};
   for (const key of Object.keys(a.limbs)) {
     const x = a.limbs[key], y = b.limbs[key] || x, z = {...x};
     const kind = s => s.w ? 'w' : s.r ? 'r' : s.l ? 'l' : 'angle';
@@ -53,6 +53,7 @@ function blend(a, b, k, solveA, solveB) {
     } else { delete z.r; delete z.l; delete z.a1; delete z.a2; z.w = lerpV(solveA[key].end, solveB[key].end, k); }
     if (x.pref || y.pref) z.pref = lerpV(x.pref || y.pref, y.pref || x.pref, k);
     if (x.foot != null) z.foot = lerp(x.foot, y.foot ?? x.foot, k);
+    if (x.palm || y.palm) z.palm = k < .5 ? x.palm : y.palm;
     out.limbs[key] = z;
   }
   return out;
@@ -79,8 +80,16 @@ function solve(pose, view) {
       end = add(mid, mul(dir(spec.a1 + (leg ? -spec.a2 : spec.a2)), l2));
     }
     const lower = angleOf(sub(end, mid));
-    const tipAngle = leg ? (spec.foot ?? (front ? 0 : lower + 90)) : lower + (spec.hand || 0);
-    out.limbs[key] = {root, mid, end, tip: add(end, mul(dir(tipAngle), leg ? bones.foot : bones.hand)), tipAngle, leg, side};
+    let tipAngle = leg ? (spec.foot ?? (front ? 0 : lower + 90)) : lower + (spec.hand || 0), hand = null;
+    if (!leg) {
+      // fist = gripping, flat = palm on the floor, open = reaching or resting, loose = running.
+      const style = spec.palm || pose.palms || 'fist', onFloor = style === 'flat' && end[1] > GROUND - 10;
+      if (onFloor) tipAngle = front ? side * 90 : 90;
+      const d = dir(tipAngle), perp = [-d[1], d[0]];
+      const toward = onFloor ? [0, 1] : front ? mul(lat, -1) : n;
+      hand = {d, p: dot(perp, toward) >= 0 ? perp : mul(perp, -1), curl: {fist: 1, loose: .72, open: .16, flat: 0}[style] ?? 1, style};
+    }
+    out.limbs[key] = {root, mid, end, tip: add(end, mul(dir(tipAngle), leg ? bones.foot : 14)), tipAngle, leg, side, hand};
   }
   return out;
 }
@@ -102,7 +111,7 @@ function prepare(k, view) {
     }
     limbs[far] = m;
   }
-  return {p: k.p, t: k.t || 0, h: k.h || 0, limbs};
+  return {p: k.p, t: k.t || 0, h: k.h || 0, palms: k.palms, limbs};
 }
 
 const ease = k => (1 - Math.cos(Math.PI * k)) / 2;
@@ -162,7 +171,10 @@ function shapes(fr, hl) {
       if (on('uarm')) out.push([k + 'uarmH', limb(L.root, L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), palette.hl, ' fill-opacity=".45"']);
       out.push([k + 'farm', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), skin]);
       if (on('farm')) out.push([k + 'farmH', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), palette.hl, ' fill-opacity=".4"']);
-      out.push([k + 'hand', limb(L.end, L.tip, 3.6, 3.4, 4, 3.8, .5, fr.n), skin]);
+      const hm = handModel(L);
+      out.push([k + 'hand', smooth(hm.outline), on('hand') ? palette.hl : skin, on('hand') ? ' fill-opacity=".85"' : '']);
+      out.push([k + 'crease', hm.creases, 'none', ` stroke="${far ? '#6f574a' : palette.skinLine}" stroke-width=".7" stroke-linecap="round" stroke-opacity=".75"`]);
+      out.push([k + 'thumb', limb(hm.thumb[0], hm.thumb[1], 1.9, 1.5, 2, 2, .5, fr.n), skin]);
       const delt = add(L.root, mul(norm(sub(L.mid, L.root)), 5));
       out.push([k + 'delt', limb(L.root, delt, 6.8, 5.8, 7, 6.6, .5, fr.n), on('delt') ? palette.hl : skin, on('delt') ? ' fill-opacity=".8"' : '']);
     }
@@ -200,17 +212,35 @@ function shoe(L, side) {
   return `M${pt(add(heel, mul(s, -4)))}L${pt(add(A, mul(s, -5)))}L${pt(add(A, add(mul(d, 6), mul(s, -4.2))))}C${pt(add(toe, mul(s, -3.6)))} ${pt(add(toe, mul(s, -1.4)))} ${pt(add(toe, mul(s, 1.4)))}L${pt(add(toe, add(mul(d, -1), mul(s, 3.4))))}L${pt(add(heel, mul(s, 3.6)))}Q${pt(add(heel, mul(d, -2)))} ${pt(add(heel, mul(s, -4)))}Z`;
 }
 
+// A hand: palm from the wrist, four fingers as one curling chain of three bones, and a thumb.
+// Local coordinates: x along the hand, y towards the palm. curl 1 closes a fist around the grip point.
+const GRIP = [6.6, 3];
+function handModel(L) {
+  const {d, p, curl} = L.hand, at = ([x, y]) => add(L.end, add(mul(d, x), mul(p, y)));
+  const segs = [4.4, 3, 2.4], bends = [70, 92, 78].map(b => b * curl * R), joints = [[6.6, -.2]], angs = [];
+  let a = 0;
+  for (let i = 0; i < 3; i++) { a += bends[i]; angs.push(a); const c = joints[i]; joints.push([c[0] + segs[i] * Math.cos(a), c[1] + segs[i] * Math.sin(a)]); }
+  const angleAt = j => j === 0 ? angs[0] / 2 : j === 3 ? angs[2] : (angs[j - 1] + angs[j]) / 2;
+  const dorsal = j => { const t = angleAt(j), c = joints[j]; return [c[0] + Math.sin(t) * 1.8, c[1] - Math.cos(t) * 1.8]; };
+  const palmar = j => { const t = angleAt(j), c = joints[j]; return [c[0] - Math.sin(t) * 1.7, c[1] + Math.cos(t) * 1.7]; };
+  const tip = [joints[3][0] + Math.cos(angs[2]) * 1.5, joints[3][1] + Math.sin(angs[2]) * 1.5];
+  const outline = [[0, -3.2], [3.4, -3.6], [6, -3.3], dorsal(0), dorsal(1), dorsal(2), dorsal(3), tip, palmar(3), palmar(2), palmar(1), [6, 2.9], [3, 3.5], [.2, 3]].map(at);
+  const creases = [1, 2].map(j => `M${pt(at(lerpV(dorsal(j), palmar(j), .15)))}L${pt(at(lerpV(dorsal(j), palmar(j), .85)))}`).join('');
+  const thumb = [at([2.4, 2.2]), at(lerpV([6.6, 4.8], [7.4, 1.2], curl))];
+  return {outline, creases, thumb};
+}
+
 // ---------- equipment ----------
 const steel = '#a9bcc4', iron = '#1f2a30';
-const grip = L => add(L.end, mul(dir(L.tipAngle), 4.5));
+const grip = L => L.hand ? add(L.end, add(mul(L.hand.d, GRIP[0]), mul(L.hand.p, GRIP[1]))) : add(L.end, mul(dir(L.tipAngle), 4.5));
 function gearShapes(fr, e, spec) {
   const front = fr.view === 'front', g = [], hands = ['an', 'af'].map(k => fr.limbs[k]).filter(Boolean);
   const eq = spec.equipment || e.equipment;
   if (eq === 'Skivstång') {
     if (front) {
       const [a, b] = hands.map(grip).sort((x, y) => x[0] - y[0]), y = (a[1] + b[1]) / 2;
-      g.push(['bar', `M${f1(a[0] - 34)} ${f1(y - 1.6)}H${f1(b[0] + 34)}V${f1(y + 1.6)}H${f1(a[0] - 34)}Z`, steel]);
-      for (const x of [a[0] - 30, b[0] + 24]) g.push(['plate' + (x < a[0] ? 'L' : 'R'), `M${f1(x)} ${f1(y - 16)}h6a1.5 1.5 0 0 1 1.5 1.5v29a1.5 1.5 0 0 1 -1.5 1.5h-6a1.5 1.5 0 0 1 -1.5 -1.5v-29a1.5 1.5 0 0 1 1.5 -1.5Z`, iron, ` stroke="${steel}" stroke-width="1.4"`]);
+      g.push(['bar', `M${f1(a[0] - 34)} ${f1(y - 1.6)}H${f1(b[0] + 34)}V${f1(y + 1.6)}H${f1(a[0] - 34)}Z`, steel, '', 'mid']);
+      for (const x of [a[0] - 30, b[0] + 24]) g.push(['plate' + (x < a[0] ? 'L' : 'R'), `M${f1(x)} ${f1(y - 16)}h6a1.5 1.5 0 0 1 1.5 1.5v29a1.5 1.5 0 0 1 -1.5 1.5h-6a1.5 1.5 0 0 1 -1.5 -1.5v-29a1.5 1.5 0 0 1 1.5 -1.5Z`, iron, ` stroke="${steel}" stroke-width="1.4"`, 'mid']);
     } else {
       const c = grip(fr.limbs.an);
       g.push(['plate', `M${pt(add(c, [-16, 0]))}a16 16 0 1 0 32 0a16 16 0 1 0 -32 0Z`, iron, ` stroke="${steel}" stroke-width="2.4"`, 'mid']);
@@ -219,7 +249,7 @@ function gearShapes(fr, e, spec) {
     }
   } else if (eq === 'Hantlar') {
     for (const [i, L] of hands.entries()) {
-      const c = grip(L), layer = !front && i === 1 ? 'back' : 'top';
+      const c = grip(L), layer = !front && i === 1 ? 'back' : 'mid';
       if (front || spec.dumbbellAlong) {
         const d = front ? [1, 0] : norm(sub(L.tip, L.end)), n = [-d[1], d[0]];
         const box = (o, w, h) => { const p = add(c, mul(d, o)); return `M${pt(add(add(p, mul(d, -w / 2)), mul(n, -h / 2)))}L${pt(add(add(p, mul(d, w / 2)), mul(n, -h / 2)))}L${pt(add(add(p, mul(d, w / 2)), mul(n, h / 2)))}L${pt(add(add(p, mul(d, -w / 2)), mul(n, h / 2)))}Z`; };
@@ -236,16 +266,16 @@ function gearShapes(fr, e, spec) {
     anchors.forEach((a, i) => {
       const L = anchors.length > 1 ? hands[i] : hands[0], c = grip(L), d = norm(sub(c, a)), n = [-d[1], d[0]];
       g.push(['cable' + i, `M${pt(add(a, mul(n, .8)))}L${pt(add(c, mul(n, .8)))}L${pt(sub(c, mul(n, .8)))}L${pt(sub(a, mul(n, .8)))}Z`, '#8fa3ab', '', 'back']);
-      g.push(['handle' + i, `M${pt(add(c, mul(n, -6)))}L${pt(add(c, mul(n, 6)))}L${pt(add(add(c, mul(n, 6)), mul(d, 3)))}L${pt(add(add(c, mul(n, -6)), mul(d, 3)))}Z`, iron, ` stroke="${steel}" stroke-width="1.6"`, 'top']);
+      g.push(['handle' + i, `M${pt(add(c, mul(n, -6)))}L${pt(add(c, mul(n, 6)))}L${pt(add(add(c, mul(n, 6)), mul(d, 3)))}L${pt(add(add(c, mul(n, -6)), mul(d, 3)))}Z`, iron, ` stroke="${steel}" stroke-width="1.6"`, 'mid']);
     });
   } else if (eq === 'Gummiband') {
     const [a, b] = hands.map(grip);
     g.push(['band', front || len(sub(a, b)) > 6 ? `M${pt(a)}Q${pt(add(lerpV(a, b, .5), [0, 14]))} ${pt(b)}Q${pt(add(lerpV(a, b, .5), [0, 11]))} ${pt(a)}Z` : `M${pt(add(a, [-4, 0]))}a4 6 0 1 0 8 0a4 6 0 1 0 -8 0Z`, 'none', ' stroke="#e58fae" stroke-width="3"', 'top']);
   } else if (spec.wheel) {
     const c = grip(fr.limbs.an);
-    g.push(['wheel', `M${pt(add(c, [-9, 5]))}a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z`, iron, ` stroke="${steel}" stroke-width="2.4"`, 'top']);
+    g.push(['wheel', `M${pt(add(c, [-9, 5]))}a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z`, iron, ` stroke="${steel}" stroke-width="2.4"`, 'mid']);
   }
-  if (spec.handles || (eq === 'Kabel' && !spec.anchor)) for (const [i, L] of hands.entries()) { const c = grip(L); g.push(['grip' + i, `M${pt(add(c, [-3.5, -6]))}h7v12h-7Z`, iron, ` stroke="${steel}" stroke-width="1.4"`, !front && i === 1 ? 'back' : 'top']); }
+  if (spec.handles || (eq === 'Kabel' && !spec.anchor)) for (const [i, L] of hands.entries()) { const c = grip(L); g.push(['grip' + i, `M${pt(add(c, [-3.5, -6]))}h7v12h-7Z`, iron, ` stroke="${steel}" stroke-width="1.4"`, !front && i === 1 ? 'back' : 'mid']); }
   if (spec.sled) { const L = fr.limbs.ln, c = add(L.end, mul(dir(L.tipAngle), 6)), d = dir(L.tipAngle), n = [-d[1], d[0]]; g.push(['sled', `M${pt(add(c, mul(n, -24)))}L${pt(add(c, mul(n, 24)))}L${pt(add(add(c, mul(n, 24)), mul(d, 5)))}L${pt(add(add(c, mul(n, -24)), mul(d, 5)))}Z`, '#3d4f58', ` stroke="${steel}" stroke-width="1.4"`, 'back']); }
   if (spec.pad) { const L = fr.limbs.ln, c = add(lerpV(L.mid, L.end, .82), mul(fr.n, 0)); g.push(['pad', `M${pt(add(c, [-6, 0]))}a6 6 0 1 0 12 0a6 6 0 1 0 -12 0Z`, '#3d4f58', ` stroke="${steel}" stroke-width="1.4"`, 'top']); }
   return g;
