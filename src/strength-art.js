@@ -1,3 +1,4 @@
+import {figureArt} from './figure.js';
 // Original vector movement sketches. Two controlled poses; no external media or trackers.
 const poses={
  squat:[[96,39,96,60,96,94,81,116,80,143,112,116,113,143,75,67,65,58,117,67,127,58],[96,65,96,86,109,110,78,113,80,143,121,121,113,143,75,93,65,84,117,93,127,84]],
@@ -73,6 +74,7 @@ const sideView=(a,b)=>Math.max(Math.abs(a[16]-a[20]),Math.abs(b[16]-b[20]))<30;
 // Muscular figure: a tapered torso, thick upper arms and thighs, shoulder caps and a far side drawn darker
 // behind the body. Every joint moves between the two key poses.
 export function movementArt(e,animated=false){
+ const figure=figureArt(e,animated);if(figure)return figure;
  let [a,b]=poses[e.equipment==='Maskin'&&e.pose==='press'?'seated-press':e.pose]||poses.curl;b=b||a;
  if(a.length<22){a=[...a,53,83,65,105,88,83,96,102];b=[...b,53,83,65,105,88,83,96,102];}
  // Dumbbell lunges carry the weights at the sides; a goblet squat holds one dumbbell at the chest.
