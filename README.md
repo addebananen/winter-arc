@@ -155,6 +155,12 @@ I varje skill-träd kan man trycka **Ange min nivå** och välja den högsta niv
 
 `supabase/015_skill_start_level.sql` låter servern godkänna en startnivå om trädet och nivån finns. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 014. Innan den är körd förklarar appen att databasuppdateringen behövs.
 
+## Träningspass: ordning, borttagning och uppvärmningsset (migration 019)
+
+Varje övning i ett pågående pass har en meny (⋯) med Flytta upp, Flytta ner och Ta bort övning. Har övningen loggade set frågar appen först. Ett set kan märkas som uppvärmning (W), failure (F) eller drop-set (D). Uppvärmningsset räknas aldrig som personbästa.
+
+`supabase/019_warmup_sets.sql` låter servern godkänna settypen `warmup`. Den ändrar ingen data. Kör den en gång i SQL Editor efter 018. Innan den är körd går det inte att spara ett pass med uppvärmningsset i molnet.
+
 ## XP-regler (migration 018)
 
 Från och med 2026-11-10 ger bara fem aktiviteter XP, högst en gång per dag var: styrkepass 40 (avslutat pass i styrkehubben eller vanan Styrketräning, oavsett längd), löpningspass 35 (löppass eller vanan Löpning), Läs en bok 25, Rörlighet 20 och Kall avslutning på duschen 15. En vana med lägre mål ger proportionellt mindre.
