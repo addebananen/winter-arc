@@ -22,12 +22,15 @@ export const bones = {torso: 40, neck: 6, uarm: 25, farm: 22, hand: 8, thigh: 37
 export const GROUND = 150;
 
 // Two-bone IK: joint between root a and target t, on the side the preference vector points to.
-function ik(a, t, l1, l2, pref) {
+const turn = (a, b, c) => Math.sign((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]));
+function ik(a, t, l1, l2, pref, bend) {
   let d = sub(t, a), dist = len(d);
   const max = l1 + l2 - 0.01, min = Math.abs(l1 - l2) + 0.01, u = norm(d);
   if (dist > max) { dist = max; t = add(a, mul(u, max)); } else if (dist < min) { dist = min; t = add(a, mul(u, min)); }
   const ang = Math.acos(Math.max(-1, Math.min(1, (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist))));
   const j1 = add(a, mul(rot(u, ang), l1)), j2 = add(a, mul(rot(u, -ang), l1));
+  // A fixed bend direction keeps the joint on one side for the whole movement.
+  if (bend) return [turn(a, t, j1) === bend ? j1 : j2, t];
   return [dot(sub(j1, a), pref) >= dot(sub(j2, a), pref) ? j1 : j2, t];
 }
 
@@ -60,7 +63,7 @@ function blend(a, b, k, solveA, solveB) {
 }
 
 // Solves one pose into joint positions.
-function solve(pose, view) {
+function solve(pose, view, bends = {}) {
   const u = dir(180 - pose.t), n = dir(90 - pose.t), front = view === 'front';
   const P = pose.p, S = add(P, mul(u, bones.torso)), frame = {u, n};
   const neck = add(S, mul(u, bones.neck)), headAxis = dir(180 - pose.t - pose.h);
@@ -74,7 +77,7 @@ function solve(pose, view) {
     const target = resolve(spec, root, frame);
     if (target) {
       const pref = spec.pref ? norm(spec.pref) : front ? norm(add(lat, [0, leg ? 0.2 : 0.7])) : leg ? norm(add(n, [0.6, 0])) : norm(add(mul(n, -0.6), [0, 1]));
-      [mid, end] = ik(root, target, l1, l2, pref);
+      [mid, end] = ik(root, target, l1, l2, pref, bends[key]);
     } else {
       mid = add(root, mul(dir(spec.a1), l1));
       end = add(mid, mul(dir(spec.a1 + (leg ? -spec.a2 : spec.a2)), l2));
@@ -87,7 +90,7 @@ function solve(pose, view) {
       if (onFloor) tipAngle = front ? side * 90 : 90;
       const d = dir(tipAngle), perp = [-d[1], d[0]];
       const toward = onFloor ? [0, 1] : front ? mul(lat, -1) : n;
-      hand = {d, p: dot(perp, toward) >= 0 ? perp : mul(perp, -1), curl: {fist: 1, loose: .72, open: .16, flat: 0}[style] ?? 1, style};
+      hand = {d, p: keepSide('palm' + key, perp, toward), curl: {fist: 1, loose: .72, open: .16, flat: 0}[style] ?? 1, style};
     }
     out.limbs[key] = {root, mid, end, tip: add(end, mul(dir(tipAngle), leg ? bones.foot : 14)), tipAngle, leg, side, hand};
   }
@@ -115,11 +118,34 @@ function prepare(k, view) {
 }
 
 const ease = k => (1 - Math.cos(Math.PI * k)) / 2;
+function bendSides(sa, sb) {
+  const out = {};
+  for (const key of Object.keys(sa.limbs)) {
+    const amount = L => len(sub(L.root, L.mid)) + len(sub(L.mid, L.end)) - len(sub(L.root, L.end));
+    const a = sa.limbs[key], b = sb.limbs[key] || a, L = amount(b) > amount(a) ? b : a;
+    if (amount(L) > .5) out[key] = turn(L.root, L.end, L.mid);
+  }
+  return out;
+}
+function solveKeys(spec, view) {
+  const A = prepare(spec.keys[0], view), B = prepare(spec.keys[1] || spec.keys[0], view);
+  const bends = bendSides(solve(A, view), solve(B, view));
+  return {A, B, bends, sa: solve(A, view, bends), sb: solve(B, view, bends)};
+}
 
 // ---------- shapes ----------
 // A tapered limb with a muscle belly on the anterior (a) and posterior (p) side.
+// While animating, MEMO keeps each shape's side from the previous frame, so a muscle belly or a palm
+// never jumps to the other side when a limb passes straight.
+let MEMO = null;
+function keepSide(key, v, guide) {
+  const prev = MEMO?.[key], s = prev ? dot(v, prev) >= 0 : dot(v, guide) >= 0, out = s ? v : mul(v, -1);
+  if (MEMO) MEMO[key] = out;
+  return out;
+}
+let limbCount = 0;
 function limb(p1, p2, r1, r2, ba, bp, at, n) {
-  const d = norm(sub(p2, p1)), L = len(sub(p2, p1)), m = [-d[1], d[0]], f = dot(m, n) >= 0 ? m : mul(m, -1);
+  const d = norm(sub(p2, p1)), L = len(sub(p2, p1)), f = keepSide('limb' + limbCount++, [-d[1], d[0]], n);
   const c = add(p1, mul(d, L * at)), ka = 2 * ba - (r1 + r2) / 2, kp = 2 * bp - (r1 + r2) / 2;
   const a1 = add(p1, mul(f, r1)), a2 = add(p2, mul(f, r2)), b2 = sub(p2, mul(f, r2)), b1 = sub(p1, mul(f, r1));
   const tip = add(p2, mul(d, r2)), tail = sub(p1, mul(d, r1));
@@ -155,6 +181,7 @@ const highlights = {'Bröst': ['chest', 'uarm'], 'Bröst & armar': ['chest', 'ua
 
 // Shapes of one solved frame, in drawing order. Each entry: [key, path, fill, extra attributes].
 function shapes(fr, hl) {
+  limbCount = 0;
   const out = [], side = fr.view === 'side', on = part => hl.includes(part);
   const segs = (k, far) => {
     const L = fr.limbs[k], skin = far ? palette.skinFar : palette.skin;
@@ -300,18 +327,14 @@ function scenery(list = []) {
 // ---------- animation ----------
 const STEPS = 7;
 function frames(spec, view) {
-  const A = prepare(spec.keys[0], view), B = prepare(spec.keys[1] || spec.keys[0], view);
-  const sa = solve(A, view), sb = solve(B, view);
+  const {A, B, bends, sa, sb} = solveKeys(spec, view);
   const list = [];
   for (let i = 0; i <= STEPS; i++) {
     const k = ease(i / STEPS);
-    list.push(i === 0 ? sa : i === STEPS ? sb : solve(blend(A, B, k, sa.limbs, sb.limbs), view));
+    list.push(i === 0 ? sa : i === STEPS ? sb : solve(blend(A, B, k, sa.limbs, sb.limbs), view, bends));
   }
   return list;
 }
-
-// Index sequence for one loop: hold, out, hold, back.
-const loop = () => [0, 0, ...Array.from({length: STEPS}, (_, i) => i + 1), STEPS, ...Array.from({length: STEPS - 1}, (_, i) => STEPS - 1 - i), 0];
 
 export function hasFigure(e) { return !!specFor(e); }
 function specFor(e) {
@@ -319,30 +342,25 @@ function specFor(e) {
   return specs[key];
 }
 
+// Every drawn shape of one frame, in drawing order: gear behind, body, gear in hand, near arm, gear in front.
+function drawList(fr, e, spec, hl) {
+  const body = shapes(fr, hl), gear = gearShapes(fr, e, spec), view = fr.view;
+  const split = body.findIndex(x => x[0] === (view === 'side' ? 'anuarm' : 'afuarm'));
+  const layer = name => gear.filter(g => (g[4] || 'top') === name);
+  return [...layer('back'), ...body.slice(0, split), ...layer('mid'), ...body.slice(split), ...layer('top')];
+}
+
 export function figureArt(e, animated = false) {
   const spec = specFor(e);
   if (!spec) return null;
   const view = spec.view || 'side', hl = highlights[e.muscle] || [];
-  const list = frames(spec, view), still = list[0].limbs && list[0];
+  const list = frames(spec, view);
   const moving = animated && spec.keys.length > 1;
-  const order = loop(), dur = spec.dur || 3.2;
-  const kt = order.map((_, i) => f1(i / (order.length - 1) * 1000) / 1000).join(';');
-  const all = list.map(fr => {
-    const body = shapes(fr, hl), gear = gearShapes(fr, e, spec);
-    return {body, gear};
-  });
-  const el = (items, pick) => items.map(([key, d, fill, extra = ''], idx) => {
-    const paths = all.map(f => pick(f)[idx]?.[1] ?? d);
-    const anim = moving && new Set(paths).size > 1 ? `<animate attributeName="d" dur="${dur}s" repeatCount="indefinite" keyTimes="${kt}" values="${order.map(i => paths[i]).join(';')}"/>` : '';
+  const items = drawList(list[0], e, spec, hl);
+  const paths = items.map(([, d, fill, extra = ''], i) => {
     const outline = fill === 'none' || extra.includes('stroke=') ? '' : ' stroke="#00000038" stroke-width=".8"';
-    return `<path d="${d}" fill="${fill}"${extra}${outline}${anim ? '>' + anim + '</path>' : '/>'}`;
+    return `<path${moving ? ` data-i="${i}"` : ''} d="${d}" fill="${fill}"${extra}${outline}/>`;
   }).join('');
-  const body = all[0].body, gear = all[0].gear;
-  const layer = name => el(gear.filter(g => (g[4] || 'top') === name), f => f.gear.filter(g => (g[4] || 'top') === name));
-  // The figure is drawn in two passes so a plate sits in front of the torso but behind the near arm.
-  const split = body.findIndex(s => s[0] === (view === 'side' ? 'anuarm' : 'afuarm'));
-  const bodyA = body.slice(0, split), bodyB = body.slice(split);
-  const pick = (from, to) => f => f.body.slice(from, to);
   // Fit the view to the figure in every frame (and cable anchors), padded, at least 130 wide, 192:170.
   let [x1, y1, x2, y2] = [Infinity, Infinity, -Infinity, GROUND + 6];
   const anchors = e.equipment === 'Kabel' && spec.anchor ? (Array.isArray(spec.anchor[0]) ? spec.anchor.filter(Array.isArray) : [spec.anchor]) : [];
@@ -353,7 +371,61 @@ export function figureArt(e, animated = false) {
   let w = x2 - x1, h = y2 - y1;
   if (w / h > 192 / 170) { const nh = w * 170 / 192; y1 -= (nh - h) / 2; h = nh; } else { const nw = h * 192 / 170; x1 -= (nw - w) / 2; w = nw; }
   const breath = animated && !moving ? '<animateTransform attributeName="transform" type="translate" values="0 0;0 -1.2;0 0" dur="3.6s" repeatCount="indefinite"/>' : '';
-  return `<svg class="movement-art ${animated ? 'moving' : ''}" viewBox="${f1(x1)} ${f1(y1)} ${f1(w)} ${f1(h)}" role="img" aria-label="${e.name}: rörelsedemonstration"><ellipse cx="${f1((list[0].P[0] + (list[0].limbs.ln?.end[0] ?? list[0].P[0])) / 2)}" cy="${GROUND + 2}" rx="62" ry="4.5" fill="#0004"/><g>${scenery([...(spec.scene || []), ...(spec.sceneFor?.[e.equipment] || [])])}</g><g>${breath}${layer('back')}${el(bodyA, pick(0, split))}${layer('mid')}${el(bodyB, pick(split))}${layer('top')}</g></svg>`;
+  let key = '';
+  if (moving) { key = (e.id || e.pose) + '|' + (e.equipment || '') + '|' + (e.muscle || ''); registry.set(key, e); startRuntime(); }
+  return `<svg class="movement-art ${animated ? 'moving' : ''}"${moving ? ` data-figure="${key}"` : ''} viewBox="${f1(x1)} ${f1(y1)} ${f1(w)} ${f1(h)}" role="img" aria-label="${e.name}: rörelsedemonstration"><ellipse cx="${f1((list[0].P[0] + (list[0].limbs.ln?.end[0] ?? list[0].P[0])) / 2)}" cy="${GROUND + 2}" rx="62" ry="4.5" fill="#0004"/><g>${scenery([...(spec.scene || []), ...(spec.sceneFor?.[e.equipment] || [])])}</g><g>${breath}${paths}</g></svg>`;
+}
+
+// ---------- runtime ----------
+// Animated figures are solved again on every display frame: the skeleton is posed, then every shape is
+// rebuilt. No shape is morphed into another, so nothing can flatten, flip or blink between frames.
+const registry = new Map(), players = new Map();
+let running = false;
+// One loop: hold at the start, move, hold at the end, move back. Returns how far into the move (0..1).
+export function phase(t, dur) {
+  const x = (t % dur) / dur, hold = .1, move = .4;
+  if (x < hold) return 0;
+  if (x < hold + move) return ease((x - hold) / move);
+  if (x < hold * 2 + move) return 1;
+  return ease(1 - (x - hold * 2 - move) / move);
+}
+// Draws one exercise at a point in its movement into an existing svg (used by the runtime and tests).
+const keyCache = new Map();
+function keyPoses(spec) {
+  if (!keyCache.has(spec)) {
+    const view = spec.view || 'side';
+    keyCache.set(spec, {view, ...solveKeys(spec, view)});
+  }
+  return keyCache.get(spec);
+}
+export function poseAt(svg, e, k, memo = {}) {
+  const spec = specFor(e), hl = highlights[e.muscle] || [], {view, A, B, sa, sb, bends} = keyPoses(spec);
+  MEMO = memo;
+  try {
+    const fr = solve(blend(A, B, k, sa.limbs, sb.limbs), view, bends);
+    const list = drawList(fr, e, spec, hl);
+    for (const path of svg.querySelectorAll('path[data-i]')) { const d = list[Number(path.dataset.i)]?.[1]; if (d && path.getAttribute('d') !== d) path.setAttribute('d', d); }
+  } finally { MEMO = null; }
+}
+function startRuntime() {
+  if (running || typeof window === 'undefined' || !window.requestAnimationFrame) return;
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  running = true;
+  let idle = 0;
+  const tick = now => {
+    for (const svg of document.querySelectorAll('svg[data-figure]')) {
+      if (!players.has(svg)) players.set(svg, {start: now, memo: {}, e: registry.get(svg.dataset.figure)});
+    }
+    for (const [svg, p] of players) {
+      if (!svg.isConnected || !p.e) { players.delete(svg); continue; }
+      const spec = specFor(p.e);
+      poseAt(svg, p.e, phase((now - p.start) / 1000, spec.dur || 3.2), p.memo);
+    }
+    // Keep looking for a while: the svg is usually inserted right after it is rendered.
+    idle = players.size ? 0 : idle + 1;
+    if (idle < 120) window.requestAnimationFrame(tick); else running = false;
+  };
+  window.requestAnimationFrame(tick);
 }
 
 // Solved joints of one key pose (used by tests).
