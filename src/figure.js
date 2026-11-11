@@ -174,11 +174,11 @@ const muscleShapes = {
 };
 // Head outlines in head coordinates: [up from the top of the neck, forward]. Profile modelled on a
 // human head: rounded back of the skull, forehead, brow, nose, lips, chin and jaw line.
-const headSide = [[2.8, -6.6], [6.4, -9.2], [12.6, -10], [18.4, -7.6], [21.4, -3], [21.6, 1.8], [20, 5.4], [17.4, 6.9], [15.6, 7.3], [14.6, 6.9], [13.6, 7.6],
-  [11.6, 9.6], [10.6, 9.4], [10.1, 8.4], [9.2, 8.6], [8.5, 8.1], [7.7, 8.4], [6.8, 7.8], [5.8, 7.4], [4.6, 7.8], [3.8, 6.6], [4, 4], [4.8, 1.2], [5.2, -1.2], [3.8, -3.8]];
+const headSide = [[2.6, -6.6], [8.5, -7.8], [14.1, -8.8], [19.9, -7.6], [22.6, -2.9], [21.7, 6.4], [18.2, 10.8], [15.2, 12], [13.2, 12.2], [12, 11.9], [10, 13.4], [8.1, 14.5],
+  [7.2, 13.9], [7, 12.8], [6.1, 12.9], [5, 13], [4.2, 12.3], [3.7, 12.6], [2.8, 12], [1.5, 12.3], [.4, 11.4], [-.4, 7.4], [-3.6, 5.8], [-7.4, 6.4], [-7.8, -5.8], [-3, -6.4]];
 // Short hair: hairline at the forehead, over the crown, down to the nape, around the ear and a sideburn.
-const hairSide = [[19.2, 5], [21.8, 2.4], [22.6, -2], [20.8, -7.4], [15.4, -10.8], [9.2, -10.8], [5, -8.8], [4.2, -6.6], [6.2, -6], [10.4, -6.4], [14.6, -5.2], [16.4, -2.6],
-  [16, -.2], [14.8, .6], [12.4, .9], [12.2, 1.9], [15.2, 2.2], [17.2, 3.4], [18.4, 4.4]];
+const hairSide = [[19.4, 12.2], [23.6, 6.4], [23.4, -2], [21, -7.4], [16.6, -9.2], [11.6, -9.1], [9.8, -8.2], [10.8, -6.2], [13, -3.6], [14.3, -1], [14.4, 1.6], [10.6, 1.9], [10.6, 2.8],
+  [14.6, 3.2], [16.2, 5.6], [17.8, 9.4], [18.6, 11]];
 // Face seen from the front: [up, sideways].
 const headFront = [[1.4, 0], [2.6, 3.6], [5.4, 6.4], [9.4, 7.8], [13.6, 8.2], [17.6, 7.6], [20.6, 5], [22, 0], [20.6, -5], [17.6, -7.6], [13.6, -8.2], [9.4, -7.8], [5.4, -6.4], [2.6, -3.6]];
 const hairFront = [[15.6, 8.6], [19.2, 8.2], [21.8, 5.4], [22.8, 0], [21.8, -5.4], [19.2, -8.2], [15.6, -8.6], [15.4, -7.6], [17.2, -6], [18.4, -3], [18.6, .6], [18, 4.4], [17, 7]];
@@ -220,7 +220,7 @@ function shapes(fr, hl) {
     out.push(['shorts', smooth(o(side ? shortsSide : shortsFront)), palette.shorts]);
     const m = muscleShapes[fr.view];
     for (const part of ['chest', 'abs', 'back', 'glutes']) if (on(part) && m[part].length) out.push([part, smooth(o(m[part])), palette.hl, ' fill-opacity=".55"']);
-    out.push(['neck', limb(fr.S, fr.neck, 4.6, 4.2, 4.6, 4.6, .5, fr.n), palette.skin]);
+    out.push(['neck', limb(fr.S, fr.neck, side ? 4.4 : 5.2, side ? 4.2 : 4.9, side ? 4.4 : 5.2, side ? 4.4 : 5.2, .5, fr.n), palette.skin]);
   };
   const head = () => {
     const line = (pts, w = .8, color = palette.skinLine) => ['', pts.map((p, i) => (i ? 'L' : 'M') + pt(p)).join(''), 'none', ` stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"`];
@@ -230,15 +230,20 @@ function shapes(fr, hl) {
       out.push(['head', smooth(o(headSide)), palette.skin]);
       // Ear: outer rim and the inner fold.
       const ear = o([[12.4, -1.6]])[0];
-      out.push(['ear', smooth(o([[15.2, -.8], [14.6, -3.4], [12.4, -4.4], [10, -3.6], [9.2, -1.8], [10.6, -.6], [12.8, -.4]])), palette.skin]);
-      named('earFold', line(o([[14.2, -1.4], [13.8, -2.8], [12.4, -3.4], [11, -2.8], [10.8, -1.6]]), .7));
+      out.push(['ear', smooth(o([[13.4, .4], [12.8, -1.6], [11, -2.2], [9, -1.4], [7.6, 0], [8.2, 1.2], [10.4, 1.5], [12.4, 1.4]])), palette.skin]);
+      named('earFold', line(o([[12.2, .2], [11.6, -1], [10.2, -1.1], [9.2, -.2]]), .7));
       void ear;
       out.push(['hair', smooth(o(hairSide)), palette.hair]);
-      named('hairLine', line(o([[21, 1], [20.2, -4.4], [16, -8.2]]), .8, '#5a463b'));
+      named('hairLine', line(o([[21.4, 9.6], [22.4, 3], [21.6, -3.4], [18.4, -7.6]]), .8, '#5a463b'));
       // Eye, brow and lips.
-      named('brow', line(o([[16.4, 4.4], [16.6, 6.4]]), 1.2, palette.hair));
-      out.push(['eye', smooth(o([[14.6, 5.2], [14.2, 6.3], [13.8, 5.2], [14.2, 4.6]])), '#2b2420']);
-      named('mouth', line(o([[8.6, 7.9], [8.5, 6.9]]), .7));
+      // Eye in profile: almond opening with white and iris, an upper lid, the brow above.
+      named('brow', line(o([[13.5, 11.3], [14, 9.8], [13.7, 8.2]]), 1.1, palette.hair));
+      out.push(['eyeWhite', smooth(o([[12.25, 10.75], [12.05, 9.6], [11.85, 8.95], [11.55, 9.7], [11.3, 10.55], [11.8, 10.35]])), '#f3ede6', ' stroke="#8a6b57" stroke-width=".45"']);
+      out.push(['iris', smooth(o([[12.15, 10.25], [11.8, 9.75], [11.4, 10.2], [11.8, 10.45]])), '#3a2b22']);
+      named('lid', line(o([[12.45, 10.8], [12.25, 9.6], [11.9, 8.9]]), .7, '#4b3a30'));
+      named('nostril', line(o([[7.8, 12.9], [8.3, 12.2], [7.7, 11.7]]), .6));
+      named('mouth', line(o([[4.3, 12.3], [4.45, 11.2]]), .7));
+      named('jaw', line(o([[.8, 8], [3.8, 4.6], [7, 2.2]]), .6));
     } else {
       const o = local(fr.neck, fr.headAxis, fr.n);
       out.push(['earR', smooth(o([[15, 8], [13.6, 9.6], [10.4, 9.4], [9.4, 8]])), palette.skin]);
@@ -248,8 +253,11 @@ function shapes(fr, hl) {
       named('hairPart', line(o([[22.2, -2.4], [20.4, -3.2], [18.6, -2.6]]), .8, '#5a463b'));
       named('browR', line(o([[14.4, 1.4], [14.9, 3.4], [14.6, 5]]), 1.1, palette.hair));
       named('browL', line(o([[14.4, -1.4], [14.9, -3.4], [14.6, -5]]), 1.1, palette.hair));
-      out.push(['eyeR', smooth(o([[13, 2.4], [13.5, 3.3], [13, 4.2], [12.5, 3.3]])), '#2b2420']);
-      out.push(['eyeL', smooth(o([[13, -2.4], [13.5, -3.3], [13, -4.2], [12.5, -3.3]])), '#2b2420']);
+      for (const [k, sgn] of [['R', 1], ['L', -1]]) {
+        out.push(['eye' + k, smooth(o([[13, 1.8 * sgn], [13.55, 3.3 * sgn], [13, 4.8 * sgn], [12.55, 3.3 * sgn]])), '#f3ede6', ' stroke="#8a6b57" stroke-width=".45"']);
+        out.push(['iris' + k, smooth(o([[13.45, 3.3 * sgn], [13, 3.85 * sgn], [12.6, 3.3 * sgn], [13, 2.75 * sgn]])), '#3a2b22']);
+        named('lid' + k, line(o([[12.95, 1.7 * sgn], [13.65, 3.3 * sgn], [13.05, 4.9 * sgn]]), .6, '#4b3a30'));
+      }
       named('nose', line(o([[12.6, .4], [9.6, 1.2], [9.2, 0]]), .8));
       named('mouth', line(o([[6.8, -2], [6.6, 0], [6.8, 2]]), .8));
     }
