@@ -9,6 +9,8 @@ import * as F from './fitness.js';
 import * as SK from './skills.js';
 import {createFitnessUI} from './fitness-ui.js';
 import {createSkillTreeUI} from './skill-tree-ui.js';
+import {createMusicTreeUI} from './music-tree-ui.js';
+import {musicStats} from './music-tree.js';
 import {createFriendsUI} from './friends-ui.js';
 import {streakCard,streakStatus} from './streak-ui.js';
 import * as G from './character-gear.js';
@@ -41,9 +43,10 @@ let demoSocial=null;
 try{const cached=JSON.parse(localStorage.getItem('arc-demo-social')||'null');if(Array.isArray(cached))demoSocial=cached;}catch{}
 const today=()=>D.dateKey(new Date(),state?.timezone);
 const fitness=createFitnessUI({skillStartReady:()=>mode!=='cloud'||cloud.skillStartReady,getState:()=>state,D,I,character,esc,button:(...a)=>button(...a),bar:(...a)=>bar(...a),fmt,today,modal,form,commit,render,navTo,toast,closeModal});
-const skillTree=createSkillTreeUI({I,esc,render:()=>render(),categories:{calisthenics:{view:()=>fitness.skillsView(),progress:()=>{const x=SK.summary(state);return {done:x.levels,total:x.total};}}}});
+const musicTree=createMusicTreeUI({state:()=>state,commit,esc,toast,today,modal,closeModal,render:()=>render()});
+const skillTree=createSkillTreeUI({I,esc,render:()=>render(),categories:{calisthenics:{view:()=>fitness.skillsView(),progress:()=>{const x=SK.summary(state);return {done:x.levels,total:x.total};}},music:{view:()=>musicTree.view(),progress:()=>musicTree.progress()}}});
 const friends=createFriendsUI({I,esc,button:(...a)=>button(...a),avatar:(...a)=>avatar(...a),character,D,F,getMode:()=>mode,cloud:{friends:cloud.friendsOverview,myFriendCode:cloud.myFriendCode,requestFriend:cloud.requestFriend,respondFriend:cloud.respondFriend,removeFriend:cloud.removeFriend,memberProfile:cloud.memberProfile},modal:(...a)=>modal(...a),closeModal:(...a)=>closeModal(...a),toast:(...a)=>toast(...a),render:()=>render()});
-const strength=createStrengthUI({skillsEnabled:()=>mode!=='cloud'||cloud.skillWorkoutsReady,coreReady:()=>mode!=='cloud'||cloud.coreCatalogReady,skillsView:fitness.skillsView,skillThumb:fitness.skillThumb,openSkill:fitness.openSkill,showWorkout:()=>{fitness.action(['section','strength']);navTo('training');},enabled:()=>mode!=='cloud'||cloud.trainingReady,getState:()=>state,I,esc,button:(...a)=>button(...a),modal,form,commit,render,today,closeModal,toast});
+const strength=createStrengthUI({skillsEnabled:()=>mode!=='cloud'||cloud.skillWorkoutsReady,coreReady:()=>mode!=='cloud'||cloud.coreCatalogReady,mobilityReady:()=>mode!=='cloud'||cloud.mobilityReady,skillsView:fitness.skillsView,skillThumb:fitness.skillThumb,openSkill:fitness.openSkill,showWorkout:()=>{fitness.action(['section','strength']);navTo('training');},enabled:()=>mode!=='cloud'||cloud.trainingReady,getState:()=>state,I,esc,button:(...a)=>button(...a),modal,form,commit,render,today,closeModal,toast});
 const localKey=()=>`arc-state-${mode}`;
 function readLocal(){try{return JSON.parse(localStorage.getItem(localKey()));}catch{return null;}}
 function persistLocal(){localStorage.setItem(localKey(),JSON.stringify(state));}
@@ -54,7 +57,7 @@ const avatar=(name,cls='')=>name===state?.profile?.name&&state.profile.photo?`<s
 const empty=(icon,title,text,action,label)=>`<div class="empty">${I(icon)}<h3>${esc(title)}</h3><p>${esc(text)}</p>${action?button(label,action):''}</div>`;
 const notice=text=>`<div class="notice">${I('info')}<span>${text}</span></div>`;
 // Character stats: XP-based stats plus skill-tree levels and completed personal goals.
-function cstats(){return SK.characterStats(D.stats(state),state,D.categories);}
+function cstats(){const s=SK.characterStats(D.stats(state),state,D.categories);s.Music=(s.Music||0)+musicStats(state).Music;return s;}
 function tier(){const l=D.levelInfo(D.totalXP(state)).level;return ['Vandrare','Frostvandrare','Norrskensväktare','Vinterlegend'][Math.min(3,Math.floor((l-1)/5))];}
 function demoMembers(){return [{user_id:'maya',display_name:'Maya',xp:6370,streak:18,perfect_today:true,completed_week:29,training_streak:11,trained_today:true},{user_id:'noah',display_name:'Noah',xp:5810,streak:14,perfect_today:true,completed_week:26,training_streak:6,trained_today:false},{user_id:'me',display_name:state.profile.name,xp:D.totalXP(state),streak:D.streak(state,today()),perfect_today:D.progress(state,today()).perfect,...myTraining(),completed_week:Object.entries(state.history).filter(([d])=>d>=D.weekKey(today())&&d<=today()).reduce((n,[d])=>n+D.progress(state,d).done,0)},{user_id:'elliot',display_name:'Elliot',xp:4260,streak:9,perfect_today:false,completed_week:21,training_streak:0,trained_today:false}].sort((a,b)=>b.xp-a.xp);}
 function members(){if(mode==='demo')return demoMembers();return social.members.map(m=>m.user_id===cloud.user?.id?{...m,display_name:state.profile.name,xp:D.totalXP(state),streak:D.streak(state,today()),perfect_today:D.progress(state,today()).perfect,...(m.training_streak==null?{}:myTraining())}:m);}
@@ -155,6 +158,7 @@ async function action(a){const [cmd,...parts]=a.split(':'),arg=parts.join(':');
  case 'friend':await friends.action(parts);break;
  case 'profile-of':if(arg===selfId()){navTo('profile');break;}await friends.profile(arg,members().find(m=>m.user_id===arg));break;
  case 'skt':skillTree.action(parts);break;
+ case 'mt':await musicTree.action(parts);break;
  case 'nav':navTo(parts[0],parts[1]||'');break;
  case 'tab':tab=arg;filter='all';render();break;
  case 'filter':filter=arg;render();break;
