@@ -114,11 +114,11 @@ export const poses = {
   // ---------- pulls ----------
   row: {keys: [
     {p: [80, 82], t: 68, limbs: {...legs(102, 98), an: {r: [-1, 46]}, af: {r: [-1, 46]}}},
-    {p: [80, 82], t: 66, limbs: {...legs(102, 98), an: {l: [10, 13], pref: [-.3, -1]}, af: {l: [10, 13], pref: [-.3, -1]}}},
+    {p: [80, 82], t: 66, limbs: {...legs(102, 98), an: {l: [-14, 11], pref: [-.4, -1]}, af: {l: [-14, 11], pref: [-.4, -1]}}},
   ]},
   'supported-row': {keys: [
     {p: [82, 98], t: 46, limbs: {ln: {w: [64, G], foot: 90}, lf: {w: [60, G], foot: 90}, an: {r: [2, 46]}, af: {r: [2, 46]}}},
-    {p: [82, 98], t: 46, limbs: {ln: {w: [64, G], foot: 90}, lf: {w: [60, G], foot: 90}, an: {l: [12, 12], pref: [-.4, -1]}, af: {l: [12, 12], pref: [-.4, -1]}}},
+    {p: [82, 98], t: 46, limbs: {ln: {w: [64, G], foot: 90}, lf: {w: [60, G], foot: 90}, an: {l: [-12, 11], pref: [-.4, -1]}, af: {l: [-12, 11], pref: [-.4, -1]}}},
   ], scene: [['pad', 88, 104, 126, 66], ['post', 106, 88]]},
   pull: {view: 'front', keys: [
     {p: [96, 70], t: 0, limbs: {ln: {a1: 3, a2: 6, foot: 3}, an: {w: [128, -16]}}},
@@ -142,7 +142,7 @@ export const poses = {
   ], anchor: [182, 28], scene: [['post', 182, 10], ['pulley', 182, 28]]},
   hang: {view: 'front', keys: [{p: [96, 74], t: 0, limbs: {ln: {a1: 4, a2: 8, foot: 4}, an: {w: [124, -16]}}}], scene: [['bar', 40, 152, -23], ['post', 44, -23], ['post', 148, -23]]},
   climb: {view: 'front', keys: [
-    {p: [96, 80], t: 0, limbs: {ln: {a1: 30, a2: 70, foot: 10}, lf: {a1: -4, a2: 30, foot: -4}, an: {w: [116, 2]}, af: {w: [80, 30]}}},
+    {p: [96, 80], t: 0, limbs: {ln: {a1: 30, a2: 70, foot: 10}, lf: {a1: -4, a2: -30, foot: -4}, an: {w: [116, 2]}, af: {w: [80, 30]}}},
     {p: [96, 74], t: 0, limbs: {ln: {a1: 4, a2: 30, foot: 4}, lf: {a1: -30, a2: -70, foot: -10}, an: {w: [114, 32]}, af: {w: [78, 0]}}},
   ], scene: [['line', 40, 4, 40, 150, 6]]},
 

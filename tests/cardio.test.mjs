@@ -4,12 +4,12 @@ import * as C from '../src/cardio.js';
 import * as D from '../src/domain.js';
 import * as S from '../src/strength.js';
 import {movementArt} from '../src/strength-art.js';
-import {framesOf, bones} from '../src/figure.js';
+import {framesOf, bones, poseAt, phase} from '../src/figure.js';
 const base=()=>{const s=D.blankState('2026-11-09');D.normalizeState(s);return s;};
 test('running rank is monotonic, estimates only supported distances and does not invent body-size bonuses',()=>{assert.equal(C.runningRank(5,1800).name,'Guld');assert.ok(C.runningRank(5,1500).level>C.runningRank(5,2100).level);assert.equal(C.runningRank(.5,120).level,0);assert.equal(C.runningRank(42.2,10000).level,0);assert.equal(C.activities.filter(a=>a.ranked).length,1);});
 test('cardio timer validates duration and single daily activity and preserves unranked sports',()=>{const s=base();C.start(s,'volleyball','2026-11-09',1000);assert.throws(()=>C.finish(s,0,1800,2000),/Kontrollera/);C.finish(s,0,1800,1801000);assert.equal(C.cardioXP(s),60);assert.equal(C.record(s).level,0);assert.throws(()=>C.start(s,'volleyball','2026-11-09'),/redan/);assert.equal(D.totalXP(s),60);});
 test('cardio shares daily XP with strength habits and avoids rewarding the same time twice',()=>{const s=base();C.start(s,'run','2026-11-09',1000);C.finish(s,5,1800,1801000);const h=D.makeHabit(D.library[0],'2026-11-09');h.durationMinutes=30;s.habits.push(h);D.setProgress(s,h.id,1,'2026-11-09');assert.equal(C.cardioXP(s),0);assert.equal(D.totalXP(s),60);});
-test('every catalog entry and sport produces valid animated art with its own accessible title',()=>{for(const e of [...S.lifts,...C.activities.map(a=>({...a,equipment:'Kroppsvikt',unit:'tid'}))]){const art=movementArt(e,true);assert.ok(art.includes(e.name));assert.doesNotMatch(art,/NaN|undefined/);assert.match(art,/<animate/);}});
+test('every catalog entry and sport produces valid animated art with its own accessible title',()=>{for(const e of [...S.lifts,...C.activities.map(a=>({...a,equipment:'Kroppsvikt',unit:'tid'}))]){const art=movementArt(e,true);assert.ok(art.includes(e.name));assert.doesNotMatch(art,/NaN|undefined/);assert.match(art,/data-figure=|<animate/,e.id+' moves or breathes');}});
 test('exercise figure: rigid bones in every frame, planted feet, knees forward, elbows back', () => {
   const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   for (const e of [...S.lifts.filter(l => !l.skillTree), ...C.activities.map(a => ({...a, equipment: '', muscle: ''}))]) {
@@ -40,7 +40,9 @@ test('exercise figure: seated chest press, separate dumbbells, barbell plates an
   assert.match(still('bench'), /fill="#ff7a59"/, 'The chest is highlighted for bench press');
   assert.match(still('plank'), /movement-art/);
   assert.match(movementArt(S.liftById.plank, true), /animateTransform/, 'A hold breathes');
-  assert.match(movementArt(S.liftById.squat, true), /<animate attributeName="d"/, 'Moves are animated frame by frame');
+  const live = movementArt(S.liftById.squat, true);
+  assert.match(live, /data-figure="squat\|/, 'Moves are posed live on every frame');
+  assert.doesNotMatch(live, /<animate attributeName="d"/, 'No shape morphing (it flattened limbs on iPhone)');
 });
 
 test('exercise figure: hands close around what they hold, rest flat on the floor and open when reaching', () => {
@@ -54,4 +56,24 @@ test('exercise figure: hands close around what they hold, rest flat on the floor
   const svg = movementArt(S.liftById.bench, false);
   assert.match(svg, /stroke-width=".7"/, 'Knuckle creases are drawn');
   assert.ok(svg.indexOf('a16 16 0 1 0 32 0') < svg.lastIndexOf('stroke-width=".7"'), 'The plate is behind the gripping fingers');
+});
+
+test('exercise figure: no elbow or knee switches side during a movement, and live frames redraw every shape', () => {
+  const turn = L => Math.sign((L.end[0] - L.root[0]) * (L.mid[1] - L.root[1]) - (L.end[1] - L.root[1]) * (L.mid[0] - L.root[0]));
+  const bent = L => Math.hypot(L.root[0] - L.mid[0], L.root[1] - L.mid[1]) + Math.hypot(L.mid[0] - L.end[0], L.mid[1] - L.end[1]) - Math.hypot(L.root[0] - L.end[0], L.root[1] - L.end[1]) > .5;
+  for (const e of [...S.lifts.filter(l => !l.skillTree), ...C.activities.map(a => ({...a, equipment: '', muscle: ''}))]) {
+    const frames = framesOf(e);
+    for (const key of Object.keys(frames[0].limbs)) {
+      const sides = new Set(frames.map(f => f.limbs[key]).filter(bent).map(turn));
+      assert.ok(sides.size <= 1, e.id + ' ' + key + ' keeps its bend direction');
+    }
+  }
+  assert.equal(phase(0, 3.2), 0, 'Holds at the start');
+  assert.equal(phase(1.6, 3.2), 1, 'Holds at the end');
+  assert.ok(phase(.8, 3.2) > 0 && phase(.8, 3.2) < 1);
+  const html = movementArt(S.liftById['db-row'], true), paths = [...html.matchAll(/<path data-i="(\d+)" d="([^"]+)"/g)].map(m => ({dataset: {i: m[1]}, d: m[2], getAttribute() { return this.d; }, setAttribute(_, v) { this.d = v; }}));
+  const before = paths.map(p => p.d), svg = {querySelectorAll: () => paths}, memo = {};
+  for (let k = 0; k <= 1; k += .05) poseAt(svg, S.liftById['db-row'], k, memo);
+  assert.ok(paths.some((p, i) => p.d !== before[i]), 'The pose changes');
+  assert.ok(Object.keys(memo).length > 10, 'Shapes remember their side between frames');
 });
