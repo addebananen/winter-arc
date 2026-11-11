@@ -269,10 +269,11 @@ function gearShapes(fr, e, spec) {
       g.push(['bar', `M${f1(a[0] - 34)} ${f1(y - 1.6)}H${f1(b[0] + 34)}V${f1(y + 1.6)}H${f1(a[0] - 34)}Z`, steel, '', 'mid']);
       for (const x of [a[0] - 30, b[0] + 24]) g.push(['plate' + (x < a[0] ? 'L' : 'R'), `M${f1(x)} ${f1(y - 16)}h6a1.5 1.5 0 0 1 1.5 1.5v29a1.5 1.5 0 0 1 -1.5 1.5h-6a1.5 1.5 0 0 1 -1.5 -1.5v-29a1.5 1.5 0 0 1 1.5 -1.5Z`, iron, ` stroke="${steel}" stroke-width="1.4"`, 'mid']);
     } else {
+      // Seen from the side, the near plate is in front of the hand and hides it, as in real life.
       const c = grip(fr.limbs.an);
-      g.push(['plate', `M${pt(add(c, [-16, 0]))}a16 16 0 1 0 32 0a16 16 0 1 0 -32 0Z`, iron, ` stroke="${steel}" stroke-width="2.4"`, 'mid']);
-      g.push(['plateRing', `M${pt(add(c, [-9, 0]))}a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z`, 'none', ` stroke="#3c4c55" stroke-width="2"`, 'mid']);
-      g.push(['hub', `M${pt(add(c, [-3, 0]))}a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z`, steel, '', 'mid']);
+      g.push(['plate', `M${pt(add(c, [-16, 0]))}a16 16 0 1 0 32 0a16 16 0 1 0 -32 0Z`, iron, ` stroke="${steel}" stroke-width="2.4"`, 'top']);
+      g.push(['plateRing', `M${pt(add(c, [-9, 0]))}a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z`, 'none', ` stroke="#3c4c55" stroke-width="2"`, 'top']);
+      g.push(['hub', `M${pt(add(c, [-3, 0]))}a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z`, steel, '', 'top']);
     }
   } else if (eq === 'Hantlar') {
     for (const [i, L] of hands.entries()) {
@@ -284,8 +285,10 @@ function gearShapes(fr, e, spec) {
         g.push(['db' + i + 'a', box(-8, 5, 13), iron, ` stroke="${steel}" stroke-width="1.2"`, layer]);
         g.push(['db' + i + 'b', box(8, 5, 13), iron, ` stroke="${steel}" stroke-width="1.2"`, layer]);
       } else {
-        g.push(['db' + i, `M${pt(add(c, [-8, 0]))}a8 8 0 1 0 16 0a8 8 0 1 0 -16 0Z`, iron, ` stroke="${steel}" stroke-width="2"`, layer]);
-        g.push(['db' + i + 'c', `M${pt(add(c, [-2.4, 0]))}a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0 -4.8 0Z`, steel, '', layer]);
+        // Seen from the side, the near plate is closest to the viewer and hides the hand, as in real life.
+        const sideLayer = i === 1 ? 'back' : 'top';
+        g.push(['db' + i, `M${pt(add(c, [-8, 0]))}a8 8 0 1 0 16 0a8 8 0 1 0 -16 0Z`, iron, ` stroke="${steel}" stroke-width="2"`, sideLayer]);
+        g.push(['db' + i + 'c', `M${pt(add(c, [-2.4, 0]))}a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0 -4.8 0Z`, steel, '', sideLayer]);
       }
     }
   } else if (eq === 'Kabel' && spec.anchor) {
