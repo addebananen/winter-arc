@@ -4,7 +4,7 @@ import * as C from '../src/cardio.js';
 import * as D from '../src/domain.js';
 import * as S from '../src/strength.js';
 import {movementArt} from '../src/strength-art.js';
-import {framesOf, bones, poseAt, phase} from '../src/figure.js';
+import {framesOf, bones, poseAt, phase, soleSide} from '../src/figure.js';
 const base=()=>{const s=D.blankState('2026-11-09');D.normalizeState(s);return s;};
 test('running rank is monotonic, estimates only supported distances and does not invent body-size bonuses',()=>{assert.equal(C.runningRank(5,1800).name,'Guld');assert.ok(C.runningRank(5,1500).level>C.runningRank(5,2100).level);assert.equal(C.runningRank(.5,120).level,0);assert.equal(C.runningRank(42.2,10000).level,0);assert.equal(C.activities.filter(a=>a.ranked).length,1);});
 test('cardio timer validates duration and single daily activity and preserves unranked sports',()=>{const s=base();C.start(s,'volleyball','2026-11-09',1000);assert.throws(()=>C.finish(s,0,1800,2000),/Kontrollera/);C.finish(s,0,1800,1801000);assert.equal(C.cardioXP(s),60);assert.equal(C.record(s).level,0);assert.throws(()=>C.start(s,'volleyball','2026-11-09'),/redan/);assert.equal(D.totalXP(s),60);});
@@ -53,9 +53,13 @@ test('exercise figure: hands close around what they hold, rest flat on the floor
   assert.equal(push.hand.style, 'flat');
   assert.deepEqual(push.hand.d.map(v => Math.round(v * 100) / 100), [1, 0], 'Fingers point forward along the floor');
   assert.equal(framesOf(S.liftById.situp)[0].limbs.an.hand.style, 'open');
-  const svg = movementArt(S.liftById.bench, false);
+  const svg = movementArt(S.liftById.bench, true);
   assert.match(svg, /stroke-width=".7"/, 'Knuckle creases are drawn');
-  assert.ok(svg.indexOf('a16 16 0 1 0 32 0') < svg.lastIndexOf('stroke-width=".7"'), 'The plate is behind the gripping fingers');
+  assert.ok(svg.indexOf('a16 16 0 1 0 32 0') > svg.lastIndexOf('stroke-width=".7"'), 'Seen from the side, the plate is in front of the hand and hides it');
+  const curl = movementArt(S.liftById['db-curl'], true), discs = [...curl.matchAll(/a8 8 0 1 0 16 0/g)].map(m => m.index), hand = curl.lastIndexOf('stroke-width=".7"');
+  assert.ok(discs[0] < hand && discs[1] > hand, 'The far dumbbell is behind the body, the near one in front of the hand');
+  const front = movementArt(S.liftById.lateral, true);
+  assert.ok(front.indexOf('fill="#1f2a30"') < front.lastIndexOf('stroke-width=".7"'), 'From the front, the fingers wrap in front of the dumbbell');
 });
 
 test('exercise figure: no elbow or knee switches side during a movement, and live frames redraw every shape', () => {
@@ -76,4 +80,16 @@ test('exercise figure: no elbow or knee switches side during a movement, and liv
   for (let k = 0; k <= 1; k += .05) poseAt(svg, S.liftById['db-row'], k, memo);
   assert.ok(paths.some((p, i) => p.d !== before[i]), 'The pose changes');
   assert.ok(Object.keys(memo).length > 10, 'Shapes remember their side between frames');
+});
+
+test('the sole of the shoe faces away from the shin, also with pointed toes', () => {
+  const sole = (root, mid, end, tipAngle) => soleSide({root, mid, end, tipAngle}).map(v => Math.round(v) || 0);
+  // Standing, foot forward: sole down.
+  assert.deepEqual(sole([0, 0], [0, 37], [0, 72], 90), [0, 1]);
+  // Tuck L-sit: knee up in front, toes pointed down and a little back. The sole faces back, not forward.
+  assert.deepEqual(sole([0, 0], [30, -10], [25, 25], -10), [-1, 0]);
+  // Straight hanging leg with pointed toes: the sole faces back.
+  assert.deepEqual(sole([0, 0], [0, 37], [0, 72], -10), [-1, 0]);
+  // Kneeling with the top of the foot on the floor: the sole faces up.
+  assert.deepEqual(sole([0, 0], [5, 37], [-30, 40], 270), [0, -1]);
 });

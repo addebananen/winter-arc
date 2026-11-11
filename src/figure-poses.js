@@ -91,8 +91,8 @@ export const poses = {
     {p: [88, 88], t: 22, limbs: {ln: {a1: 16, a2: 70, foot: 20}, lf: {a1: 10, a2: 76, foot: 20}, an: {w: [100, 70], pref: [-1, -.2]}, af: {w: [100, 70], pref: [-1, -.2]}}},
   ], equipment: 'none', scene: [['bar', 86, 140, 77], ['post', 134, 77]]},
   fly: {view: 'front', keys: [
-    {p: [96, 76], t: 0, limbs: {...{ln: {w: [104, G], foot: 0}}, an: {r: [42, 6], pref: [0, 1]}}},
-    {p: [96, 76], t: 0, limbs: {...{ln: {w: [104, G], foot: 0}}, an: {r: [-11, 26], pref: [.6, 1]}}},
+    {p: [96, 74], t: 0, limbs: {...{ln: {w: [104, G], foot: 0}}, an: {r: [42, 6], pref: [0, 1]}}},
+    {p: [96, 74], t: 0, limbs: {...{ln: {w: [104, G], foot: 0}}, an: {r: [-11, 26], pref: [.6, 1]}}},
   ], anchor: [[176, 26], [16, 26], 'pair']},
   'db-fly': {keys: [
     {p: [114, 107], t: -90, limbs: {ln: {w: [140, G], foot: 90}, lf: {w: [136, G], foot: 90}, an: {w: [74, 61]}, af: {w: [74, 61]}}},
@@ -176,16 +176,16 @@ export const poses = {
     {p: [76, 84], t: 72, limbs: {...legs(98, 74), an: {a1: -72, a2: -4}, af: {w: [128, 118]}}},
   ], anchor: [150, 140], sceneFor: {Kabel: [['post', 156, 30], ['pulley', 150, 140]], Hantlar: [['bench', 112, 166, 120]]}},
   lateral: {view: 'front', keys: [
-    {p: [96, 76], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [6, 46], pref: [1, .2]}}},
-    {p: [96, 76], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [45, 4], pref: [0, 1]}}},
+    {p: [96, 74], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [6, 46], pref: [1, .2]}}},
+    {p: [96, 74], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [45, 4], pref: [0, 1]}}},
   ], anchor: [[40, 148], [152, 148], 'pair']},
   'y-raise': {view: 'front', keys: [
-    {p: [96, 76], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [-4, 44], pref: [1, .2]}}},
-    {p: [96, 76], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [28, -38], pref: [1, .4]}}},
+    {p: [96, 74], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [-4, 44], pref: [1, .2]}}},
+    {p: [96, 74], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [28, -38], pref: [1, .4]}}},
   ], anchor: [[40, 148], [152, 148], 'pair']},
   'reverse-fly': {view: 'front', keys: [
-    {p: [96, 76], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [-11, 26], pref: [.6, 1]}}},
-    {p: [96, 76], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [44, 4], pref: [0, 1]}}},
+    {p: [96, 74], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [-11, 26], pref: [.6, 1]}}},
+    {p: [96, 74], t: 0, limbs: {ln: {w: [104, G], foot: 0}, an: {r: [44, 4], pref: [0, 1]}}},
   ], anchor: [[16, 40], [176, 40], 'pair']},
   dislocate: {keys: [
     {p: [95, 75], t: 0, limbs: {...legs(100, 96), an: {a1: 34, a2: 0}, af: {a1: 34, a2: 0}}},
