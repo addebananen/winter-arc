@@ -51,6 +51,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
       </button></li>`;
   }
   function view() {
+    A.preload(); // start downloading the piano and bass recordings while the player reads the tree
     const s = S(), sum = M.summary(s), d = today(), streak = M.streak(s, d), stat = M.musicStats(s).Music, next = M.nextUp(s, branch === 'all' ? null : branch);
     const mix = M.mixPool(s, d).length >= 2, playedToday = (s.musicTree.days || []).includes(d);
     const branches = M.BRANCHES.filter(b => branch === 'all' || b.id === branch);
@@ -110,8 +111,8 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
     if (cmd === 'branch') { branch = a === 'all' || branchOf(a) ? a : 'all'; render(); return true; }
     if (cmd === 'node') { sheet(a); return true; }
     if (cmd === 'voice') { await commit(s => M.setVoice(s, a)); sheet(b); return true; }
-    if (cmd === 'play') { closeModal?.(false); A.unlock(); startLevel(a, Number(b)); return true; }
-    if (cmd === 'mix') { A.unlock(); startMix(); return true; }
+    if (cmd === 'play') { closeModal?.(false); A.unlock(); await A.ready(); startLevel(a, Number(b)); return true; }
+    if (cmd === 'mix') { A.unlock(); await A.ready(); startMix(); return true; }
     void c;
     return false;
   }

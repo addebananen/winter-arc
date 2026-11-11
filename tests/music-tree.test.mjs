@@ -235,3 +235,12 @@ test('music settings are saved in the account data without touching other data',
   assert.equal(q('[data-action="mt:voice:low:pitch"]').getAttribute('aria-pressed'), 'true', 'The sheet reopens with the choice');
   w.close();
 });
+
+test('every recorded piano and bass note the audio engine asks for is shipped', async () => {
+  const {soundFiles} = await import('../src/music-audio.js');
+  const {existsSync, readFileSync} = await import('node:fs');
+  const files = soundFiles();
+  assert.equal(files.length, 28);
+  for (const f of files) assert.ok(existsSync(new URL('../src/' + f.slice(2), import.meta.url)), f);
+  assert.match(readFileSync(new URL('../scripts/build.mjs', import.meta.url), 'utf8'), /src\/sounds/);
+});

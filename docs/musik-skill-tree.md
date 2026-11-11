@@ -43,7 +43,8 @@ Musiknivåer ger **bara Music-staten** för karaktären, aldrig XP eller rank (s
 |---|---|
 | `src/music-theory.js` | Ren musikteori utan DOM: toner, intervall, ackord, skalor, greppbräda, frågegeneratorer, basgångsregler och rättning, rytmrättning och tonhöjdsmätning. |
 | `src/music-tree.js` | Trädet (grenar, noder, nivåer) och all logik för framsteg: upplåsning, stjärnor, sparning, streak, mix och stats. |
-| `src/music-audio.js` | Ljudmotor med Web Audio: syntetiserat piano, bas, klick och trummor, korta ljudeffekter och mikrofonlyssning. Inga ljudfiler. |
+| `src/music-audio.js` | Ljudmotor med Web Audio: inspelad flygel och elbas, syntetiserat klick och trummor, korta ljudeffekter och mikrofonlyssning. |
+| `src/sounds/` | 28 korta mp3-filer (cirka 780 kB): flygel A1–C6 och elbas E1–G3, en inspelning var tredje halvton. |
 | `src/music-tree-ui.js` | Vyn i skill tree, nivåbladet och alla spel. Spelen ligger i ett eget lager (`.mg`) utanför `#app`, så att appens omritningar inte avbryter ett spel. |
 | `src/music-tree-css.js` | All stil för trädet och spelen. Läggs in en gång som `<style id="music-tree-css">`, så att `style.css` inte behöver ändras. |
 | `src/i18n-music-en.js` | Engelska översättningar av alla musiktexter. Sprids in i `src/i18n-en.js`. |
@@ -70,6 +71,8 @@ musicTree: {
 - Inget annat i sparfilen ändras; XP, historik och profil påverkas inte.
 
 ### Ljud och mikrofon
+- Piano och bas är riktiga inspelningar. Toner mellan inspelningarna spelas med den närmaste inspelningen, lätt omstämd. Filerna börjar laddas när musikträdet visas och avkodas vid första trycket. Har de inte hunnit laddas (eller saknas nätet) spelar ett syntljud i stället, så spelet väntar aldrig mer än knappt två sekunder.
+- Källor: flygeln är Salamander Grand Piano av Alexander Holm (via Tone.js, `Tonejs/audio`), elbasen kommer från `nbrosowsky/tonejs-instruments` (CC BY 3.0). Filerna är kortade, mono och omkodade.
 - Ljud får bara starta efter ett tryck på iPhone, så `unlock()` anropas från knapparna.
 - På iOS 17+ sätts `navigator.audioSession` till uppspelning, så ljudet hörs även med ljudlöst-knappen på. Medan mikrofonen används byts den till uppspelning och inspelning.
 - Musiken går genom en egen kanal som tystas (`stopAll`) när en ny fråga spelas, när en loop startas om och när spelet stängs. Ljudeffekterna går förbi den kanalen.
