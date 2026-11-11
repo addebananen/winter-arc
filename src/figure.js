@@ -230,7 +230,7 @@ function shapes(fr, hl) {
       if (!far) out.push([k + 'muscleLeg', `M${pt(tAt(.62, 4.6))}Q${pt(tAt(.84, 2.4))} ${pt(tAt(.9, -1.6))}M${pt(tAt(.96, 2.6))}Q${pt(add(L.mid, mul(tf, 4)))} ${pt(sAt(.06, 2.6))}M${pt(sAt(.12, -4.4))}Q${pt(sAt(.32, -3))} ${pt(sAt(.52, -2.2))}`, 'none', ` stroke="${palette.skinLine}" stroke-width=".6" stroke-linecap="round" stroke-opacity=".45"`]);
       const sh = add(L.root, mul(td, bones.thigh * .6));
       out.push([k + 'shorts', limb(L.root, sh, 9.8, 8.8, 9.8, 9.6, .5, fr.n), far ? palette.shortsFar : palette.shorts]);
-      const sn = sneaker(L, side);
+      const sn = sneaker(L, side, fr.n);
       out.push([k + 'sole', sn.sole, palette.sole]);
       out.push([k + 'shoe', sn.upper, far ? palette.shoeFar : palette.shoe, ` stroke="#8c989e" stroke-width=".7"`]);
       out.push([k + 'stripe', sn.stripe, 'none', ` stroke="${palette.stripe}" stroke-width="1.2" stroke-linecap="round"`]);
@@ -326,7 +326,14 @@ function shapes(fr, hl) {
   return out;
 }
 // A sneaker: white upper, grey sole, red side stripe and laces. Side view in foot coordinates [along, up].
-function sneaker(L, side) {
+// Which way the sole of a side-view foot faces: away from the knee when the foot is flexed, and to the back
+// of the leg when the toes are pointed in line with the shin (the knee cap and the top of the foot face forward).
+export function soleSide(L, forward = [1, 0]) {
+  const d = dir(L.tipAngle), n = [-d[1], d[0]], bend = sub(L.mid, lerpV(L.root, L.end, .5));
+  const front = len(bend) > 3 ? norm(bend) : forward, guide = add(norm(sub(L.mid, L.end)), front);
+  return dot(n, guide) <= 0 ? n : mul(n, -1);
+}
+function sneaker(L, side, forward = [1, 0]) {
   if (!side) {
     const down = norm(sub(L.end, L.mid)), lat = [down[1], -down[0]], at = ([x, y]) => add(L.end, add(mul(lat, x), mul(down, -y)));
     const upper = smooth([[-4.6, -1], [-4.4, 3], [-2, 4.4], [2, 4.4], [4.4, 3], [4.6, -1]].map(at));
@@ -334,7 +341,7 @@ function sneaker(L, side) {
     const lines = p => p.map(([a, b]) => `M${pt(at(a))}L${pt(at(b))}`).join('');
     return {upper, sole, stripe: lines([[[-4.2, .6], [-2.4, 2.2]]]), laces: lines([[[-1.4, 3.4], [1.4, 3.4]], [[-1.2, 2.2], [1.2, 2.2]]])};
   }
-  const d = dir(L.tipAngle), n = [-d[1], d[0]], down = dot(n, [0, 1]) >= 0 ? n : mul(n, -1);
+  const d = dir(L.tipAngle), down = soleSide(L, forward);
   const at = ([x, y]) => add(L.end, add(mul(d, x), mul(down, -y)));
   const upper = smooth([[-4.2, -1.2], [-4.6, 2.2], [-3.2, 4.6], [.6, 4.8], [3.6, 3.8], [7.6, 2.4], [11.6, 1.4], [14.4, .4], [15.2, -1.2]].map(at));
   const sole = smooth([[-5.2, -.8], [15.8, -.8], [16, -2.6], [14.8, -3.8], [-4.4, -3.8], [-5.4, -2.4]].map(at));
