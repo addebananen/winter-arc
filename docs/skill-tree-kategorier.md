@@ -40,4 +40,4 @@ Byggd i `src/music-tree.js` (träd, nivåer, sparning), `src/music-theory.js` (t
 | Bas | Greppbrädan, Groove & timing → Skalor på basen → Arpeggion → Bygg basgångar (grundtoner → kvint → treklang → närmande toner → walking bass) |
 | Sång | Andning & stöd (sss och stödd ton mäts med mikrofonen) → Träffa tonen → Stämsång |
 
-Nivåer klaras med minst 80 % i ett spel och sparas i sparfilen som `musicTree`. De ger Music-poäng till karaktären men påverkar aldrig XP eller rank. Ingen databasmigration behövs.
+Nivåer klaras med minst 80 % i ett spel och sparas i sparfilen som `musicTree`. De ger Music-poäng till karaktären men påverkar aldrig XP eller rank. Ingen databasmigration behövs. Alla funktioner och hur systemet fungerar beskrivs i `docs/musik-skill-tree.md`.

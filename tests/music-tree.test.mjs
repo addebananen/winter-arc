@@ -66,6 +66,14 @@ test('bass lines: rules grade the beats a teacher would mark', () => {
   assert.equal(bad.flags[0], false, 'Beat 1 must be the root');
   const walk = ['R', '3', '5', 'a-', 'R', '3', '5', 'a-', 'R', '3', '5', 'a-', 'R', '3', '5', 'a-'];
   assert.equal(T.gradeBassLine(line, walk, 'approach').score, 1);
+  // The example line the game plays for each rule must pass its own grading, in every key.
+  const models = {root: ['R', 'R', 'R', 'R'], root5: ['R', 'R', '5', '5'], triad: ['R', '3', '5', '8'], approach: ['R', '3', '5', 'a-'], walk: ['R', '2', '3', 'a-']};
+  const R2 = T.rng(11);
+  for (let i = 0; i < 200; i++) {
+    const l = T.bassChords(R2, i % 2 ? 'pop' : 'three');
+    for (const [rule, pat] of Object.entries(models)) assert.equal(T.gradeBassLine(l, l.chords.flatMap(() => pat), rule).score, 1, `${rule} ${l.key} ${l.chords.map(c => c.name).join(' ')}`);
+  }
+  assert.deepEqual(T.voiceLine([38, 40, 42, 30, 31]), [38, 40, 42, 42, 31]);
   // C → Am: half step below A is G♯, spelled as the leading tone.
   const c = T.beatChoices(line, 0, 3).find(x => x.id === 'a-');
   assert.equal(c.label, 'G♯'); assert.equal(T.pcOf(c.midi), 8);

@@ -130,7 +130,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
   function closeGame() {
     if (!G) return;
     G.alive = false; for (const f of G.cleanup) try { f(); } catch {}
-    A.releaseMic();
+    A.stopAll(); A.releaseMic();
     G.root.remove(); document.body.classList.remove('mg-open'); G = null;
   }
   if (typeof document !== 'undefined') document.addEventListener('keydown', e => { if (e.key === 'Escape' && G) closeGame(); });
@@ -213,7 +213,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
       let answered = false, playing = 0;
       const hear = async (events = q.play) => {
         const pad = g.root.querySelector('.mg-listen'); pad?.classList.add('playing');
-        const id = ++playing, end = A.play(events, {bpm: q.kind === 'progression' ? 96 : 80});
+        A.stopAll(); const id = ++playing, end = A.play(events, {bpm: q.kind === 'progression' ? 96 : 80});
         await wait(Math.max(300, (end - A.now()) * 1000));
         if (id === playing) pad?.classList.remove('playing');
       };
@@ -270,9 +270,11 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
     return new Promise(resolve => {
       const name = q.prompt.match(/^Hitta (\S+)/)[1], on = q.prompt.match(/på (\S)-strängen/)?.[1];
       const draw = (marks = {}) => {
+        // Keep the neck where the player left it, so the answer they tapped stays in view.
+        const keep = g.root.querySelector('.mg-board')?.scrollLeft || 0;
         setScreen(g, headFor(g, item, mixItems), `<div class="mg-prompt"><h2><span>Hitta</span> <b class="mg-big">${name}</b></h2>${on ? `<p class="muted">${on}-<span>strängen</span></p>` : '<p class="muted">Var som helst på halsen</p>'}</div>
           ${fretboard({frets: q.frets, strings: q.strings, marks})}<div class="mg-after"></div>`);
-        if (q.frets[1] > 7) requestAnimationFrame(() => { const b = g.root.querySelector('.mg-board'); if (b) b.scrollLeft = 0; });
+        const board = g.root.querySelector('.mg-board'); if (board) board.scrollLeft = keep;
       };
       draw();
       let done = false;
@@ -314,7 +316,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
         draw();
         g.on = (cmd, el) => {
           if (cmd === 'close') return closeGame();
-          if (cmd === 'demo') return A.play(q.targets.map((m, i) => ({t: i * .5, notes: [m], dur: .48, inst: 'bass'})), {bpm: 80});
+          if (cmd === 'demo') return A.stopAll(), A.play(q.targets.map((m, i) => ({t: i * .5, notes: [m], dur: .48, inst: 'bass'})), {bpm: 80});
           if (cmd === 'next') { g.on = null; return resolve({ok: mistakes === 0, score: q.targets.length / (q.targets.length + mistakes)}); }
           if (!cmd.startsWith('fret:') || idx >= q.targets.length) return;
           const [, s, f] = cmd.split(':').map(Number), midi = T.fretMidi(s, f);
@@ -352,8 +354,10 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
       line.chords.forEach((c, bar) => {
         const r = T.midiOf(c.root), tones = T.CHORDS[c.q].tones.map(t => r + T.semis(t)).map(n => n < 55 ? n + 12 : n > 67 ? n - 12 : n);
         ev.push({t: bar * 4, notes: tones, dur: 3.9, inst: 'keys', vel: .32}, ...T_drum(bar));
-        for (let beat = 0; beat < 4; beat++) { const id = p[bar * 4 + beat], ch = T.beatChoices(line, bar, beat).find(x => x.id === id); if (ch) ev.push({t: bar * 4 + beat, notes: [ch.midi], dur: .92, inst: 'bass'}); }
       });
+      // The bass plays what is graded: a walking line is voiced to the nearest octave.
+      const notes = p.map((id, i) => T.beatChoices(line, Math.floor(i / 4), i % 4).find(x => x.id === id)?.midi ?? null);
+      (rule === 'walk' ? T.voiceLine(notes) : notes).forEach((m, i) => { if (m != null) ev.push({t: i, notes: [m], dur: .92, inst: 'bass'}); });
       return ev;
     };
     const T_drum = bar => A.drumBar(bar);
@@ -362,7 +366,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
       return line.chords.flatMap(() => pat);
     }
     function loop(useModel) {
-      stopLoop?.();
+      stopLoop?.(); A.stopAll();
       const ev = lineEvents(useModel), start = A.now() + .08, end = A.play(ev, {bpm, at: start - .06});
       const spb = 60 / bpm; let raf = 0, alive = true;
       const tick = () => {
@@ -406,7 +410,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
         return draw();
       }
       if (cmd === 'grade') { graded = T.gradeBassLine(line, picks, rule); A.sfx(graded.score >= .8 ? 'combo' : 'wrong'); draw(); loop(false); return; }
-      if (cmd === 'done') { stopLoop?.(); g.on = null; finish({node, level, score: graded.score, color: b.color}); }
+      if (cmd === 'done') { stopLoop?.(); A.stopAll(); g.on = null; finish({node, level, score: graded.score, color: b.color}); }
     };
   }
 
@@ -435,7 +439,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
     let best = null;
     function run() {
       taps = []; running = true; draw();
-      start = A.now() + .1; A.play(events(false), {bpm, at: start - .06});
+      A.stopAll(); start = A.now() + .1; A.play(events(false), {bpm, at: start - .06});
       targets = []; for (let bar = 1; bar <= bars; bar++) for (const h of pat.hits) targets.push((start + (bar * 4 + h) * spb) * 1000);
       const end = start + (bars + 1) * 4 * spb;
       const head = g.root.querySelector('.mg-head-line'), beatEls = g.root.querySelectorAll('.mg-beat');
@@ -466,7 +470,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
     g.root.addEventListener('pointerdown', onDown);
     g.on = cmd => {
       if (cmd === 'close') return closeGame();
-      if (cmd === 'demo') return A.play(events(true).filter(e => e.inst !== 'click' || e.t >= 4).map(e => ({...e, t: e.t - 4})).filter(e => e.t < 8), {bpm});
+      if (cmd === 'demo') return A.stopAll(), A.play(events(true).filter(e => e.inst !== 'click' || e.t >= 4).map(e => ({...e, t: e.t - 4})).filter(e => e.t < 8), {bpm});
       if (cmd === 'start') return run();
       if (cmd === 'done') { g.on = null; finish({node, level, score: best.score, color: b.color}); }
     };
@@ -597,7 +601,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
       }
     }
     const total = rounds.reduce((n, r) => n + r.targets.length, 0);
-    let ri = 0, ti = 0, hits = 0, stop = null, phones = false;
+    let ri = 0, ti = 0, hits = 0, stop = null, phones = false, deaf = 0, began = 0;
     g.cleanup.push(() => stop?.());
     function draw() {
       const r = rounds[ri];
@@ -607,20 +611,21 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
         <p class="mg-status muted"></p>
         <div class="mg-row"><button type="button" class="btn ghost" data-mg="ref">${ic('replay')}<span>Lyssna igen</span></button>${game.type === 'harmony' ? `<button type="button" class="chip ${phones ? 'active' : ''}" data-mg="phones" aria-pressed="${phones}">${ic('headphones')}<span>Hörlurar</span></button>` : ''}</div>`);
     }
-    async function playRef() { const r = rounds[ri]; const end = A.play(r.ref, {bpm: 75}); await wait((end - A.now()) * 1000 + 150); }
+    // The mic must not grade the phone's own speaker: ignore it while the reference plays and as it fades out.
+    async function playRef() { const r = rounds[ri]; A.stopAll(); const end = A.play(r.ref, {bpm: 75}); deaf = end + .6; began = deaf; await wait((end - A.now()) * 1000 + 150); }
     async function startRound() {
       stop?.(); stop = null; ti = 0; draw();
       await playRef(); if (G !== g) return;
       if (phones && rounds[ri].drone) A.play([{t: 0, notes: [rounds[ri].drone], dur: 8, inst: 'keys', vel: .18}], {bpm: 60});
       const canvas = g.root.querySelector('canvas'), cx = canvas.getContext('2d'), lab = g.root.querySelector('.mg-tuner-label b'), sub = g.root.querySelector('.mg-tuner-label small');
-      const trail = []; let held = 0, last = 0, began = A.now(), stopped = false;
+      const trail = []; let held = 0, last = 0, stopped = false;
       const next = ok => {
         if (stopped) return;
         g.results.push(ok); if (ok) hits++;
         const el = g.root.querySelector('.mg-targets .now'); if (el) { el.classList.remove('now'); el.classList.add(ok ? 'done' : 'missed'); }
         feedback(g, ok, el);
         g.combo = ok ? g.combo + 1 : 0;
-        ti++; held = 0; began = A.now(); trail.length = 0;
+        ti++; held = 0; began = Math.max(A.now(), deaf); trail.length = 0;
         const nowEl = g.root.querySelectorAll('.mg-targets span')[ti]; nowEl?.classList.add('now');
         if (ti >= rounds[ri].targets.length) {
           stopped = true; stop?.(); stop = null;
@@ -633,6 +638,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
           const target = rounds[ri].targets[ti]; if (target == null) return;
           const dt = last ? f.t - last : 0; last = f.t;
           let c = null;
+          if (f.t < deaf) { trail.push(null); if (trail.length > 90) trail.shift(); lab.textContent = T.pcName(target); sub.textContent = 'Lyssna'; drawTuner(cx, canvas, trail, held / .5); return; }
           if (f.freq && f.clarity > .8 && f.rms > .015) c = T.foldCents(f.freq, target);
           trail.push(c); if (trail.length > 90) trail.shift();
           if (c != null && Math.abs(c) <= 35) held += dt; else held = Math.max(0, held - dt * .5);

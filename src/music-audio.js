@@ -26,10 +26,21 @@ export function unlock() {
 }
 export const now = () => ctx?.currentTime || 0;
 
+// Music goes through a bus that can be cut, so a new question never plays on top of the last one.
+// Feedback sounds (sfx) go straight to the master and are never cut.
+let bus = null;
+const out = () => { if (!bus) { bus = ctx.createGain(); bus.connect(master); } return bus; };
+export function stopAll() {
+  if (!ctx || !bus) return;
+  const b = bus; bus = null;
+  b.gain.setTargetAtTime(0, ctx.currentTime, .025);
+  setTimeout(() => { try { b.disconnect(); } catch {} }, 250);
+}
+
 // ---------- instruments ----------
-function keys(midi, t, dur, vel = .7) {
-  const f = freqOf(midi), g = ctx.createGain(), out = ctx.createBiquadFilter();
-  out.type = 'lowpass'; out.frequency.value = Math.min(9000, f * 9); out.Q.value = .3;
+function keys(midi, t, dur, vel = .7, dest = out()) {
+  const f = freqOf(midi), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = Math.min(9000, f * 9); lp.Q.value = .3;
   const peak = .16 * vel;
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + .008);
   g.gain.exponentialRampToValueAtTime(peak * .45, t + .35); g.gain.setTargetAtTime(peak * .25, t + .35, dur * .6);
@@ -39,7 +50,7 @@ function keys(midi, t, dur, vel = .7) {
     o.type = type; o.frequency.value = f * mult; o.detune.value = det; a.gain.value = amp;
     o.connect(a); a.connect(g); o.start(t); o.stop(t + dur + .8);
   }
-  g.connect(out); out.connect(master);
+  g.connect(lp); lp.connect(dest);
 }
 function bass(midi, t, dur, vel = .9) {
   const f = freqOf(midi), g = ctx.createGain(), lp = ctx.createBiquadFilter();
@@ -50,7 +61,7 @@ function bass(midi, t, dur, vel = .9) {
   g.gain.exponentialRampToValueAtTime(peak * .5, t + .3); g.gain.setTargetAtTime(.0001, t + Math.max(.1, dur - .04), .05);
   const saw = ctx.createOscillator(), sub = ctx.createOscillator(), sg = ctx.createGain();
   saw.type = 'sawtooth'; saw.frequency.value = f; sub.type = 'sine'; sub.frequency.value = f; sg.gain.value = .9;
-  saw.connect(lp); sub.connect(sg); sg.connect(g); lp.connect(g); g.connect(master);
+  saw.connect(lp); sub.connect(sg); sg.connect(g); lp.connect(g); g.connect(out());
   saw.start(t); sub.start(t); saw.stop(t + dur + .4); sub.stop(t + dur + .4);
 }
 let noiseBuf = null;
@@ -64,25 +75,25 @@ function click(t, accent = false) {
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = 'square'; o.frequency.value = accent ? 1760 : 1180;
   g.gain.setValueAtTime(accent ? .16 : .1, t); g.gain.exponentialRampToValueAtTime(.0001, t + .045);
-  o.connect(g); g.connect(master); o.start(t); o.stop(t + .06);
+  o.connect(g); g.connect(out()); o.start(t); o.stop(t + .06);
 }
 function kick(t) {
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + .14);
   g.gain.setValueAtTime(.7, t); g.gain.exponentialRampToValueAtTime(.0001, t + .32);
-  o.connect(g); g.connect(master); o.start(t); o.stop(t + .35);
+  o.connect(g); g.connect(out()); o.start(t); o.stop(t + .35);
 }
 function hat(t, open = false) {
   const s = ctx.createBufferSource(), hp = ctx.createBiquadFilter(), g = ctx.createGain();
   s.buffer = noise(); hp.type = 'highpass'; hp.frequency.value = 7000;
   g.gain.setValueAtTime(.09, t); g.gain.exponentialRampToValueAtTime(.0001, t + (open ? .2 : .05));
-  s.connect(hp); hp.connect(g); g.connect(master); s.start(t); s.stop(t + .25);
+  s.connect(hp); hp.connect(g); g.connect(out()); s.start(t); s.stop(t + .25);
 }
 function snare(t) {
   const s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
   s.buffer = noise(); bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = .7;
   g.gain.setValueAtTime(.32, t); g.gain.exponentialRampToValueAtTime(.0001, t + .16);
-  s.connect(bp); bp.connect(g); g.connect(master); s.start(t); s.stop(t + .2);
+  s.connect(bp); bp.connect(g); g.connect(out()); s.start(t); s.stop(t + .2);
 }
 
 // ---------- scheduling ----------
@@ -119,7 +130,7 @@ export function sfx(kind) {
     right: [[76, 0], [83, .07]], wrong: [[52, 0], [51, .09]], combo: [[79, 0], [84, .06], [88, .12]],
     star: [[88, 0], [95, .05]], clear: [[72, 0], [76, .1], [79, .2], [84, .3], [88, .42]], tap: [[84, 0]],
   }[kind] || [];
-  for (const [m, d] of seq) keys(m, t + d, kind === 'clear' ? .5 : .18, kind === 'wrong' ? .45 : .6);
+  for (const [m, d] of seq) keys(m, t + d, kind === 'clear' ? .5 : .18, kind === 'wrong' ? .45 : .6, master);
 }
 
 // ---------- microphone ----------
@@ -147,9 +158,11 @@ export async function listen(onFrame) {
   const src = ctx.createMediaStreamSource(s), an = ctx.createAnalyser();
   an.fftSize = 2048; src.connect(an);
   const buf = new Float32Array(an.fftSize);
-  let raf = 0, alive = true;
+  let raf = 0, alive = true, odd = false;
   const tick = () => {
     if (!alive) return;
+    // About 30 analyses per second is plenty for singing and halves the CPU cost on a phone.
+    if ((odd = !odd)) { raf = requestAnimationFrame(tick); return; }
     an.getFloatTimeDomainData(buf);
     let sum = 0; for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
     const rms = Math.sqrt(sum / buf.length), p = detectPitch(buf, ctx.sampleRate);

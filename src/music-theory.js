@@ -285,9 +285,22 @@ export function gradeBassLine(line, picks, rule) {
       flags.push(ok);
     }
   });
-  if (rule === 'walk') for (let i = 1; i < notes.length; i++) if (notes[i] != null && notes[i - 1] != null && Math.abs(notes[i] - notes[i - 1]) > 7) flags[i] = false;
-  return {flags, notes, score: flags.filter(Boolean).length / flags.length};
+  const played = rule === 'walk' ? voiceLine(notes) : notes;
+  // Beat 1 always lands on the root in the low register, so the barline itself is not judged as a leap.
+  if (rule === 'walk') for (let i = 1; i < played.length; i++) if (i % 4 && played[i] != null && played[i - 1] != null && Math.abs(played[i] - played[i - 1]) > 7) flags[i] = false;
+  return {flags, notes: played, score: flags.filter(Boolean).length / flags.length};
 }
+// A walking bass plays the approach on beat 4 in the octave nearest the note before it, like a bassist
+// would, instead of dropping an octave to reach it. Beat 1 stays on the low root.
+export function voiceLine(notes) {
+  return notes.map((n, i) => {
+    const prev = notes[i - 1];
+    if (i % 4 !== 3 || n == null || prev == null) return n;
+    let m = n; while (m - prev > 6 && m - 12 >= 28) m -= 12; while (prev - m > 6 && m + 12 <= 52) m += 12;
+    return m;
+  });
+}
+
 // A note on beat 4 "approaches" when it is a half or whole step from the next chord's root.
 function approaches(midi, line, bar) {
   const next = line.chords[(bar + 1) % line.chords.length], d = Math.abs(((pcOf(midi) - pcOf(midiOf(next.root)) + 6) % 12 + 12) % 12 - 6);
