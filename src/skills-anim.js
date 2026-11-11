@@ -4,6 +4,8 @@
 // (floor, bar, wall) and limbs can be solved with two-bone IK so hands and feet stay
 // planted while the body moves. A centre-of-mass solver keeps balance skills honest.
 
+import {skillFigure} from './figure.js';
+
 export const L = {torso: 50, neck: 19.5, head: 10.5, ua: 29, fa: 25, hand: 8.5, th: 44, sh: 42, foot: 15};
 const RAD = Math.PI / 180;
 export const dir = a => [Math.sin(a * RAD), -Math.cos(a * RAD)];
@@ -241,8 +243,19 @@ function seg(a, b, w, color, extra = '') {
   return `<line x1="${a[0].toFixed(2)}" y1="${a[1].toFixed(2)}" x2="${b[0].toFixed(2)}" y2="${b[1].toFixed(2)}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"${extra}/>`;
 }
 
+// Hands grip a bar, rings, parallettes, dip bars or a pole they touch; on the floor or a box they lie flat.
+function contacts(props = []) {
+  const near = (w, x, y, r) => Math.hypot(w[0] - x, w[1] - y) < r;
+  return {
+    grip: w => props.some(pr => (pr.k === 'bar' && near(w, pr.x, pr.y, 14)) || (pr.k === 'rings' && near(w, pr.x, pr.y - 4, 14)) || (pr.k === 'para' && near(w, pr.x, pr.y ?? -11, 13))
+      || (pr.k === 'dip' && Math.abs(w[1] - pr.y) < 10 && Math.abs(w[0] - pr.x) < 36) || (pr.k === 'pole' && Math.abs(w[0] - pr.x) < 10)),
+    flat: w => w[1] > -12 || props.some(pr => pr.k === 'box' && Math.abs(w[1] + pr.h) < 10 && w[0] > pr.x - 6 && w[0] < pr.x + pr.w + 6),
+  };
+}
+
 export function figureSVG(sol, opts = {}) {
   const {J, p} = sol, focus = new Set(opts.focus || []), ghost = opts.ghost;
+  if (!ghost && !opts.stick) return skillFigure(J, {front: !!p.front, focus: opts.focus || [], fine: opts.fine !== false, memo: opts.memo, dimLegs: !!p.dimLegs, ...contacts(opts.props)});
   const col = (part, base) => ghost ? C.ghost : focus.has(part) ? C.focus : base;
   // Near limbs get a thin dark outline so they read clearly in front of the torso.
   const outline = !ghost;
@@ -301,7 +314,7 @@ function sceneSVG(anim, pose, box, opts = {}) {
   const front = new Set(['bar', 'rings', 'band']), all = anim.props || [];
   const back = propsSVG(all.filter(p => !front.has(p.k)), sol.J), fore = propsSVG(all.filter(p => front.has(p.k)), sol.J);
   const floorLine = floor ? `<line x1="${box.x}" y1="0.5" x2="${box.x + box.w}" y2="0.5" stroke="url(#skf)" stroke-width="1.4"/>` : '';
-  return `${floorLine}${back}${ghosts}${figureSVG(sol, {focus: opts.focus})}${fore}`;
+  return `${floorLine}${back}${ghosts}${figureSVG(sol, {focus: opts.focus, props: all, fine: opts.fine, memo: opts.memo})}${fore}`;
 }
 
 const DEFS = `<defs><linearGradient id="skf" x1="0" x2="1"><stop offset="0" stop-color="${C.floor}" stop-opacity="0"/><stop offset=".15" stop-color="${C.floor}"/><stop offset=".85" stop-color="${C.floor}"/><stop offset="1" stop-color="${C.floor}" stop-opacity="0"/></linearGradient></defs>`;
@@ -311,7 +324,7 @@ export function poseSVG(anim, index = anim.key ?? 0, cls = 'sk-thumb') {
   prepare(anim);
   const box = anim._box ||= frameBox(anim);
   const f = anim.frames[Math.min(index, anim.frames.length - 1)];
-  return `<svg class="${cls}" viewBox="${box.x.toFixed(1)} ${box.y.toFixed(1)} ${box.w.toFixed(1)} ${box.h.toFixed(1)}" aria-hidden="true">${DEFS}${sceneSVG(anim, f.p, box, {focus: f.focus})}</svg>`;
+  return `<svg class="${cls}" viewBox="${box.x.toFixed(1)} ${box.y.toFixed(1)} ${box.w.toFixed(1)} ${box.h.toFixed(1)}" aria-hidden="true">${DEFS}${sceneSVG(anim, f.p, box, {focus: f.focus, fine: false})}</svg>`;
 }
 
 // Live player. Stops by itself when its element leaves the document.
@@ -324,10 +337,11 @@ export function mountPlayer(el, anim, {label = '', reduced = !!globalThis.matchM
   el.classList.add('sk-player');
   el.innerHTML = `<div class="sk-stage"><svg viewBox="${box.x.toFixed(1)} ${box.y.toFixed(1)} ${box.w.toFixed(1)} ${box.h.toFixed(1)}" role="img" aria-label="${label}">${DEFS}<g class="sk-scene"></g></svg><svg class="sk-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" class="sk-ring-bg"/><circle cx="20" cy="20" r="16" class="sk-ring-fg" pathLength="100" stroke-dasharray="0 100"/></svg><span class="sk-step"></span></div><div class="sk-bar"><button type="button" class="sk-play" aria-label="Pausa">${PAUSE}</button><p class="sk-cue" aria-live="polite"></p><button type="button" class="sk-speed" aria-label="Byt hastighet">1×</button></div><div class="sk-progress"><span></span></div>`;
   const scene = el.querySelector('.sk-scene'), cue = el.querySelector('.sk-cue'), ring = el.querySelector('.sk-ring'), ringFg = el.querySelector('.sk-ring-fg'), step = el.querySelector('.sk-step'), prog = el.querySelector('.sk-progress span'), play = el.querySelector('.sk-play'), speedBtn = el.querySelector('.sk-speed');
+  const memo = {};
   let playing = !reduced, speed = 1, time = 0, last = performance.now(), lastCue = -1, frameId = 0, visible = true, manualFrame = 0;
   const draw = () => {
     const s = playing ? sample(anim, time) : {pose: anim.frames[manualFrame].p, i: manualFrame, phase: 'hold', u: 1, frame: anim.frames[manualFrame]};
-    scene.innerHTML = sceneSVG(anim, s.pose, box, {focus: s.frame.focus, ghosts: ghostPoses});
+    scene.innerHTML = sceneSVG(anim, s.pose, box, {focus: s.frame.focus, ghosts: ghostPoses, memo});
     if (s.i !== lastCue) {
       // A frame with move: 0 is a deliberate reset (e.g. jump back up): fade instead of snapping.
       const prev = anim.frames[(s.i - 1 + anim.frames.length) % anim.frames.length];
