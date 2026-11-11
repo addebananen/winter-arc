@@ -10,6 +10,8 @@ test('Adrian has five forms, one every five levels',()=>{
 });
 test('form 1 is Adrian without powers and later forms carry energy',()=>{
  assert.doesNotMatch(heroCharacter(1),/hero-orb|hero-spark/);
+ assert.match(heroCharacter(1),/<video src="\.\/hero\/lv1\.mp4"[^>]* autoplay="" loop="" muted="" playsinline=""/);
+ assert.match(heroCharacter(5,true),/class="character hero-character hero-video hero-form-1 large/);
  for(const level of [6,11,16,21]){const svg=heroCharacter(level);assert.match(svg,/hero-orb/);assert.match(svg,new RegExp(`hero/lv${heroForm(level)}\\.jpg`));}
  assert.match(heroCharacter(16),/hero-bolt/);
 });
