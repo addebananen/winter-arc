@@ -334,10 +334,10 @@ export const workoutCatalog=trees.flatMap(t=>t.levels.map(l=>{const g=workoutGoa
 export const workoutById=Object.fromEntries(workoutCatalog.map(e=>[e.id,e]));
 // Mobility levels added after the first skill catalog. Saving them needs database update 020.
 export const mobilityUpdateIds=new Set(['sk-pike-4','sk-straddle-3','sk-straddle-4','sk-straddle-5','sk-straddle-6','sk-ankles-3',...[1,2,3,4,5,6].map(n=>'sk-hips-'+n)]);
-// Beginner straddle steps. Saving them needs database update 021.
+// Beginner straddle steps. Saving them needs database update 022.
 export const straddleBaseIds=new Set([1,2,3,4,5].map(n=>'sk-straddle-base-'+n));
 // Database version (training_expansion_ready) a skill workout needs before it can be saved.
-export const workoutVersion=id=>straddleBaseIds.has(id)?21:mobilityUpdateIds.has(id)?20:0;
+export const workoutVersion=id=>straddleBaseIds.has(id)?22:mobilityUpdateIds.has(id)?20:0;
 const legacyStrength={pushup:'push-up',pullup:'pull-up',dip:'dip',plank:'plank',hang:'dead-hang',diamond:'diamond-push-up'};
 const legacyTraining={'incline-push':'incline-push-up','push-up':'push-up','close-push':'diamond-push-up','pike-push':'pike-push-up','squat':'squat','split-squat':'split-squat','plank':'plank','side-plank':'side-plank','dead-hang':'dead-hang','pull-up':'pull-up','hollow-hold':'hollow'};
 const cache=new WeakMap();

@@ -159,6 +159,11 @@ body.mg-open{overflow:hidden}
 .mg-reveal.ok strong{color:var(--mint)}
 .mg-reveal.bad strong{color:#f0b3b3}
 .mg-reveal p{font-size:12px;color:#cdd9d6;line-height:1.6}
+.mg-reveal .mg-why{margin-top:10px;font-size:13px}
+.mg-how{border-radius:16px;padding:12px 14px;background:#141d1f;border:1px solid var(--line);font-size:13px;line-height:1.55;color:#cdd9d6;animation:mg-up .25s var(--ease-out,ease-out) both}
+.mg-how[hidden]{display:none}
+.mg-how ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.mg-how p{margin-top:10px;color:var(--mint)}
 .mg-facts{display:flex;flex-wrap:wrap;gap:8px}
 .mg-facts>span{display:flex;flex-direction:column;background:#1f2b2d;border-radius:10px;padding:6px 10px;min-width:72px}
 .mg-facts>span.wide{flex:1 1 100%}

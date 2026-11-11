@@ -41,7 +41,7 @@ test('ear questions always contain their answer among the options', () => {
   for (const node of M.NODES) for (const l of node.levels) {
     if (!M.QUIZ_TYPES.has(l.game.type) || l.game.type === 'fret') continue;
     for (let i = 0; i < 25; i++) {
-      const q = {degree: T.degreeQuestion, interval: T.intervalQuestion, quality: T.qualityQuestion, chordtone: T.chordToneQuestion, progression: T.progressionQuestion, inversion: T.inversionQuestion}[l.game.type](R, l.game);
+      const q = {compare: T.compareQuestion, degree: T.degreeQuestion, interval: T.intervalQuestion, quality: T.qualityQuestion, chordtone: T.chordToneQuestion, progression: T.progressionQuestion, inversion: T.inversionQuestion}[l.game.type](R, l.game);
       assert.ok(q.options.some(o => o.id === q.answer), `${node.id} ${l.n}: ${q.answer}`);
       assert.ok(q.play.length && q.play.every(e => e.notes.every(n => n >= 16 && n <= 96)), 'Notes stay audible');
     }
@@ -157,7 +157,9 @@ test('daily mix interleaves only cleared quiz levels', () => {
 test('every music text has an English translation', () => {
   const texts = [];
   for (const b of M.BRANCHES) texts.push(b.name === 'Sång' ? null : b.name, b.tagline);
-  for (const n of M.NODES) { texts.push(n.name, n.short, n.learn); for (const l of n.levels) texts.push(l.name, l.goal, l.tip); }
+  for (const n of M.NODES) { texts.push(n.name, n.short, n.learn); texts.push(...(n.listen || [])); for (const l of n.levels) texts.push(l.name, l.goal, l.tip); }
+  texts.push(...Object.values(T.DEGREE_FEEL));
+  { const R = T.rng(5); for (const mode of ['direction', 'same', 'step', 'home']) for (let i = 0; i < 40; i++) { const q = T.compareQuestion(R, {mode}); texts.push(q.prompt, q.why, ...q.options.flatMap(o => [o.label, o.sub]), ...q.facts.map(f => f[0])); } }
   for (const c of Object.values(T.CHORDS)) texts.push(c.name);
   for (const sc of Object.values(T.SCALES)) texts.push(sc.name);
   for (const r of Object.values(T.BASS_RULES)) texts.push(r.name, r.text);
@@ -234,4 +236,13 @@ test('music settings are saved in the account data without touching other data',
   if (before) assert.deepEqual(saved.history, before.history, 'History is untouched');
   assert.equal(q('[data-action="mt:voice:low:pitch"]').getAttribute('aria-pressed'), 'true', 'The sheet reopens with the choice');
   w.close();
+});
+
+test('every recorded piano and bass note the audio engine asks for is shipped', async () => {
+  const {soundFiles} = await import('../src/music-audio.js');
+  const {existsSync, readFileSync} = await import('node:fs');
+  const files = soundFiles();
+  assert.equal(files.length, 28);
+  for (const f of files) assert.ok(existsSync(new URL('../src/' + f.slice(2), import.meta.url)), f);
+  assert.match(readFileSync(new URL('../scripts/build.mjs', import.meta.url), 'utf8'), /src\/sounds/);
 });

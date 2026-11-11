@@ -5,10 +5,11 @@ Den här filen beskriver musikkategorin i skill tree: vad spelaren kan göra, hu
 ## Funktioner
 
 ### Trädet
-Skill tree → kategorin **Musik** har tre grenar, 13 noder och 61 nivåer. Varje nivå är ett kort spel. En nivå klaras med minst 80 %. Stjärnor: 80 % ger 1, 90 % ger 2 och 100 % ger 3.
+Skill tree → kategorin **Musik** har tre grenar, 14 noder och 67 nivåer. Varje nivå är ett kort spel. En nivå klaras med minst 80 %. Stjärnor: 80 % ger 1, 90 % ger 2 och 100 % ger 3.
 
 | Gren | Nod | Nivåer | Spel |
 |---|---|---|---|
+| Gehör | Första stegen | 6 | Lättast: högre eller lägre, samma eller olika, steg eller hopp, hemma eller borta. Inga namn att kunna. |
 | Gehör | Skalsteg | 5 | Kadens i en tonart, sedan en ton. Vilket skalsteg (1–7, moll, kromatiskt)? |
 | Gehör | Intervall | 6 | Två toner. Vilket intervall? Uppåt, båda håll och samtidigt klingande. Varje intervall har ett minnesknep (låt). |
 | Gehör | Ackordtyp | 5 | Dur, moll, sus4, förminskat, överstigande och fyrklanger. |
@@ -24,6 +25,9 @@ Skill tree → kategorin **Musik** har tre grenar, 13 noder och 61 nivåer. Varj
 | Sång | Stämsång | 5 | Sjung grundton, kvint, ters eller moll-ters till ett ackord, eller en ters över en melodi. Hörlursläge spelar en ton under tiden. |
 
 En nod låses upp när du klarat en viss nivå i noden före (se `requires` i `src/music-tree.js`). Nivåerna i en nod spelas i ordning. Varje nivå har en kort lärtext och ofta ett tips.
+
+### Lyssningshjälp
+Varje gehörsnod har tre korta steg för hur man lyssnar och tänker (`listen` i `src/music-tree.js`). De visas under knappen **Så tänker du** i spelet och är öppna första gången man spelar en nod. Efter varje svar i Första stegen och Skalsteg visas en mening om hur tonen känns (`why` på frågan, `DEGREE_FEEL` i `src/music-theory.js`).
 
 ### Motivation och spelkänsla
 - **Fortsätt-knappen** pekar på nästa nivå att spela.
@@ -43,7 +47,8 @@ Musiknivåer ger **bara Music-staten** för karaktären, aldrig XP eller rank (s
 |---|---|
 | `src/music-theory.js` | Ren musikteori utan DOM: toner, intervall, ackord, skalor, greppbräda, frågegeneratorer, basgångsregler och rättning, rytmrättning och tonhöjdsmätning. |
 | `src/music-tree.js` | Trädet (grenar, noder, nivåer) och all logik för framsteg: upplåsning, stjärnor, sparning, streak, mix och stats. |
-| `src/music-audio.js` | Ljudmotor med Web Audio: syntetiserat piano, bas, klick och trummor, korta ljudeffekter och mikrofonlyssning. Inga ljudfiler. |
+| `src/music-audio.js` | Ljudmotor med Web Audio: inspelad flygel och elbas, syntetiserat klick och trummor, korta ljudeffekter och mikrofonlyssning. |
+| `src/sounds/` | 28 korta mp3-filer (cirka 780 kB): flygel A1–C6 och elbas E1–G3, en inspelning var tredje halvton. |
 | `src/music-tree-ui.js` | Vyn i skill tree, nivåbladet och alla spel. Spelen ligger i ett eget lager (`.mg`) utanför `#app`, så att appens omritningar inte avbryter ett spel. |
 | `src/music-tree-css.js` | All stil för trädet och spelen. Läggs in en gång som `<style id="music-tree-css">`, så att `style.css` inte behöver ändras. |
 | `src/i18n-music-en.js` | Engelska översättningar av alla musiktexter. Sprids in i `src/i18n-en.js`. |
@@ -70,6 +75,8 @@ musicTree: {
 - Inget annat i sparfilen ändras; XP, historik och profil påverkas inte.
 
 ### Ljud och mikrofon
+- Piano och bas är riktiga inspelningar. Toner mellan inspelningarna spelas med den närmaste inspelningen, lätt omstämd. Filerna börjar laddas när musikträdet visas och avkodas vid första trycket. Har de inte hunnit laddas (eller saknas nätet) spelar ett syntljud i stället, så spelet väntar aldrig mer än knappt två sekunder.
+- Källor: flygeln är Salamander Grand Piano av Alexander Holm (via Tone.js, `Tonejs/audio`), elbasen kommer från `nbrosowsky/tonejs-instruments` (CC BY 3.0). Filerna är kortade, mono och omkodade.
 - Ljud får bara starta efter ett tryck på iPhone, så `unlock()` anropas från knapparna.
 - På iOS 17+ sätts `navigator.audioSession` till uppspelning, så ljudet hörs även med ljudlöst-knappen på. Medan mikrofonen används byts den till uppspelning och inspelning.
 - Musiken går genom en egen kanal som tystas (`stopAll`) när en ny fråga spelas, när en loop startas om och när spelet stängs. Ljudeffekterna går förbi den kanalen.
