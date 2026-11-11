@@ -161,12 +161,27 @@ function smooth(points) {
   }
   return d + 'Z';
 }
+// A smooth open line through points.
+function smoothOpen(points) {
+  const n = points.length, at = i => points[Math.max(0, Math.min(n - 1, i))];
+  let d = `M${pt(points[0])}`;
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    d += `C${pt(add(p1, mul(sub(p2, p0), 1 / 6)))} ${pt(sub(p2, mul(sub(p3, p1), 1 / 6)))} ${pt(p2)}`;
+  }
+  return d;
+}
 const local = (o, a, b) => list => list.map(([x, y]) => add(o, add(mul(a, x), mul(b, y))));
 
 // Body outlines in body coordinates: [along torso (1 = shoulder line), forward]. Side view.
 const torsoSide = [[-.1, -8.8], [.05, -10.6], [.3, -7.2], [.62, -9], [.88, -9.6], [1.03, -5.4], [1.12, -2], [1.12, 2.6], [.98, 7.6], [.8, 11.2], [.64, 9.8], [.45, 8.4], [.2, 8.6], [.02, 8], [-.1, 2]];
 const shortsSide = [[-.13, -9.2], [.05, -11], [.24, -8.2], [.24, 8.9], [.02, 8.4], [-.13, 2.2]];
-const torsoFront = [[-.08, 8.6], [.2, 9.4], [.38, 8.2], [.6, 10.6], [.82, 13.6], [.98, 15], [1.06, 11.4], [1.13, 4.4], [1.13, -4.4], [1.06, -11.4], [.98, -15], [.82, -13.6], [.6, -10.6], [.38, -8.2], [.2, -9.4], [-.08, -8.6], [-.16, 0]];
+const torsoFront = [[-.08, 8.6], [.2, 9.4], [.38, 8.2], [.6, 10.8], [.8, 13.8], [.94, 15.2], [1.01, 13.6], [1.06, 10.6], [1.12, 7], [1.16, 3.6], [1.17, 0], [1.16, -3.6], [1.12, -7], [1.06, -10.6], [1.01, -13.6], [.94, -15.2], [.8, -13.8], [.6, -10.8], [.38, -8.2], [.2, -9.4], [-.08, -8.6], [-.16, 0]];
+// T-shirt sleeve over the deltoid, in arm coordinates [along the upper arm from the joint, outward]: a
+// rounded muscle cap over the joint that is fullest on the outside and narrows to the hem.
+const sleeveFront = [[-1.8, -1], [-1.2, 2.6], [.6, 5.7], [3.2, 7.5], [6.2, 7.2], [9, 6.3], [11.6, 5.9], [12.1, 0], [11.6, -5.5], [8, -5.9], [4, -6], [.6, -5.2], [-1.4, -3.2]];
+const sleeveSide = [[-2.8, 0], [-2, 4.2], [.6, 6.8], [4, 7.1], [8, 6.4], [11.6, 5.9], [12.1, 0], [11.6, -5.9], [8, -6.4], [4, -6.9], [.6, -6.6], [-2, -4]];
+const deltFront = [[-1.3, -1], [-.7, 2.4], [.9, 5.1], [3.2, 6.8], [6.2, 6.4], [9.6, 4.4], [10.4, 0], [9.6, -4.4], [6, -5.2], [2.4, -5.1], [-.1, -4.2], [-1.1, -2.6]];
 const shortsFront = [[-.12, 9.6], [.24, 10], [.24, -10], [-.12, -9.6], [-.2, 0]];
 const muscleShapes = {
   side: {chest: [[.96, 3], [.92, 7.8], [.8, 11], [.66, 9.6], [.7, 3.4]], abs: [[.58, 8.4], [.42, 8.2], [.2, 8.4], [.2, 4], [.58, 4]], back: [[.94, -5], [.87, -9.4], [.6, -8.8], [.38, -6.8], [.6, -4], [.86, -3.6]], glutes: [[.14, -8], [.04, -10.4], [-.1, -8.6], [-.06, -3.6], [.14, -4.4]]},
@@ -192,6 +207,13 @@ const palette = {skin: '#e3c6ad', skinFar: '#b99c86', skinLine: '#8a6b57', shirt
 // Which body parts light up for an exercise's muscle group.
 const highlights = {'Bröst': ['chest', 'uarm'], 'Bröst & armar': ['chest', 'uarm', 'farm'], 'Ben': ['thigh', 'glutes', 'shin'], 'Rygg & ben': ['back', 'glutes', 'thigh'], 'Axlar': ['delt'], 'Balans & axlar': ['delt', 'abs'], 'Rygg': ['back', 'delt'], 'Armar': ['uarm', 'farm'], 'Bål': ['abs'], 'Mage': ['abs'], 'Grepp': ['farm', 'hand']};
 
+// The sleeve of one arm in world coordinates. Outward points away from the body (and up when the arm is
+// held straight out to the side), so the fuller outer head of the deltoid stays on the outside.
+function sleeveOf(fr, L, k) {
+  const ad = norm(sub(L.mid, L.root)), f = [-ad[1], ad[0]], side = fr.view === 'side';
+  const guide = side ? fr.n : add(norm(sub(L.root, fr.S)), mul(fr.u, .5)), out = side ? keepSide('sleeve' + k, f, guide) : dot(f, guide) >= 0 ? f : mul(f, -1);
+  return local(L.root, ad, out);
+}
 // Shapes of one solved frame, in drawing order. Each entry: [key, path, fill, extra attributes].
 function shapes(fr, hl) {
   limbCount = 0;
@@ -203,7 +225,10 @@ function shapes(fr, hl) {
       if (on('thigh')) out.push([k + 'thighH', limb(L.root, L.mid, 8.6, 5.6, 8.8, 8.2, .38, fr.n), palette.hl, ' fill-opacity=".45"']);
       out.push([k + 'shin', limb(L.mid, L.end, 5.4, 3.4, 4.8, 6.4, .3, fr.n), skin]);
       if (on('shin')) out.push([k + 'shinH', limb(L.mid, L.end, 5.4, 3.4, 4.8, 6.4, .3, fr.n), palette.hl, ' fill-opacity=".35"']);
-      const sh = add(L.root, mul(norm(sub(L.mid, L.root)), bones.thigh * .6));
+      const td = norm(sub(L.mid, L.root)), tf = keepSide('mLeg' + k, [-td[1], td[0]], fr.n), sd = norm(sub(L.end, L.mid));
+      const tAt = (t, o) => add(add(L.root, mul(td, bones.thigh * t)), mul(tf, o)), sAt = (t, o) => add(add(L.mid, mul(sd, bones.shin * t)), mul(tf, o));
+      if (!far) out.push([k + 'muscleLeg', `M${pt(tAt(.62, 4.6))}Q${pt(tAt(.84, 2.4))} ${pt(tAt(.9, -1.6))}M${pt(tAt(.96, 2.6))}Q${pt(add(L.mid, mul(tf, 4)))} ${pt(sAt(.06, 2.6))}M${pt(sAt(.12, -4.4))}Q${pt(sAt(.32, -3))} ${pt(sAt(.52, -2.2))}`, 'none', ` stroke="${palette.skinLine}" stroke-width=".6" stroke-linecap="round" stroke-opacity=".45"`]);
+      const sh = add(L.root, mul(td, bones.thigh * .6));
       out.push([k + 'shorts', limb(L.root, sh, 9.8, 8.8, 9.8, 9.6, .5, fr.n), far ? palette.shortsFar : palette.shorts]);
       const sn = sneaker(L, side);
       out.push([k + 'sole', sn.sole, palette.sole]);
@@ -212,25 +237,39 @@ function shapes(fr, hl) {
       out.push([k + 'laces', sn.laces, 'none', ' stroke="#9aa7ad" stroke-width=".6" stroke-linecap="round"']);
     } else {
       const sleeve = far ? palette.shirtFar : palette.shirt;
-      out.push([k + 'uarm', limb(L.root, L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), skin]);
-      if (on('uarm')) out.push([k + 'uarmH', limb(L.root, L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), palette.hl, ' fill-opacity=".45"']);
+      out.push([k + 'uarm', limb(add(L.root, mul(norm(sub(L.mid, L.root)), 4)), L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), skin]);
+      if (on('uarm')) out.push([k + 'uarmH', limb(add(L.root, mul(norm(sub(L.mid, L.root)), 4)), L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), palette.hl, ' fill-opacity=".45"']);
       out.push([k + 'farm', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), skin]);
       if (on('farm')) out.push([k + 'farmH', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), palette.hl, ' fill-opacity=".4"']);
       const hm = handModel(L);
       out.push([k + 'hand', smooth(hm.outline), on('hand') ? palette.hl : skin, on('hand') ? ' fill-opacity=".85"' : '']);
       out.push([k + 'crease', hm.creases, 'none', ` stroke="${far ? '#6f574a' : palette.skinLine}" stroke-width=".7" stroke-linecap="round" stroke-opacity=".75"`]);
       out.push([k + 'thumb', limb(hm.thumb[0], hm.thumb[1], 1.9, 1.5, 2, 2, .5, fr.n), skin]);
-      const delt = add(L.root, mul(norm(sub(L.mid, L.root)), 5));
-      const sleeveEnd = add(L.root, mul(norm(sub(L.mid, L.root)), bones.uarm * .46));
-      out.push([k + 'sleeve', limb(L.root, sleeveEnd, 7.3, 6.5, 7.4, 7.4, .5, fr.n), on('delt') ? palette.hl : sleeve, on('delt') ? ' fill-opacity=".85"' : '']);
+      // Sleeve over the deltoid. From the front its outline is drawn behind the torso (see torso()), so the
+      // shoulder runs in one line from the neck over the deltoid and down the arm, without a seam.
+      const ad = norm(sub(L.mid, L.root)), so = sleeveOf(fr, L, k);
+      out.push([k + 'sleeve', smooth(so(side ? sleeveSide : sleeveFront)), sleeve, side ? '' : ' stroke="none"']);
+      out.push([k + 'hem', smoothOpen(so([[11.4, -5.6], [12.1, 0], [11.4, 6]])), 'none', ' stroke="#00000038" stroke-width=".8" stroke-linecap="round"']);
+      // From the front: a soft line where the deltoid meets the chest, down the inside of the sleeve.
+      if (!side) out.push([k + 'deltEdge', smoothOpen(so([[11.2, -5.5], [7.6, -5.9], [3.6, -5.9], [1.4, -5.1]])), 'none', ' stroke="#00000026" stroke-width=".7" stroke-linecap="round"']);
+      if (on('delt')) out.push([k + 'deltH', smooth(so((side ? sleeveSide.map(([a, o]) => [Math.min(a, 10.4) * .96, o * .9]) : deltFront).map(([a, o]) => [a, o * .92]))), palette.hl, ' stroke="none" fill-opacity=".55"']);
+      // Muscle contours: the lower edge of the biceps and the elbow crease.
+      const af = keepSide('mArm' + k, [-ad[1], ad[0]], fr.n), at = (t, o) => add(add(L.root, mul(ad, bones.uarm * t)), mul(af, o));
+      out.push([k + 'muscleArm', `M${pt(at(.6, 3.6))}Q${pt(at(.86, 1.4))} ${pt(at(.9, -.6))}M${pt(at(.97, 2.6))}L${pt(at(.99, .4))}`, 'none', ` stroke="${palette.skinLine}" stroke-width=".6" stroke-linecap="round" stroke-opacity=".5"`]);
     }
   };
   const torso = () => {
     const o = local(fr.P, mul(fr.u, bones.torso), side ? fr.n : fr.n);
+    if (!side) for (const k of ['af', 'an']) out.push([k + 'sleeveLine', smooth(sleeveOf(fr, fr.limbs[k], k)(sleeveFront)), 'none', ' stroke="#00000038" stroke-width="1.1"']);
+    const neck = ['neck', limb(fr.S, fr.neck, side ? 4.4 : 4.7, side ? 4.2 : 4.5, side ? 4.4 : 4.7, side ? 4.4 : 4.6, .5, fr.n), palette.skin];
+    if (!side) out.push(neck);
     out.push(['torso', smooth(o(side ? torsoSide : torsoFront)), palette.shirt]);
     out.push(['shorts', smooth(o(side ? shortsSide : shortsFront)), palette.shorts]);
     // T-shirt neckline seen from the front.
-    if (!side) out.push(['collar', smooth(o([[1.13, 5.2], [1.05, 6.6], [.98, 3.4], [.96, 0], [.98, -3.4], [1.05, -6.6], [1.13, -5.2], [1.04, 0]])), palette.trim]);
+    if (!side) {
+      out.push(['collar', smooth(o([[1.17, 5.4], [1.08, 6.2], [1.01, 3.6], [.985, 0], [1.01, -3.6], [1.08, -6.2], [1.17, -5.4], [1.2, 0]])), palette.trim]);
+      out.push(['neckline', smooth(o([[1.18, 4.5], [1.1, 5], [1.035, 2.9], [1.02, 0], [1.035, -2.9], [1.1, -5], [1.18, -4.5], [1.21, 0]])), palette.skin, ' stroke="none"']);
+    }
     // The Beyond Self logo on the chest: black badge, white mountain, red flag.
     const lc = add(fr.P, add(mul(fr.u, bones.torso * (side ? .78 : .8)), mul(fr.n, side ? 5.4 : -5.6))), lo = local(lc, fr.u, fr.n);
     out.push(['logo', smooth(lo([[2.1, -2.1], [2.3, 0], [2.1, 2.1], [0, 2.3], [-2.1, 2.1], [-2.3, 0], [-2.1, -2.1], [0, -2.3]])), '#0d0f11', ' stroke="#e9edef" stroke-width=".4"']);
@@ -238,7 +277,7 @@ function shapes(fr, hl) {
     out.push(['logoFlag', `M${pt(lo([[1.1, 0]])[0])}L${pt(lo([[1.9, .1]])[0])}L${pt(lo([[1.6, .8]])[0])}Z`, palette.stripe]);
     const m = muscleShapes[fr.view];
     for (const part of ['chest', 'abs', 'back', 'glutes']) if (on(part) && m[part].length) out.push([part, smooth(o(m[part])), palette.hl, ' fill-opacity=".55"']);
-    out.push(['neck', limb(fr.S, fr.neck, side ? 4.4 : 5.2, side ? 4.2 : 4.9, side ? 4.4 : 5.2, side ? 4.4 : 5.2, .5, fr.n), palette.skin]);
+    if (side) out.push(neck);
   };
   const head = () => {
     const line = (pts, w = .8, color = palette.skinLine) => ['', pts.map((p, i) => (i ? 'L' : 'M') + pt(p)).join(''), 'none', ` stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"`];
@@ -418,7 +457,7 @@ function specFor(e) {
 
 // Every drawn shape of one frame, in drawing order: gear behind, body, gear in hand, near arm, gear in front.
 // Fine details only matter when the figure is shown large; thumbnails leave them out to stay light.
-const FINE = /strand|laces|stripe|crease|logoPeak|logoFlag|earFold|nostril|lid|iris|jaw|strings/;
+const FINE = /strand|laces|stripe|crease|logoPeak|logoFlag|earFold|nostril|lid|iris|jaw|strings|muscle/;
 function drawList(fr, e, spec, hl, fine = true) {
   const body = shapes(fr, hl).filter(x => fine || !FINE.test(x[0])), gear = gearShapes(fr, e, spec), view = fr.view;
   const split = body.findIndex(x => x[0] === (view === 'side' ? 'anuarm' : 'afuarm'));
