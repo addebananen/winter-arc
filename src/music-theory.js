@@ -140,13 +140,15 @@ export const DEGREE_FEEL = {
   'b7': 'Den låga sjuan låter bluesig och drar inte lika hårt hem.',
   '7': 'Sjuan ligger precis under hemma och drar hårt uppåt till 1.',
 };
+// The key note (1) to compare with, and after a wrong answer: the note, then home, so the distance is heard.
+const homeOf = (root, note) => { const h = midiOf(root) + (note - midiOf(root) >= 12 ? 12 : 0); return {home: [{t: 0, notes: [h], dur: 1.4, inst: 'keys'}], after: [{t: 0, notes: [note], dur: .9, inst: 'keys'}, {t: 1.1, notes: [h], dur: 1.4, inst: 'keys'}]}; };
 export function degreeQuestion(R, {pool, minor = false}) {
   const key = R.pick(KEYS), root = keyRoot(key), iv = R.pick(pool);
   const note = midiOf(root) + semis(iv) + (R() < .3 ? 12 : 0);
   return {
     kind: 'degree', prompt: `Tonart: ${key}${minor ? '-moll' : '-dur'}. Vilket skalsteg är tonen?`,
     options: pool.map(id => ({id, label: degreeLabel(id), sub: id === '1' ? 'grundton' : ''})), answer: iv,
-    play: [...cadence(root, minor), {t: 4.4, notes: [note], dur: 1.4, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.4, inst: 'keys'}],
+    play: [...cadence(root, minor), {t: 4.4, notes: [note], dur: 1.4, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.4, inst: 'keys'}], ...homeOf(root, note),
     reveal: `${degreeLabel(iv)} i ${key}${minor ? '-moll' : '-dur'} är ${nameOf(transpose(root, iv))}.`, why: DEGREE_FEEL[iv] || '',
   };
 }
@@ -162,7 +164,7 @@ export function compareQuestion(R, {mode, gaps = [7, 12], leaps = [5, 7, 9, 12]}
     const note = midiOf(root) + semis(iv) + (home && R() < .3 ? 12 : 0);
     return {kind: 'compare', prompt: 'Vilar tonen hemma, eller vill den vidare?',
       options: [{id: 'home', label: 'Hemma', sub: 'vilar'}, {id: 'away', label: 'Borta', sub: 'vill vidare'}], answer: home ? 'home' : 'away', why: home ? 'Tonen var tonartens grundton. Den känns färdig, som slutet på en låt.' : 'Tonen ligger utanför vilan och vill röra sig till en ton i närheten.',
-      play: [...cadence(root, false), {t: 4.4, notes: [note], dur: 1.6, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.6, inst: 'keys'}],
+      play: [...cadence(root, false), {t: 4.4, notes: [note], dur: 1.6, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.6, inst: 'keys'}], ...homeOf(root, note),
       facts: [['Tonart', key], ['Ton', nameOf(transpose(root, iv))], ['Skalsteg', degreeLabel(iv)]]};
   }
   if (mode === 'same') {

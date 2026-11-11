@@ -225,7 +225,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
       setScreen(g, headFor(g, item, mixItems), `
         <div class="mg-prompt">${contextChips(q)}<h2>${questionText(q)}</h2></div>
         <button type="button" class="mg-listen" data-mg="hear" aria-label="Lyssna igen"><span class="mg-pulse"></span><span class="mg-pulse two"></span>${ic('play')}<span class="mg-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
-        <div class="mg-sub-actions">${steps.length ? `<button type="button" class="chip ${openHow ? 'active' : ''}" data-mg="how" aria-expanded="${openHow}">${ic('bolt')}<span>Så tänker du</span></button>` : ''}${q.replay !== q.play ? `<button type="button" class="chip" data-mg="replay">${ic('replay')}<span>${q.kind === 'degree' || q.kind === 'compare' ? 'Bara tonen' : 'Bara basen och tonen'}</span></button>` : ''}</div>
+        <div class="mg-sub-actions">${steps.length ? `<button type="button" class="chip ${openHow ? 'active' : ''}" data-mg="how" aria-expanded="${openHow}">${ic('bolt')}<span>Så tänker du</span></button>` : ''}${q.home ? `<button type="button" class="chip" data-mg="home">${ic('note')}<span>Hemtonen</span></button>` : ''}${q.replay !== q.play ? `<button type="button" class="chip" data-mg="replay">${ic('replay')}<span>${q.kind === 'degree' || q.kind === 'compare' ? 'Bara tonen' : 'Bara basen och tonen'}</span></button>` : ''}</div>
         ${steps.length ? `<div class="mg-how" ${openHow ? '' : 'hidden'}><ol>${steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>${item.level.tip ? `<p>${esc(item.level.tip)}</p>` : ''}</div>` : ''}
         <div class="mg-options ${q.options.length > 4 ? 'many' : ''} ${q.kind === 'progression' ? 'wide' : ''}">${q.options.map(o => `<button type="button" class="mg-opt" data-mg="ans:${o.id}"><strong>${esc(o.label)}</strong>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</button>`).join('')}</div>
         <div class="mg-after"></div>`);
@@ -234,6 +234,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
         if (cmd === 'close') return closeGame();
         if (cmd === 'hear') return hear(q.play);
         if (cmd === 'replay') return hear(q.replay);
+        if (cmd === 'home' && q.home) return hear(q.home);
         if (cmd === 'how') { const box = g.root.querySelector('.mg-how'); if (box) { box.hidden = !box.hidden; el.classList.toggle('active', !box.hidden); el.setAttribute('aria-expanded', String(!box.hidden)); } return; }
         if (cmd === 'next') { g.on = null; return resolve({ok: g._ok}); }
         if (cmd.startsWith('ans:') && !answered) {
@@ -241,7 +242,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
           for (const b of g.root.querySelectorAll('.mg-opt')) { b.disabled = true; const bid = b.dataset.mg.slice(4); if (bid === q.answer) b.classList.add('right'); else if (b === el) b.classList.add('wrong'); }
           feedback(g, ok, el);
           g.root.querySelector('.mg-after').innerHTML = revealHTML(q, ok) + `<button type="button" class="btn mg-next" data-mg="next"><span>Nästa</span>${ic('arrow')}</button>`;
-          if (!ok) setTimeout(() => G === g && hear(q.replay), 500);
+          if (!ok) setTimeout(() => G === g && hear(q.after || q.replay), 500);
         }
       };
     });

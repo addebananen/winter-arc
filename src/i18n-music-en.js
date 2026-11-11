@@ -79,7 +79,6 @@ export default {
  // levels: ear
  "Hemma, ters och kvint": "Home, third and fifth",
  "Skilj 1, 3 och 5 efter kadensen.": "Tell 1, 3 and 5 apart after the cadence.",
- "Sjung tonen tyst och glid ner till närmaste stabila ton. Hamnar du på 1 direkt var det 1.": "Sing the note quietly and slide down to the nearest stable note. If you land on 1 straight away, it was 1.",
  "De fem första": "The first five",
  "Lägg till 2 och 4.": "Add 2 and 4.",
  "2 vill ner till 1, 4 vill ner till 3.": "2 wants to go down to 1, 4 wants to go down to 3.",
@@ -427,9 +426,6 @@ export default {
  "Hemma eller kvint": "Home or fifth",
  "Två skalsteg: 1 och 5.": "Two scale degrees: 1 and 5.",
  "1 är hemma. 5 är stabil men ligger högre och vill gärna falla tillbaka till 1.": "1 is home. 5 is stable but sits higher and likes to fall back to 1.",
- "Ackorden i början visar var hemma är. Nynna hemtonen (1) när de tystnar.": "The chords at the start show where home is. Hum the home note (1) when they stop.",
- "Lyssna på tonen. Vilar den, eller vill den någonstans?": "Listen to the note. Does it rest, or does it want to go somewhere?",
- "Sjung tyst från tonen ner till hemma, ett steg i taget, och räkna. Tre toner (3–2–1) betyder att det var en 3:a.": "Sing quietly from the note down to home, one step at a time, and count. Three notes (3–2–1) means it was a 3.",
  "Nynna den första tonen, sedan den andra.": "Hum the first note, then the second.",
  "Hur långt är det mellan dem? Ett litet steg, ett mellanhopp eller ett stort hopp.": "How far apart are they? A small step, a medium leap or a big leap.",
  "Jämför med början på en låt du kan. Minnesknepet visas efter varje svar.": "Compare with the start of a song you know. The memory aid is shown after every answer.",
@@ -484,4 +480,9 @@ export default {
  "vill vidare": "wants to move on",
  "Svar": "Answer",
  "Så tänker du": "How to think",
+ "Först spelas fyra ackord, som slutet på en låt. Det sista ackordet landar på hemtonen (1): tonen som låten vilar på. Nynna den.": "First, four chords play, like the end of a song. The last chord lands on the home note (1): the note the song rests on. Hum it.",
+ "Sedan kommer en ensam ton. Låter den lika vilsam som hemtonen, eller vill den någonstans?": "Then a single note plays. Does it sound as restful as the home note, or does it want to go somewhere?",
+ "Sjung tyst från tonen nedåt, ett steg i taget, tills du når hemtonen, och räkna tonerna. Landar du direkt var det 1. Sjunger du tre toner var det en 3:a.": "Sing quietly from the note downward, one step at a time, until you reach the home note, and count the notes. If you land straight away it was 1. If you sing three notes it was a 3.",
+ "Tryck på Hemtonen och jämför. Låter tonen precis som hemtonen var det 1. Ligger den lite högre och låter ljus var det 3. Ligger den ännu högre och låter öppen och stark var det 5.": "Tap Home note and compare. If the note sounds exactly like the home note it was 1. If it sits a little higher and sounds bright it was 3. If it sits even higher and sounds open and strong it was 5.",
+ "Hemtonen": "Home note",
 };

@@ -32,10 +32,10 @@ export const NODES = [
       L('Hemma eller borta', 'Vilar tonen efter ackorden?', {type: 'compare', mode: 'home'}, 'Hemma känns som slutet på en låt. Borta känns som en fråga som väntar på svar.'),
       L('Hemma eller kvint', 'Två skalsteg: 1 och 5.', {type: 'degree', pool: ['1', '5']}, '1 är hemma. 5 är stabil men ligger högre och vill gärna falla tillbaka till 1.'),
     ]},
-  {id: 'degrees', branch: 'ear', listen: ['Ackorden i början visar var hemma är. Nynna hemtonen (1) när de tystnar.', 'Lyssna på tonen. Vilar den, eller vill den någonstans?', 'Sjung tyst från tonen ner till hemma, ett steg i taget, och räkna. Tre toner (3–2–1) betyder att det var en 3:a.'], name: 'Tonartens toner', short: 'Skalsteg', requires: [],
+  {id: 'degrees', branch: 'ear', listen: ['Först spelas fyra ackord, som slutet på en låt. Det sista ackordet landar på hemtonen (1): tonen som låten vilar på. Nynna den.', 'Sedan kommer en ensam ton. Låter den lika vilsam som hemtonen, eller vill den någonstans?', 'Sjung tyst från tonen nedåt, ett steg i taget, tills du når hemtonen, och räkna tonerna. Landar du direkt var det 1. Sjunger du tre toner var det en 3:a.'], name: 'Tonartens toner', short: 'Skalsteg', requires: [],
     learn: 'Musik hörs alltid i förhållande till en tonart. Efter en kadens (I–IV–V–I) vet örat var ”hemma” är. Då känns varje ton som ett skalsteg: 1 vilar, 5 är stabil, 7 vill hem till 1. Det är så proffs hör melodier och baslinjer, inte som lösa intervall.',
     levels: [
-      L('Hemma, ters och kvint', 'Skilj 1, 3 och 5 efter kadensen.', {type: 'degree', pool: ['1', '3', '5']}, 'Sjung tonen tyst och glid ner till närmaste stabila ton. Hamnar du på 1 direkt var det 1.'),
+      L('Hemma, ters och kvint', 'Skilj 1, 3 och 5 efter kadensen.', {type: 'degree', pool: ['1', '3', '5']}, 'Tryck på Hemtonen och jämför. Låter tonen precis som hemtonen var det 1. Ligger den lite högre och låter ljus var det 3. Ligger den ännu högre och låter öppen och stark var det 5.'),
       L('De fem första', 'Lägg till 2 och 4.', {type: 'degree', pool: ['1', '2', '3', '4', '5']}, '2 vill ner till 1, 4 vill ner till 3.'),
       L('Hela durskalan', 'Alla sju skalsteg.', {type: 'degree', pool: ['1', '2', '3', '4', '5', '6', '7']}, '7 är ledtonen: den drar hårt uppåt mot 1.'),
       L('Moll', 'Skalsteg i naturlig moll.', {type: 'degree', minor: true, pool: ['1', '2', 'b3', '4', '5', 'b6', 'b7']}, '♭3 ger mollkänslan. ♭6 låter mörk och vill ner till 5.'),

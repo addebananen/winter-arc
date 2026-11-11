@@ -246,3 +246,15 @@ test('every recorded piano and bass note the audio engine asks for is shipped', 
   for (const f of files) assert.ok(existsSync(new URL('../src/' + f.slice(2), import.meta.url)), f);
   assert.match(readFileSync(new URL('../scripts/build.mjs', import.meta.url), 'utf8'), /src\/sounds/);
 });
+
+test('note-finding questions offer the home note to compare with', () => {
+  const R = T.rng(9);
+  for (let i = 0; i < 60; i++) {
+    for (const q of [T.degreeQuestion(R, {pool: ['1', '3', '5', '7']}), T.compareQuestion(R, {mode: 'home'})]) {
+      const note = q.replay[0].notes[0], home = q.home[0].notes[0];
+      assert.equal(T.pcName(home), T.pcName(q.play[q.play.length - 2].notes[0]), 'Home is the root the cadence ends on');
+      assert.ok(Math.abs(note - home) < 12, 'Home sits in the same octave as the note');
+      assert.deepEqual(q.after.map(e => e.notes[0]), [note, home]);
+    }
+  }
+});
