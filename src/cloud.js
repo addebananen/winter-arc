@@ -24,10 +24,10 @@ export async function createSquad(name){return check(await client.rpc('create_sq
 export async function joinSquad(code){return check(await client.rpc('join_squad',{p_code:code.trim()}));}
 export async function invite(squadId){return check(await client.rpc('get_squad_code',{p_squad:squadId}));}
 const socialClient=createSocialClient(client,()=>user);
-export async function social(squad){if(!squad)return {posts:[],members:[],missions:[]};const [posts,members,missions,missionCounts,activityStatus,trainingStatus]=await Promise.all([
+export async function social(squad){if(!squad)return {posts:[],members:[],missions:[]};const [posts,members,missions,missionCounts,activityStatus,trainingStatus,avatarStatus]=await Promise.all([
  socialClient.feed(squad),
  client.rpc('squad_progress',{p_squad:squad.id}),
- client.from('missions').select('*').eq('squad_id',squad.id).order('created_at',{ascending:false}),client.rpc('mission_progress',{p_squad:squad.id}),client.rpc('squad_activity_ready'),client.rpc('squad_training_streaks',{p_squad:squad.id})]);const counts=check(missionCounts),training=trainingStatus.error?[]:trainingStatus.data||[];return {activityReady:activityStatus.data===true,posts,members:check(members).map(m=>({...m,...(training.find(t=>t.user_id===m.user_id)||{})})),missions:check(missions).map(m=>({...m,completed:counts.find(c=>c.id===m.id)?.completed||0}))};}
+ client.from('missions').select('*').eq('squad_id',squad.id).order('created_at',{ascending:false}),client.rpc('mission_progress',{p_squad:squad.id}),client.rpc('squad_activity_ready'),client.rpc('squad_training_streaks',{p_squad:squad.id}),client.rpc('squad_avatars',{p_squad:squad.id})]);const counts=check(missionCounts),training=trainingStatus.error?[]:trainingStatus.data||[],avatars=avatarStatus.error?[]:avatarStatus.data||[];return {activityReady:activityStatus.data===true,posts,members:check(members).map(m=>({...m,...(training.find(t=>t.user_id===m.user_id)||{}),photo:avatars.find(a=>a.user_id===m.user_id)?.photo||null})),missions:check(missions).map(m=>({...m,completed:counts.find(c=>c.id===m.id)?.completed||0}))};}
 export const publish=(...args)=>socialClient.publish(...args);
 export const react=(...args)=>socialClient.react(...args);
 export const removePost=id=>socialClient.remove(id);
