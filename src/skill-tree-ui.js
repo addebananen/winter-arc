@@ -10,7 +10,7 @@ export const skillCategories = [
   {id: 'calisthenics', name: 'Calisthenics', icon: 'dumbbell', color: '#c6e7df', tagline: 'Kroppsvikt från grund till skill'},
   {id: 'core', name: 'Core', icon: 'plank', color: '#ffca84', tagline: 'Bålstyrka från plankan till dragon flag', soon: true},
   {id: 'running', name: 'Löpning', icon: 'run', color: '#a7bcfa', tagline: 'Från första kilometern till milen och längre', soon: true},
-  {id: 'music', name: 'Musik', icon: 'music', color: '#e0c799', tagline: 'Teori, gehör och spel', soon: true},
+  {id: 'music', name: 'Musik', icon: 'music', color: '#e1b6d8', tagline: 'Gehör, bas och sång'},
 ];
 
 const STORE = 'arc-skill-category';
