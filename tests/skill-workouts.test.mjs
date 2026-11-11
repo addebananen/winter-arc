@@ -22,12 +22,12 @@ test('new mobility progressions are appended, linked to workouts and shipped in 
  assert.equal(SK.levelOf(s,'straddle'),3);assert.equal(SK.levelOf(s,'hips'),1);assert.equal(SK.workoutById['sk-hips-1'].unit,'sek');
 });
 
-test('beginner straddle steps come before the Straddle tree and ship in migration 022',async()=>{
+test('beginner straddle steps come before the Straddle tree and ship in migration 024',async()=>{
  const {readFile}=await import('node:fs/promises');
  const mob=SK.trees.filter(t=>t.branch==='mobility').map(t=>t.id);assert.ok(mob.indexOf('straddle-base')===mob.indexOf('straddle')-1);
  assert.equal(SK.treeById['straddle-base'].row+1,SK.treeById.straddle.row);assert.equal(SK.treeById.straddle.requires,undefined);
- const sql=await readFile(new URL('../supabase/022_straddle_basics.sql',import.meta.url),'utf8');
- for(const id of SK.straddleBaseIds){assert.ok(SK.workoutById[id],id);assert.match(sql,new RegExp(`"id":"${id}"`));assert.equal(SK.workoutVersion(id),22);}
+ const sql=await readFile(new URL('../supabase/024_straddle_research.sql',import.meta.url),'utf8');
+ for(const id of SK.straddleBaseIds){assert.ok(SK.workoutById[id],id);assert.match(sql,new RegExp(`"id":"${id}"`));assert.equal(SK.workoutVersion(id),24);}
  assert.equal(SK.workoutVersion('sk-hips-1'),20);assert.equal(SK.workoutVersion('sk-push-1'),0);
- const s=base();s.strength.sessions.push(session('straddle-base',1,[30,30,30]));assert.equal(SK.levelOf(s,'straddle-base'),1);
+ const s=base();s.strength.sessions.push(session('straddle-base',1,[45,45,45]));assert.equal(SK.levelOf(s,'straddle-base'),1);
 });
