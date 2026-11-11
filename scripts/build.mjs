@@ -1,11 +1,13 @@
 import {build} from 'esbuild';
-import {mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,copyFile,cp} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 await mkdir('dist',{recursive:true});
 await build({entryPoints:['src/app.js'],bundle:true,minify:true,format:'esm',target:['safari16'],outfile:'dist/app.js'});
 for(const file of ['index.html','style.css','icon.svg','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','manifest.webmanifest'])await copyFile('src/'+file,'dist/'+file);
+await cp('src/hero','dist/hero',{recursive:true});
 const fingerprint=createHash('sha256');
 for(const file of ['app.js','style.css','index.html','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png'])fingerprint.update(await readFile('dist/'+file));
+for(const n of [1,2,3,4,5])fingerprint.update(await readFile('dist/hero/lv'+n+'.jpg'));
 fingerprint.update(await readFile('scripts/build.mjs'));
 const version=fingerprint.digest('hex').slice(0,12);
 const html=(await readFile('dist/index.html','utf8')).replace('./app.js','./app.js?v='+version).replace('./style.css','./style.css?v='+version)

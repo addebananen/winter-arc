@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as SK from '../src/skills.js';
 import {moves, allMoves} from '../src/skills-moves.js';
-import {prepare, sample, solve, lint, com, poseSVG} from '../src/skills-anim.js';
+import {prepare, sample, solve, lint, com, poseSVG, angleOf} from '../src/skills-anim.js';
 import * as D from '../src/domain.js';
 
 test('every skill level has an animation and every requirement points to a real level',()=>{
@@ -59,6 +59,19 @@ test('skill animations draw the same human figure as the exercise animations',()
    assert.match(big,/fill="#5b6570"/,m.id+': t-shirt');
    assert.doesNotMatch(big,/NaN|undefined/,m.id+': broken path');
    assert.doesNotMatch(big,/<line[^>]*stroke-width="13.5"/,m.id+': old stick legs');
+  }
+ }
+});
+
+test('hands behind on a bench: the elbows bend backwards like a real arm and the fingers point forward',()=>{
+ const m=moves['bench-shoulder'];prepare(m);
+ const wrap=a=>((a%360)+540)%360-180;
+ for(let i=0;i<=20;i++){
+  const {J}=solve(sample(m,m.total*i/20).pose);
+  for(const S of ['N','F']){
+   const ua=angleOf([J['elbow'+S][0]-J['sh'+S][0],J['elbow'+S][1]-J['sh'+S][1]]),fa=angleOf([J['wrist'+S][0]-J['elbow'+S][0],J['wrist'+S][1]-J['elbow'+S][1]]);
+   assert.ok(wrap(ua-fa)>=-2,'elbow '+S+' bends the impossible way: '+wrap(ua-fa).toFixed(0)+'°');
+   assert.ok(J['hand'+S][0]>J['wrist'+S][0],'fingers point forward');
   }
  }
 });

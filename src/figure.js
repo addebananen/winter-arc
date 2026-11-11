@@ -522,7 +522,7 @@ export function figureArt(e, animated = false) {
   const breath = animated && !moving ? '<animateTransform attributeName="transform" type="translate" values="0 0;0 -1.2;0 0" dur="3.6s" repeatCount="indefinite"/>' : '';
   let key = '';
   if (moving) { key = (e.id || e.pose) + '|' + (e.equipment || '') + '|' + (e.muscle || ''); registry.set(key, e); startRuntime(); }
-  return `<svg class="movement-art ${animated ? 'moving' : ''}"${moving ? ` data-figure="${key}"` : ''} viewBox="${f1(x1)} ${f1(y1)} ${f1(w)} ${f1(h)}" role="img" aria-label="${e.name}: rörelsedemonstration"><ellipse cx="${f1((list[0].P[0] + (list[0].limbs.ln?.end[0] ?? list[0].P[0])) / 2)}" cy="${GROUND + 2}" rx="62" ry="4.5" fill="#0004"/><g>${scenery([...(spec.scene || []), ...(spec.sceneFor?.[e.equipment] || [])])}</g><g>${breath}${paths}</g></svg>`;
+  return `<svg class="movement-art ${animated ? 'moving' : ''}"${moving ? ` data-figure="${key}"` : ''} viewBox="${f1(x1)} ${f1(y1)} ${f1(w)} ${f1(h)}" role="img" aria-label="${e.name}: rörelsedemonstration"><rect x="${f1(x1 - w)}" y="${GROUND}" width="${f1(w * 3)}" height="${f1(Math.max(0, y1 + h - GROUND))}" fill="#ffffff" fill-opacity=".05"/><path d="M${f1(x1 - w)} ${GROUND}H${f1(x1 + w * 2)}" stroke="#ffffff" stroke-opacity=".14" stroke-width="1"/><ellipse cx="${f1((list[0].P[0] + (list[0].limbs.ln?.end[0] ?? list[0].P[0])) / 2)}" cy="${GROUND + 2}" rx="62" ry="4.5" fill="#0004"/><g>${scenery([...(spec.scene || []), ...(spec.sceneFor?.[e.equipment] || [])])}</g><g>${breath}${paths}</g></svg>`;
 }
 
 // ---------- runtime ----------
