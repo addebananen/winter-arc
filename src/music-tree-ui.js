@@ -165,6 +165,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
   // ---------- quiz questions (ear + fretboard find) ----------
   function makeQuestion(game, R) {
     switch (game.type) {
+      case 'compare': return T.compareQuestion(R, game);
       case 'degree': return T.degreeQuestion(R, game);
       case 'interval': return T.intervalQuestion(R, game);
       case 'quality': return T.qualityQuestion(R, game);
@@ -185,14 +186,15 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
   const revealHTML = (q, ok) => {
     const right = q.options?.find(o => o.id === q.answer);
     let facts = '';
-    if (q.kind === 'degree') { const m = q.reveal.match(/är (\S+)\.$/); facts = `<span><small>Skalsteg</small><b>${esc(right.label)}</b></span><span><small>Ton</small><b>${m?.[1] || ''}</b></span>`; }
+    if (q.facts) facts = `<span><small>Svar</small><b>${esc(right.label)}</b></span>` + q.facts.map(([k, v]) => `<span><small>${k}</small><b>${esc(v)}</b></span>`).join('');
+    else if (q.kind === 'degree') { const m = q.reveal.match(/är (\S+)\.$/); facts = `<span><small>Skalsteg</small><b>${esc(right.label)}</b></span><span><small>Ton</small><b>${m?.[1] || ''}</b></span>`; }
     else if (q.kind === 'interval') facts = `<span><small>Intervall</small><b>${esc(right.label)}</b></span><span><small>Halvtoner</small><b>${T.semis(q.answer)}</b></span>${T.intervalSongs[q.answer] ? `<span class="wide"><small>Minnesknep</small><b>${esc(T.intervalSongs[q.answer])}</b></span>` : ''}`;
     else if (q.kind === 'quality') facts = `<span><small>Ackord</small><b>${esc(right.label)}</b></span><span><small>Toner</small><b>${esc(right.sub)}</b></span>`;
     else if (q.kind === 'chordtone') { const m = q.reveal.match(/^(\S+) är .*\((\S+)\) i (\S+)\. Basen spelar (\S+)\.$/); facts = `<span><small>Roll</small><b>${esc(right.label)}</b></span>${m ? `<span><small>Ton</small><b>${m[1]}</b></span><span><small>Skalsteg</small><b>${m[2]}</b></span><span><small>Basen</small><b>${m[4]}</b></span>` : ''}`; }
     else if (q.kind === 'progression') facts = `<span class="wide"><small>Ackord</small><b>${esc(right.sub)}</b></span>`;
     else if (q.kind === 'inversion') { const m = q.reveal.match(/Basen spelar (\S+): (\S+)\.$/); facts = `<span><small>I basen</small><b>${esc(right.label)}</b></span>${m ? `<span><small>Ackord</small><b>${m[2]}</b></span>` : ''}`; }
     else if (q.kind === 'fret') facts = `<span class="wide"><small>Ton</small><b>${q.prompt.match(/^Hitta (\S+)/)?.[1] || ''}</b></span>`;
-    return `<div class="mg-reveal ${ok ? 'ok' : 'bad'}"><strong>${ok ? 'Rätt!' : 'Inte riktigt.'}</strong><div class="mg-facts">${facts}</div></div>`;
+    return `<div class="mg-reveal ${ok ? 'ok' : 'bad'}"><strong>${ok ? 'Rätt!' : 'Inte riktigt.'}</strong><div class="mg-facts">${facts}</div>${q.why ? `<p class="mg-why">${esc(q.why)}</p>` : ''}</div>`;
   };
 
   function quizLevel(node, level, mixItems) {
@@ -212,6 +214,8 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
   function quizAsk(g, q, item, mixItems) {
     return new Promise(resolve => {
       let answered = false, playing = 0;
+      // "How to think": the node's listening steps. Open on the very first question of a node you have not cleared yet.
+      const steps = item.node.listen || [], openHow = !mixItems && g.index === 0 && M.levelOf(S(), item.node.id) === 0;
       const hear = async (events = q.play) => {
         const pad = g.root.querySelector('.mg-listen'); pad?.classList.add('playing');
         A.stopAll(); const id = ++playing, end = A.play(events, {bpm: q.kind === 'progression' ? 96 : 80});
@@ -221,7 +225,8 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
       setScreen(g, headFor(g, item, mixItems), `
         <div class="mg-prompt">${contextChips(q)}<h2>${questionText(q)}</h2></div>
         <button type="button" class="mg-listen" data-mg="hear" aria-label="Lyssna igen"><span class="mg-pulse"></span><span class="mg-pulse two"></span>${ic('play')}<span class="mg-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
-        <div class="mg-sub-actions">${q.replay !== q.play ? `<button type="button" class="chip" data-mg="replay">${ic('replay')}<span>${q.kind === 'degree' ? 'Bara tonen' : 'Bara basen och tonen'}</span></button>` : ''}</div>
+        <div class="mg-sub-actions">${steps.length ? `<button type="button" class="chip ${openHow ? 'active' : ''}" data-mg="how" aria-expanded="${openHow}">${ic('bolt')}<span>Så tänker du</span></button>` : ''}${q.replay !== q.play ? `<button type="button" class="chip" data-mg="replay">${ic('replay')}<span>${q.kind === 'degree' || q.kind === 'compare' ? 'Bara tonen' : 'Bara basen och tonen'}</span></button>` : ''}</div>
+        ${steps.length ? `<div class="mg-how" ${openHow ? '' : 'hidden'}><ol>${steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>${item.level.tip ? `<p>${esc(item.level.tip)}</p>` : ''}</div>` : ''}
         <div class="mg-options ${q.options.length > 4 ? 'many' : ''} ${q.kind === 'progression' ? 'wide' : ''}">${q.options.map(o => `<button type="button" class="mg-opt" data-mg="ans:${o.id}"><strong>${esc(o.label)}</strong>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</button>`).join('')}</div>
         <div class="mg-after"></div>`);
       hear();
@@ -229,6 +234,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
         if (cmd === 'close') return closeGame();
         if (cmd === 'hear') return hear(q.play);
         if (cmd === 'replay') return hear(q.replay);
+        if (cmd === 'how') { const box = g.root.querySelector('.mg-how'); if (box) { box.hidden = !box.hidden; el.classList.toggle('active', !box.hidden); el.setAttribute('aria-expanded', String(!box.hidden)); } return; }
         if (cmd === 'next') { g.on = null; return resolve({ok: g._ok}); }
         if (cmd.startsWith('ans:') && !answered) {
           answered = true; const id = cmd.slice(4), ok = id === q.answer; g._ok = ok;

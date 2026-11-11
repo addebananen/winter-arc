@@ -22,7 +22,17 @@ const L = (name, goal, game, tip = '') => ({name, goal, game, tip});
 
 export const NODES = [
   // ---------------- GEHÖR ----------------
-  {id: 'degrees', branch: 'ear', name: 'Tonartens toner', short: 'Skalsteg', requires: [],
+  {id: 'basics', branch: 'ear', listen: ['Lyssna på den första tonen och nynna den tyst.', 'Lyssna på den andra tonen. Måste rösten upp eller ner för att nå den?', 'Tryck på den stora knappen för att lyssna igen. Lyssna så många gånger du vill.'], name: 'Första stegen', short: 'Grunder', requires: [],
+    learn: 'Börja här om gehör är nytt för dig. Du behöver inte kunna några namn: lyssna bara på vad som händer mellan två toner. Går det uppåt eller nedåt? Är det ett litet steg eller ett hopp? Nynna gärna tonerna tyst för dig själv, då hör du skillnaden lättare.',
+    levels: [
+      L('Högre eller lägre', 'Två toner långt ifrån varandra.', {type: 'compare', mode: 'direction', gaps: [7, 8, 9, 12]}, 'Högre toner låter ljusare och tunnare, lägre toner mörkare och fylligare.'),
+      L('Nära varandra', 'Högre eller lägre när tonerna ligger tätt.', {type: 'compare', mode: 'direction', gaps: [1, 2, 3, 4]}, 'Nynna båda tonerna. Känner du att rösten går upp eller ner?'),
+      L('Samma eller olika', 'Hör om tonen ändras.', {type: 'compare', mode: 'same', gaps: [1, 2, 3]}),
+      L('Steg eller hopp', 'Granne eller längre bort.', {type: 'compare', mode: 'step', leaps: [5, 7, 9, 12]}, 'Ett steg låter som början på en skala. Ett hopp låter som en signal.'),
+      L('Hemma eller borta', 'Vilar tonen efter ackorden?', {type: 'compare', mode: 'home'}, 'Hemma känns som slutet på en låt. Borta känns som en fråga som väntar på svar.'),
+      L('Hemma eller kvint', 'Två skalsteg: 1 och 5.', {type: 'degree', pool: ['1', '5']}, '1 är hemma. 5 är stabil men ligger högre och vill gärna falla tillbaka till 1.'),
+    ]},
+  {id: 'degrees', branch: 'ear', listen: ['Ackorden i början visar var hemma är. Nynna hemtonen (1) när de tystnar.', 'Lyssna på tonen. Vilar den, eller vill den någonstans?', 'Sjung tyst från tonen ner till hemma, ett steg i taget, och räkna. Tre toner (3–2–1) betyder att det var en 3:a.'], name: 'Tonartens toner', short: 'Skalsteg', requires: [],
     learn: 'Musik hörs alltid i förhållande till en tonart. Efter en kadens (I–IV–V–I) vet örat var ”hemma” är. Då känns varje ton som ett skalsteg: 1 vilar, 5 är stabil, 7 vill hem till 1. Det är så proffs hör melodier och baslinjer, inte som lösa intervall.',
     levels: [
       L('Hemma, ters och kvint', 'Skilj 1, 3 och 5 efter kadensen.', {type: 'degree', pool: ['1', '3', '5']}, 'Sjung tonen tyst och glid ner till närmaste stabila ton. Hamnar du på 1 direkt var det 1.'),
@@ -31,7 +41,7 @@ export const NODES = [
       L('Moll', 'Skalsteg i naturlig moll.', {type: 'degree', minor: true, pool: ['1', '2', 'b3', '4', '5', 'b6', 'b7']}, '♭3 ger mollkänslan. ♭6 låter mörk och vill ner till 5.'),
       L('Kromatiska färger', 'Toner utanför skalan.', {type: 'degree', pool: ['1', 'b2', '3', '#4', '5', 'b6', 'b7']}, '♭7 är bluesig, ♯4 låter spänd och vill upp till 5.'),
     ]},
-  {id: 'intervals', branch: 'ear', name: 'Intervall', short: 'Intervall', requires: [['degrees', 1]],
+  {id: 'intervals', branch: 'ear', listen: ['Nynna den första tonen, sedan den andra.', 'Hur långt är det mellan dem? Ett litet steg, ett mellanhopp eller ett stort hopp.', 'Jämför med början på en låt du kan. Minnesknepet visas efter varje svar.'], name: 'Intervall', short: 'Intervall', requires: [['degrees', 1]],
     learn: 'Ett intervall är avståndet mellan två toner. Varje intervall har en egen karaktär. Ett låtminne för början av varje intervall gör dem lättare att känna igen, men målet är att höra karaktären direkt.',
     levels: [
       L('Kvint eller oktav', 'De två mest stabila avstånden.', {type: 'interval', pool: ['5', '8']}, 'Kvinten låter öppen, som Blinka lilla stjärna. Oktaven låter som samma ton högre.'),
@@ -41,7 +51,7 @@ export const NODES = [
       L('Alla, upp och ner', 'Hela oktaven åt båda håll.', {type: 'interval', dir: 'both', pool: ['b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7', '8']}),
       L('Samtidigt klingande', 'Harmoniska intervall.', {type: 'interval', dir: 'harm', pool: ['b3', '3', '4', '#4', '5', '6', 'b7', '8']}, 'Lyssna efter hur mycket det ”gnisslar”: sekunder och septimor skaver, terser och sexter är mjuka.'),
     ]},
-  {id: 'quality', branch: 'ear', name: 'Ackordens färg', short: 'Ackord', requires: [['intervals', 2]],
+  {id: 'quality', branch: 'ear', listen: ['Lyssna på helheten först: ljust och glatt (dur) eller mörkt och vemodigt (moll)?', 'Låter ackordet stabilt, eller spänt och oroligt?', 'När tonerna spelas en i taget: nynna dem nerifrån och upp.'], name: 'Ackordens färg', short: 'Ackord', requires: [['intervals', 2]],
     learn: 'Ackord byggs av terser på varandra. Dur = stor ters + liten ters, moll = liten + stor. Lägger man till en septima får man fyrklanger med egna färger, till exempel den spända dominanten (7) som vill lösas upp.',
     levels: [
       L('Dur eller moll', 'Ljust eller mörkt.', {type: 'quality', pool: ['maj', 'min'], arp: true}),
@@ -50,7 +60,7 @@ export const NODES = [
       L('Fyrklanger', 'Maj7, 7 och m7.', {type: 'quality', pool: ['maj7', 'dom7', 'min7'], arp: true}, 'Maj7 drömmig, 7 bluesig och spänd, m7 mjuk.'),
       L('Alla fyrklanger', 'Lägg till halvförminskat.', {type: 'quality', pool: ['maj7', 'dom7', 'min7', 'm7b5']}),
     ]},
-  {id: 'chordtones', branch: 'ear', name: 'Tonen i ackordet', short: 'Ackordton', requires: [['quality', 1], ['degrees', 2]],
+  {id: 'chordtones', branch: 'ear', listen: ['Lyssna först på basen. Den spelar ackordets grundton.', 'Lyssna på den sista tonen. Smälter den ihop med basen (1), färgar den ackordet (3) eller låter den öppen och stark (5)?', 'Tryck på ”Bara basen och tonen” och nynna båda.'], name: 'Tonen i ackordet', short: 'Ackordton', requires: [['quality', 1], ['degrees', 2]],
     learn: 'Basen spelar oftast ackordets grundton. Ovanpå den har varje ton en roll: grundton (vila), ters (avgör dur/moll), kvint (stabil, ”tom”) och septima (spänning). När du hör rollen vet du direkt vilka toner som fungerar i en basgång eller stämma.',
     levels: [
       L('1, 3 eller 5 i dur', 'Hör rollen över basen.', {type: 'chordtone', chords: ['maj'], pool: ['1', '3', '5']}, 'Tersen färgar ackordet, kvinten smälter in, grundtonen låter som basen fast högre.'),
@@ -58,7 +68,7 @@ export const NODES = [
       L('Med septima', 'Lägg till 7:an.', {type: 'chordtone', chords: ['maj7', 'dom7', 'min7'], pool: ['1', '3', '5', '7']}, 'Septiman ligger ett steg under oktaven och vill röra sig.'),
       L('Spänningstoner', '9, 11 och 13 över ackordet.', {type: 'chordtone', chords: ['maj', 'min'], pool: ['1', '3', '5', '9', '11', '13']}, '9 = 2 en oktav upp, 11 = 4, 13 = 6. De ger färg ovanpå ackordet.'),
     ]},
-  {id: 'bassmove', branch: 'ear', name: 'Basens väg', short: 'Följ basen', requires: [['chordtones', 1]],
+  {id: 'bassmove', branch: 'ear', listen: ['Lyssna bara på basen, den lägsta tonen, inte på ackorden ovanför.', 'Nynna basens toner. Går den upp eller ner, i steg eller hopp?', 'Första ackordet är hemma (I). Jämför de andra med det.'], name: 'Basens väg', short: 'Följ basen', requires: [['chordtones', 1]],
     learn: 'För att höra ackordföljder: lyssna på basen först. Den visar vilket skalsteg varje ackord står på. De flesta poplåtar använder I, IV, V och vi. När basen inte spelar grundtonen blir det en omvändning, till exempel C/E.',
     levels: [
       L('Två ackord', 'I till IV, V eller vi.', {type: 'progression', set: 'two'}),
@@ -143,7 +153,7 @@ export const NODES = [
 
 for (const n of NODES) n.levels.forEach((l, i) => { l.n = i + 1; l.node = n.id; });
 export const nodeById = Object.fromEntries(NODES.map(n => [n.id, n]));
-export const QUIZ_TYPES = new Set(['degree', 'interval', 'quality', 'chordtone', 'progression', 'inversion', 'fret']);
+export const QUIZ_TYPES = new Set(['compare', 'degree', 'interval', 'quality', 'chordtone', 'progression', 'inversion', 'fret']);
 export const MIC_TYPES = new Set(['pitch', 'harmony']);
 export const usesMic = game => MIC_TYPES.has(game.type) || (game.type === 'breath' && game.mode !== 'guided');
 
