@@ -1,3 +1,4 @@
+import {frostForms} from './frost-character.js';
 import {musicHabits,musicChallenges} from './music.js';
 export const SEASON_START='2026-11-09';
 export const characters=[
@@ -5,7 +6,8 @@ export const characters=[
  {id:'striker',name:'Frost Striker',role:'Byggaren',motto:'Styrka byggs. Den bevisas inte.',description:'Lugn kraft. Små, kontrollerade repetitioner och ett långsiktigt fokus.',color:'#b8c9ec',symbol:'dumbbell'},
  {id:'monk',name:'Ember Monk',role:'Den förankrade',motto:'Hitta lugnet. Behåll riktningen.',description:'Närvaro, tro och disciplin. En stilla stund kan vara dagens starkaste handling.',color:'#e4c494',symbol:'sun'},
  {id:'scholar',name:'Lunar Scholar',role:'Tänkaren',motto:'Var nyfiken en stund till.',description:'Läsning, vetenskap och stora frågor. Samla insikter, inte bara poäng.',color:'#cbbce8',symbol:'book'},
- {id:'adrian',name:'Adrian',role:'Den gränslösa',motto:'Bortom dig själv finns ingen gräns.',description:'Börjar som sig själv. Varje form bär mer kraft än den förra.',color:'#8fc4ff',symbol:'star'}
+ {id:'adrian',name:'Adrian',role:'Den gränslösa',motto:'Bortom dig själv finns ingen gräns.',description:'Börjar som sig själv. Varje form bär mer kraft än den förra.',color:'#8fc4ff',symbol:'star'},
+ {id:'frost',name:'Frostmagikern',role:'Den växande',motto:'Varje dag lite starkare.',description:'Börjar som en liten knatte med en trollstav och växer till en magiker med makt över is och storm. En ny form låses upp vid level 6, 11, 16 och 21.',color:'#9fd8ff',symbol:'snow',forms:frostForms}
 ];
 export const ranks=[
  {name:'Rookie',xp:0,color:'#a3b6ae',icon:'flag'},
