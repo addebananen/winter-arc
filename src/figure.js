@@ -211,30 +211,26 @@ function shapes(fr, hl) {
       out.push([k + 'stripe', sn.stripe, 'none', ` stroke="${palette.stripe}" stroke-width="1.2" stroke-linecap="round"`]);
       out.push([k + 'laces', sn.laces, 'none', ' stroke="#9aa7ad" stroke-width=".6" stroke-linecap="round"']);
     } else {
-      const sleeve = far ? palette.shirtFar : palette.shirt, trim = far ? palette.trimFar : palette.trim;
-      out.push([k + 'uarm', limb(L.root, L.mid, 6.6, 5, 6.8, 7, .42, fr.n), sleeve]);
+      const sleeve = far ? palette.shirtFar : palette.shirt;
+      out.push([k + 'uarm', limb(L.root, L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), skin]);
       if (on('uarm')) out.push([k + 'uarmH', limb(L.root, L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), palette.hl, ' fill-opacity=".45"']);
-      out.push([k + 'farm', limb(L.mid, L.end, 5.2, 4, 5.5, 5.3, .3, fr.n), sleeve]);
-      const wd = norm(sub(L.end, L.mid));
-      out.push([k + 'cuff', limb(sub(L.end, mul(wd, 2.6)), add(L.end, mul(wd, .4)), 3.9, 3.7, 3.9, 3.9, .5, fr.n), trim]);
+      out.push([k + 'farm', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), skin]);
       if (on('farm')) out.push([k + 'farmH', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), palette.hl, ' fill-opacity=".4"']);
       const hm = handModel(L);
       out.push([k + 'hand', smooth(hm.outline), on('hand') ? palette.hl : skin, on('hand') ? ' fill-opacity=".85"' : '']);
       out.push([k + 'crease', hm.creases, 'none', ` stroke="${far ? '#6f574a' : palette.skinLine}" stroke-width=".7" stroke-linecap="round" stroke-opacity=".75"`]);
       out.push([k + 'thumb', limb(hm.thumb[0], hm.thumb[1], 1.9, 1.5, 2, 2, .5, fr.n), skin]);
       const delt = add(L.root, mul(norm(sub(L.mid, L.root)), 5));
-      out.push([k + 'delt', limb(L.root, delt, 7.4, 6.4, 7.6, 7.2, .5, fr.n), on('delt') ? palette.hl : sleeve, on('delt') ? ' fill-opacity=".8"' : '']);
+      const sleeveEnd = add(L.root, mul(norm(sub(L.mid, L.root)), bones.uarm * .46));
+      out.push([k + 'sleeve', limb(L.root, sleeveEnd, 7.3, 6.5, 7.4, 7.4, .5, fr.n), on('delt') ? palette.hl : sleeve, on('delt') ? ' fill-opacity=".85"' : '']);
     }
   };
   const torso = () => {
     const o = local(fr.P, mul(fr.u, bones.torso), side ? fr.n : fr.n);
     out.push(['torso', smooth(o(side ? torsoSide : torsoFront)), palette.shirt]);
     out.push(['shorts', smooth(o(side ? shortsSide : shortsFront)), palette.shorts]);
-    // The hoodie's ribbed hem over the waistband, the kangaroo pocket and the hood.
-    out.push(['hem', smooth(o(side ? [[.13, -9.9], [.25, -8.9], [.25, 9.3], [.13, 9.5]] : [[.12, 9.9], [.24, 10], [.24, -10], [.12, -9.9]])), palette.trim]);
-    out.push(['pocket', smooth(o(side ? [[.46, 8.4], [.44, 3.8], [.27, 3.4], [.26, 9]] : [[.46, -5.6], [.46, 5.6], [.26, 7.6], [.26, -7.6]])), palette.trim]);
-    out.push(['hood', smooth(o(side ? [[1.18, -1.4], [1.22, -5.8], [1.06, -10.4], [.88, -10], [.94, -6.4], [1.04, -2.8]] : [[1.14, 6.4], [1.04, 9.8], [.9, 7], [.97, 0], [.9, -7], [1.04, -9.8], [1.14, -6.4], [1.08, 0]])), palette.trim]);
-    if (!side) out.push(['strings', [[.97, 1.6], [.97, -1.6]].map(([a, b]) => `M${pt(o([[a, b]])[0])}L${pt(o([[.74, b * 1.2]])[0])}`).join(''), 'none', ' stroke="#d9dee2" stroke-width=".7" stroke-linecap="round"']);
+    // T-shirt neckline seen from the front.
+    if (!side) out.push(['collar', smooth(o([[1.13, 5.2], [1.05, 6.6], [.98, 3.4], [.96, 0], [.98, -3.4], [1.05, -6.6], [1.13, -5.2], [1.04, 0]])), palette.trim]);
     // The Beyond Self logo on the chest: black badge, white mountain, red flag.
     const lc = add(fr.P, add(mul(fr.u, bones.torso * (side ? .78 : .8)), mul(fr.n, side ? 5.4 : -5.6))), lo = local(lc, fr.u, fr.n);
     out.push(['logo', smooth(lo([[2.1, -2.1], [2.3, 0], [2.1, 2.1], [0, 2.3], [-2.1, 2.1], [-2.3, 0], [-2.1, -2.1], [0, -2.3]])), '#0d0f11', ' stroke="#e9edef" stroke-width=".4"']);
