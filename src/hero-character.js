@@ -10,7 +10,13 @@ const sparkColor={2:'#8fd0ff',3:'#d6efff',4:'#ffb0c0',5:'#cdb0ff'};
 // Jagged bolt between two points; the same seed always gives the same shape so the markup is stable.
 function bolt(a,b,seed){let d=`M${a[0]} ${a[1]}`;for(let i=1;i<7;i++){const t=i/7,j=(((seed*37+i*61)%17)-8)*1.5;d+=` L${(a[0]+(b[0]-a[0])*t).toFixed(1)} ${(a[1]+(b[1]-a[1])*t+j).toFixed(1)}`;}return `${d} L${b[0]} ${b[1]}`;}
 let seq=0;
+// Forms with a real video loop. The video is muted and inline so iPhone plays it by itself; the poster
+// shows while it loads or when autoplay is off (Low Power Mode). Attributes are written as valid XML
+// because Wrapped embeds the character markup in a downloadable SVG.
+const videoForms=new Set([1]);
+function heroVideo(form,large){return `<div class="character hero-character hero-video hero-form-${form} ${large?'large':''} char-${HERO_ID}" aria-label="${HERO_ID}, evolution ${form}" role="img"><video src="./hero/lv${form}.mp4" poster="./hero/lv${form}-poster.jpg" autoplay="" loop="" muted="" playsinline="" disablepictureinpicture="" preload="auto"></video></div>`;}
 export function heroCharacter(level=1,large=false){
+ if(videoForms.has(heroForm(level)))return heroVideo(heroForm(level),large);
  const form=heroForm(level),id='hero'+(++seq),list=orbs[form],main=list[0];
  const defs=`<clipPath id="${id}c"><rect width="195" height="260" rx="20"/></clipPath>`+
   list.map((o,i)=>`<radialGradient id="${id}g${i}"><stop stop-color="#fff" stop-opacity=".9"/><stop offset=".18" stop-color="${o[3]}" stop-opacity=".8"/><stop offset=".5" stop-color="${o[3]}" stop-opacity=".28"/><stop offset="1" stop-color="${o[3]}" stop-opacity="0"/></radialGradient>`).join('')+

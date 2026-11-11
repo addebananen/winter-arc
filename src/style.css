@@ -365,3 +365,6 @@ button.skt-opt:hover{background:#ffffff08}
 @keyframes hero-rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-150px);opacity:0}}
 @keyframes hero-frame{0%,100%{stroke-opacity:.2}50%{stroke-opacity:.65}}
 @media (prefers-reduced-motion:reduce){.hero-photo,.hero-aura,.hero-orb,.hero-ring,.hero-wave,.hero-bolt,.hero-spark,.hero-frame{animation:none}}
+.hero-video{display:flex;justify-content:center;align-items:center;filter:none}
+.hero-video video{height:100%;max-width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8%/6%;border:1px solid #94a6a74d;background:#101719;pointer-events:none}
+.member-character .hero-video{width:100%;height:100%}.friend-char .hero-video{width:64px;height:72px}
