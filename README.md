@@ -36,7 +36,7 @@ Dagens vanor, 68 biblioteksförslag inom åtta kategorier, egna vanor och schema
 
 Animationerna (`src/skills-anim.js`, `src/skills-moves.js`) är en 2D-figur med riktiga segmentlängder. Händer och fötter låses mot golv, stång eller vägg med tvåleds-IK, och balansskills löses så att tyngdpunkten ligger över stödet. En anatomikontroll (`lint`) stoppar omöjliga ledvinklar och kontakter som inte nås. `dev/skill-review.html` och `dev/skill-gallery.html` visar alla animationer för granskning. `dev/app.html` kör appen lokalt i utvecklingsläge utan backend (`python3 -m http.server` i repots rot).
 
-Fyra fasta mobildestinationer: Idag, Träning, Skill tree och Squad. Nya skill tree-kategorier (till exempel Musik, som visas som "Kommer snart") läggs till i `src/skill-tree-ui.js`. Profilen nås från avataren, vanor och expedition från startsidan. Tydlig installationsknapp i inställningar.
+Fyra fasta mobildestinationer: Idag, Träning, Skill tree och Squad. Kategorin **Musik** har 13 noder och 61 nivåer i Gehör, Bas och Sång, som klaras genom korta spel (gehörsquiz, greppbräda, skalor, basgångsbyggare, timing, andning och tonträff med mikrofon). Se `docs/skill-tree-kategorier.md`. Nya skill tree-kategorier läggs till i `src/skill-tree-ui.js`. Profilen nås från avataren, vanor och expedition från startsidan. Tydlig installationsknapp i inställningar.
 
 Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensam streak och veckouppdrag. Privat kroppstracker med bilder, vikt, midjemått, graf och jämförelse. Bildjournal, veckoreflektioner, 90-dagarsöversikt, Wrapped som nedladdningsbar SVG och JSON-export av journaldata. En användare tillhör ett squad i denna version. Flödet hämtar de 50 senaste inläggen.
 

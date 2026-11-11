@@ -1,6 +1,6 @@
 # Skill tree – kommande kategorier
 
-Core, Löpning och Musik syns redan i kategorilistan som **"Kommer snart"**.
+Core och Löpning syns i kategorilistan som **"Kommer snart"**. Musik är öppen.
 Här samlar vi förslag på hur träden kan byggas. Ändra fritt, det här är ett utkast att jobba vidare på tillsammans.
 
 ## Så aktiverar man en kategori
@@ -31,5 +31,13 @@ Kan kopplas till den rankade löpningen som redan finns i `src/cardio.js` (uppm�
 | Fart | 5 km under 30 min → under 27 min → under 25 min → 10 km under 55 min |
 | Teknik / variation | Intervaller (6 × 400 m) → backintervaller → tempopass 20 min |
 
-## Musik
-Musikkursen i `src/music.js` har redan lektioner i nivåer och kan visas som ett träd.
+## Musik (öppen)
+Byggd i `src/music-tree.js` (träd, nivåer, sparning), `src/music-theory.js` (teori, frågor, basgångsregler, tonhöjdsmätning), `src/music-audio.js` (syntljud och mikrofon) och `src/music-tree-ui.js` (vy och spel). Stilen ligger i `src/music-tree-css.js` och engelska texter i `src/i18n-music-en.js`.
+
+| Gren | Noder |
+|---|---|
+| Gehör | Tonartens toner (skalsteg efter kadens) → Intervall → Ackordens färg → Tonen i ackordet (grundton/ters/kvint/septima över basen) → Basens väg (ackordföljder, omvändningar) |
+| Bas | Greppbrädan, Groove & timing → Skalor på basen → Arpeggion → Bygg basgångar (grundtoner → kvint → treklang → närmande toner → walking bass) |
+| Sång | Andning & stöd (sss och stödd ton mäts med mikrofonen) → Träffa tonen → Stämsång |
+
+Nivåer klaras med minst 80 % i ett spel och sparas i sparfilen som `musicTree`. De ger Music-poäng till karaktären men påverkar aldrig XP eller rank. Ingen databasmigration behövs.

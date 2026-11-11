@@ -13,7 +13,8 @@ test('category registry has unique ids and the required fields', () => {
   for (const c of skillCategories) if (c.icon !== 'compass') assert.notEqual(icon(c.icon).match(/d="([^"]+)"/)[1], fallback, c.id + ' har ingen egen ikon');
   for (const c of skillCategories) for (const k of ['id', 'name', 'icon', 'color', 'tagline']) assert.ok(c[k], `${c.id} saknar ${k}`);
   assert.ok(skillCategories.some(c => c.id === 'calisthenics' && !c.soon));
-  for (const id of ['core', 'running', 'music']) assert.equal(skillCategories.find(c => c.id === id)?.soon, true, id + ' ska visas som Kommer snart');
+  for (const id of ['core', 'running']) assert.equal(skillCategories.find(c => c.id === id)?.soon, true, id + ' ska visas som Kommer snart');
+  assert.ok(!skillCategories.find(c => c.id === 'music').soon, 'Musik är öppen');
 });
 
 test('only categories with a view can be chosen; soon ones are listed but locked', () => {
