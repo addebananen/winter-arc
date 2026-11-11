@@ -2580,4 +2580,9 @@ export default {
  "Utrustningen är vald.": "The gear is equipped.",
  "Den platsen finns inte.": "That slot does not exist.",
  "Det föremålet finns inte.": "That item does not exist.",
+ "adrian, evolution {#}": "adrian, evolution {#}",
+ "Välj Adrian": "Choose Adrian",
+ "Den gränslösa": "The Limitless",
+ "Bortom dig själv finns ingen gräns.": "Beyond yourself there is no limit.",
+ "Börjar som sig själv. Varje form bär mer kraft än den förra.": "Starts as himself. Every form carries more power than the last.",
 };
