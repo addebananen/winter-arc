@@ -40,7 +40,7 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
         <rect x="${x + 82}" y="${y + 51}" width="${NW - 96}" height="3" rx="1.5" class="sk-node-track"/><rect x="${x + 82}" y="${y + 51}" width="${Math.max(0, (NW - 96) * ratio)}" height="3" rx="1.5" class="sk-node-fill"/>
       </g>`;
     }).join('');
-    return `<svg class="sk-map" viewBox="0 0 918 ${RY(6) + 4}" role="group" aria-label="Karta över skill-trädet">${heads}${edges.join('')}${nodes}</svg>`;
+    return `<svg class="sk-map" viewBox="0 0 918 ${RY(Math.max(...SK.trees.map(t => t.row)) + 1) + 4}" role="group" aria-label="Karta över skill-trädet">${heads}${edges.join('')}${nodes}</svg>`;
   }
 
   // ---------- list ----------

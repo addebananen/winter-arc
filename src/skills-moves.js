@@ -240,6 +240,122 @@ function stand(x = 0, extra = {}) {
   ]});
 }
 
+// Ankle rocks in the deep squat: one knee at a time travels forward over the toes.
+{
+  const rock = k => ({t: 34 + k * .2, n: 20, an: [82, 82, 82], af: [84, 84, 84], ln: [72 + k, 216 + k, 118], at: {j: 'ankleN', x: 0, y: -7},
+    ik: {lf: {x: 1, y: -7, b: -1, f: 119}}});
+  def('squat-rocks', {title: 'Fotledsgunga i djup knäböj', props: [FLOOR], key: 1, frames: [
+    {p: rock(0), hold: 400, move: 1000, cue: 'Sitt i djup knäböj, hela foten i golvet.'},
+    {p: rock(24), hold: 700, move: 1000, cue: 'För knät fram över tårna. Hälen stannar kvar.', focus: ['feet']},
+  ]});
+}
+
+// Standing pike fold: straight legs, hinge at the hips until the palms reach the floor.
+{
+  const fold = (t, reach) => {
+    const p = stand(0, {t, n: t + 12});
+    if (reach) { const sh = joint(p, 'shoulder'); p.ik = {an: {x: sh[0] + 8, y: HW, b: 1, h: 90}, af: {x: sh[0] + 6, y: HW, b: 1, h: 90}}; }
+    else { p.an = [t, t, t]; p.af = [t + 2, t + 2, t + 2]; }
+    return p;
+  };
+  def('standing-pike', {title: 'Stående pikefällning', props: [FLOOR], key: 2, frames: [
+    {p: stand(0), hold: 400, move: 1300, cue: 'Stå med fötterna ihop och raka knän.'},
+    {p: fold(110), hold: 200, move: 1200, cue: 'Fäll från höften med lång rygg.', focus: ['legs']},
+    {p: fold(164, true), hold: 2400, move: 1600, cue: 'Handflatorna i golvet. Låt huvudet hänga.', focus: ['legs'], timer: true},
+  ]});
+}
+
+// Getting down into the middle split (front view): horse stance, standing straddle
+// fold, sliding the feet apart and the split itself.
+{
+  const ARMS = {an: [194, 300, 300], af: [166, 60, 60], len: {faN: .7, faF: .7}};
+  const wide = (py, fx, b = 1, extra = {}) => ({front: 1, t: 0, n: 0, sw: 16, hw: 9, ...ARMS, at: {j: 'pelvis', x: 0, y: py},
+    ik: {ln: {x: fx, y: -7, b: -b, f: 120}, lf: {x: -fx, y: -7, b, f: -120}}, ...extra});
+  def('horse-stance', {title: 'Hästställning', view: 'front', props: [FLOOR], key: 1, frames: [
+    {p: wide(-82, 48), hold: 400, move: 1500, cue: 'Fötterna dubbelt axelbrett, tårna lätt utåt.'},
+    {p: wide(-50, 48), hold: 2400, move: 1500, cue: 'Sitt djupt och pressa knäna ut över tårna.', focus: ['legs'], timer: true},
+  ]});
+  // Folded forward: seen from the front the torso hangs down between the legs.
+  // A negative torso length points it down without mirroring the hips.
+  const folded = (py, fx, s, f = 100) => {
+    const p = {front: 1, t: 0, n: 0, sw: 16, hw: 9, len: {torso: -s, neck: -Math.min(.6, s)}, at: {j: 'pelvis', x: 0, y: py},
+      ik: {ln: {x: fx, y: -7, b: 1, f}, lf: {x: -fx, y: -7, b: -1, f: -f}}};
+    const sh = joint(p, 'shoulder');
+    p.ik.an = {x: 30, y: Math.min(HW, sh[1] + 50), b: -1, h: 120}; p.ik.af = {x: -30, y: Math.min(HW, sh[1] + 50), b: 1, h: -120};
+    return p;
+  };
+  const upright = (py, fx, s = 1) => ({front: 1, t: 0, n: 0, sw: 16, hw: 9, len: {torso: s, neck: s}, an: [174, 178, 178], af: [-174, -178, -178], at: {j: 'pelvis', x: 0, y: py},
+    ik: {ln: {x: fx, y: -7, b: 1, f: 100}, lf: {x: -fx, y: -7, b: -1, f: -100}}});
+  def('straddle-fold', {title: 'Stående straddlefällning', view: 'front', props: [FLOOR], key: 3, frames: [
+    {p: {...upright(-78, 56), ik: {...upright(-78, 56).ik, an: {x: 24, y: -78, b: -1, h: 180}, af: {x: -24, y: -78, b: 1, h: 180}}}, hold: 400, move: 1100, cue: 'Fötterna brett isär, tårna framåt.'},
+    {p: folded(-78, 56, -.12), hold: 0, move: 300, cue: 'Fäll framåt från höften med lång rygg.', focus: ['legs']},
+    {p: folded(-78, 56, .12), hold: 0, move: 1100},
+    {p: folded(-78, 56, .62), hold: 2400, move: 1300, cue: 'Händerna i golvet mellan fötterna. Andas ut och sjunk.', focus: ['legs'], timer: true},
+  ]});
+  def('straddle-slide', {title: 'Sidoglid mot spagat', view: 'front', props: [FLOOR], key: 1, frames: [
+    {p: folded(-78, 56, .62), hold: 500, move: 2200, cue: 'Börja i straddlefällning med händerna i golvet.'},
+    {p: folded(-47, 84, .42), hold: 2400, move: 2000, cue: 'Låt fötterna glida isär. Stanna vid stark stretch och andas.', focus: ['legs'], timer: true},
+  ]});
+  const split = (s, arms) => ({front: 1, t: 0, n: 0, sw: 16, hw: 9, len: {torso: s, neck: s}, at: {j: 'pelvis', x: 0, y: -13},
+    an: arms, af: arms.map(v => -v), ik: {ln: {x: 92, y: -7, b: 1, f: 8}, lf: {x: -92, y: -7, b: -1, f: -8}}});
+  def('middle-split', {title: 'Mittspagat', view: 'front', props: [FLOOR], key: 3, frames: [
+    {p: folded(-47, 84, .42), hold: 400, move: 1800, cue: 'Från sidoglidet: händerna i golvet.'},
+    {p: {...split(-.1, [180, 180, 180]), ik: {...split(-.1, []).ik, an: {x: 62, y: HW, b: -1, h: 120}, af: {x: -62, y: HW, b: 1, h: -120}}}, hold: 500, move: 1500, cue: 'Sjunk hela vägen ner, tårna mot taket.', focus: ['legs']},
+    {p: split(1, [92, 92, 92]), hold: 2400, move: 1500, cue: 'Res överkroppen. Höften i linje med fötterna.', focus: ['legs'], timer: true},
+    {p: {...split(-.1, [180, 180, 180]), ik: {...split(-.1, []).ik, an: {x: 62, y: HW, b: -1, h: 120}, af: {x: -62, y: HW, b: 1, h: -120}}}, hold: 300, move: 1800, cue: 'Fäll fram och ta dig ut samma väg.'},
+  ]});
+}
+
+// Hips and the front split (side view). The near leg is in front, the far leg behind.
+{
+  // Low lunge on the back knee; the hip flexor of the back leg opens as the pelvis moves forward.
+  const lunge = (th, t = 0) => ({t, n: t, an: [176, 176, 176], af: [178, 178, 178], lf: [th, 270, 270], at: {j: 'kneeF', x: -14, y: -6},
+    ik: {ln: {x: 46, y: -7, b: -1, f: 118}}});
+  def('hip-flexor-lunge', {title: 'Höftböjarstretch i utfall', props: [FLOOR], key: 1, frames: [
+    {p: lunge(186), hold: 500, move: 1700, cue: 'Bakre knät i golvet, främre foten långt fram.'},
+    {p: lunge(206, -3), hold: 2400, move: 1500, cue: 'Spänn sätet och för höften framåt.', focus: ['legs'], timer: true},
+  ]});
+  // Pigeon: front shin folded under the body, back leg long behind, then fold forward.
+  const pig = (t, hx) => ({t, n: t - 6, ln: [116, 262, 250], lf: [250, 266, 262], at: {j: 'pelvis', x: 0, y: -21},
+    ik: {an: {x: hx, y: HW, b: 1, h: 90}, af: {x: hx - 2, y: HW, b: 1, h: 90}}});
+  def('pigeon', {title: 'Duvan', props: [FLOOR], key: 1, frames: [
+    {p: pig(46, 36), hold: 500, move: 2000, cue: 'Främre benet böjt, bakre benet rakt bakåt.'},
+    {p: pig(78, 66), hold: 2400, move: 1600, cue: 'Fäll långsamt fram över främre benet.', focus: ['legs'], timer: true},
+  ]});
+  // Couch stretch: back knee at the wall, shin up along it.
+  const WALL = -27;
+  const couch = (th, t, a) => ({t, n: t, lf: [th, 350, 0], at: {j: 'kneeF', x: WALL + 9, y: -6},
+    an: [a, a, a], af: [a + 2, a + 2, a + 2], ik: {ln: {x: 44, y: -7, b: -1, f: 118}}});
+  def('couch-stretch', {title: 'Couch stretch', props: [FLOOR, {k: 'wall', x: WALL, side: 'left', top: -150}], key: 1, frames: [
+    {p: couch(190, 34, 150), hold: 500, move: 2000, cue: 'Bakre knät mot väggen, smalbenet upp längs väggen.'},
+    {p: couch(204, -2, 178), hold: 2400, move: 1500, cue: 'Res överkroppen och spänn sätet.', focus: ['legs'], timer: true},
+  ]});
+  // Half split: back knee under the hip, front leg straight with the toes up.
+  const BLOCK = 14;
+  const half = (t, fold) => ({t, n: t - 8, ln: [121, 121, 30], lf: [180, 270, 270], at: {j: 'kneeF', x: 0, y: -6},
+    ...(fold ? {ik: {an: {x: 55, y: -BLOCK + HW, b: 1, h: 90}, af: {x: 53, y: -BLOCK + HW, b: 1, h: 90}}} : {an: [176, 176, 176], af: [178, 178, 178]})});
+  def('half-split', {title: 'Halv spagat', props: [FLOOR, {k: 'box', x: 47, w: 16, h: BLOCK}], key: 1, frames: [
+    {p: half(2), hold: 500, move: 1700, cue: 'Bakre knät under höften, främre benet rakt.'},
+    {p: half(74, true), hold: 2400, move: 1500, cue: 'Tårna mot taket. Fäll från höften med lång rygg.', focus: ['legs'], timer: true},
+  ]});
+  // Front split: straight legs on the floor, pelvis lowered between them, hands on blocks.
+  const fsplit = (h, t, hands) => {
+    const a = Math.acos(Math.min(1, (h - 7) / (L_TH + L_SH))) * 180 / Math.PI, f = 180 - a, b = 180 + a;
+    return {t, n: t - 10, ln: [f, f, f - 80], lf: [b, b, Math.min(b + 15, 268)], at: {j: 'pelvis', x: 0, y: -h},
+      ik: {an: {x: hands[0], y: hands[1], b: 1, h: 90}, af: {x: hands[0] - 2, y: hands[1], b: 1, h: 90}}};
+  };
+  const blocks = [{k: 'box', x: 30, w: 16, h: BLOCK}];
+  def('split-slide', {title: 'Frontspagat med stöd', props: [FLOOR, ...blocks], key: 1, frames: [
+    {p: fsplit(44, 55, [40, -BLOCK + HW]), hold: 500, move: 2200, cue: 'Händerna på blocken, främre hälen fram.'},
+    {p: fsplit(24, 54, [40, -BLOCK + HW]), hold: 2400, move: 2000, cue: 'Glid isär lite i taget. Höften rak framåt.', focus: ['legs'], timer: true},
+  ]});
+  def('front-split', {title: 'Frontspagat', props: [FLOOR, ...blocks], key: 2, frames: [
+    {p: fsplit(30, 54, [40, -BLOCK + HW]), hold: 400, move: 1800, cue: 'Från glidet: händerna på blocken.'},
+    {p: fsplit(12, 56, [40, -BLOCK + HW]), hold: 600, move: 1200, cue: 'Sjunk hela vägen ner.', focus: ['legs']},
+    {p: fsplit(12, 56, [26, HW]), hold: 2400, move: 1400, cue: 'Främre benet rakt fram, bakre rakt bak. Andas.', focus: ['legs'], timer: true},
+  ]});
+}
+
 // =====================================================================
 // CORE / BODYLINE
 // =====================================================================

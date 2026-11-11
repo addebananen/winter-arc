@@ -48,18 +48,34 @@ export const trees = [
       L('pike-fold', 'Sittande pikestretch', '3 × 30 s', ['Fäll från höften, lång rygg.', 'Raka knän, tårna mot taket.'], ['Att runda ryggen för att nå längre.']),
       L('pike-lift-one', 'Kompressionslyft, ett ben', '3 × 10 per ben', ['Händerna i golvet vid knäna.', 'Lyft benet med lårets framsida.'], ['Att luta bakåt.']),
       L('pike-lift-both', 'Kompressionslyft, båda benen', '3 × 8', ['Luta axlarna framåt över händerna.', 'Lyft båda hälarna samtidigt.'], ['Böjda knän.']),
+      L('standing-pike', 'Stående pikefällning', '3 × 30 s med handflatorna i golvet', ['Raka knän, fäll från höften.', 'Låt huvudet hänga tungt.', 'Vikten lätt fram mot tårna.'], ['Att runda ländryggen i stället för att fälla i höften.']),
     ]},
   {id: 'straddle', short: 'Straddle', name: 'Straddle', branch: 'mobility', stat: 'Flexibility', col: 0, row: 4,
-    about: 'Bred straddle behövs för straddle-varianter av planche, levers, flagga och enarms-handstand.',
+    about: 'Bred straddle behövs för straddle-varianter av planche, levers, flagga och enarms-handstand. De senare nivåerna tar dig steg för steg ner i en mittspagat.',
     levels: [
       L('pancake', 'Pancake', '3 × 45 s', ['Benen brett, tårna mot taket.', 'Fäll framåt med rak rygg.'], ['Att knäna rullar inåt.']),
       L('straddle-lift', 'Straddle-kompressionslyft', '3 × 8', ['Händerna i golvet framför dig.', 'Lyft båda benen med raka knän.']),
+      L('horse-stance', 'Hästställning', '3 × 45 s', ['Fötterna dubbelt axelbrett, tårna lätt utåt.', 'Pressa knäna utåt över tårna.', 'Sitt djupt med rak rygg.'], ['Knäna faller inåt.']),
+      L('straddle-fold', 'Stående straddlefällning', '3 × 30 s', ['Fötterna brett isär, tårna framåt.', 'Fäll från höften med lång rygg.', 'Händerna i golvet mellan fötterna.'], ['Att låsa knäna bakåt.']),
+      L('straddle-slide', 'Sidoglid mot spagat', '3 × 30 s i lägsta läget', ['Händerna i golvet eller på block framför dig.', 'Låt fötterna glida isär lite i taget.', 'Spänn insidan av låren en stund, slappna sedan av och sjunk.'], ['Att tvinga sig ner när det gör ont: stanna vid stark stretch.']),
+      L('middle-split', 'Mittspagat', '3 × 30 s', ['Höften i linje med fötterna.', 'Tårna mot taket eller framåt, inte inåt.', 'Ta dig ner via sidoglidet och ut samma väg.'], ['Att rulla bäckenet bakåt och svanka.']),
     ]},
   {id: 'ankles', short: 'Fotleder', name: 'Fotleder & djup knäböj', branch: 'mobility', stat: 'Flexibility', col: 0, row: 5,
     about: 'Fotledsrörlighet låter hälen stanna i golvet i pistol squat.',
     levels: [
       L('knee-to-wall', 'Knä mot vägg', '2 × 10 per ben, knät ca 10 cm framför tårna', ['Hälen stannar i golvet.', 'Knät följer andra tån.']),
       L('deep-squat', 'Djup knäböj, håll', '3 × 60 s med hälarna i golvet', ['Bröstet upp, vikten mitt på foten.', 'Håll i något framför dig om det behövs.']),
+      L('squat-rocks', 'Fotledsgunga i djup knäböj', '2 × 10 per ben', ['Sitt i djup knäböj.', 'För knät fram över tårna, ett ben i taget.', 'Hälen stannar i golvet.'], ['Att hälen lyfter när knät går fram.']),
+    ]},
+  {id: 'hips', short: 'Höfter', name: 'Höfter & frontspagat', branch: 'mobility', stat: 'Flexibility', col: 0, row: 6,
+    about: 'Rörliga höfter ger djupare knäböj, friare löpsteg och en väg till frontspagat. Gör båda sidor och logga den stelare.',
+    levels: [
+      L('hip-flexor-lunge', 'Höftböjarstretch i utfall', '3 × 30 s per sida', ['Bakre knät i golvet, främre foten långt fram.', 'Spänn sätet på bakre sidan.', 'För höften framåt med rak överkropp.'], ['Att svanka i stället för att spänna sätet.']),
+      L('pigeon', 'Duvan', '3 × 45 s per sida', ['Främre benet böjt framför dig, bakre benet rakt bakåt.', 'Höften rak mot golvet.', 'Fäll långsamt framåt över främre benet.'], ['Att höften tippar åt sidan.']),
+      L('couch-stretch', 'Couch stretch', '3 × 45 s per sida', ['Bakre knät mot väggen, smalbenet upp längs väggen.', 'Främre foten i golvet.', 'Res överkroppen så långt du kan med spänt säte.'], ['Svank i ländryggen.']),
+      L('half-split', 'Halv spagat', '3 × 30 s per sida', ['Bakre knät i golvet, främre benet rakt.', 'Tårna på främre foten mot taket.', 'Fäll från höften med lång rygg.'], ['Att böja främre knät.']),
+      L('split-slide', 'Frontspagat med stöd', '3 × 30 s per sida i lägsta läget', ['Händerna på block eller golvet.', 'Glid främre hälen fram och bakre knät bak.', 'Höften rak framåt.'], ['Att vrida upp bakre höften.']),
+      L('front-split', 'Frontspagat', '3 × 30 s per sida', ['Främre benet rakt fram, bakre rakt bak.', 'Höften rak och nära golvet.', 'Ta dig ner via glidet och upp samma väg.'], ['Att tvinga sig ner när det gör ont: stanna vid stark stretch.']),
     ]},
 
   // ------------------------------------------------------------ foundation
@@ -307,6 +323,8 @@ export function workoutGoal(l){
 const families={push:'push',dip:'push',hspu:'push',planche:'push',pull:'pull','muscle-up':'pull','front-lever':'pull','back-lever':'pull',legs:'legs',ankles:'legs'};
 export const workoutCatalog=trees.flatMap(t=>t.levels.map(l=>{const g=workoutGoal(l);return {id:`sk-${t.id}-${l.n}`,name:l.name,muscle:t.branch==='mobility'?'Rörlighet':'Calisthenics',equipment:['pull','dip','muscle-up','front-lever','back-lever','flag'].includes(t.id)?'Räcke':'Kroppsvikt',family:families[t.id]||'core',pose:'skill',unit:g.unit,thresholds:[1,2,3,4,5,6].map(n=>g.amount*n),cue:l.cues.join(' ')+' Mål: '+l.goal+'. Logga den svagare sidan efter båda sidor och följ målets tempo.',skillTree:t.id,skillLevel:l.n,skillAnim:l.anim,skillSets:g.sets,skillAmount:g.amount};}));
 export const workoutById=Object.fromEntries(workoutCatalog.map(e=>[e.id,e]));
+// Mobility levels added after the first skill catalog. Saving them needs database update 020.
+export const mobilityUpdateIds=new Set(['sk-pike-4','sk-straddle-3','sk-straddle-4','sk-straddle-5','sk-straddle-6','sk-ankles-3',...[1,2,3,4,5,6].map(n=>'sk-hips-'+n)]);
 const legacyStrength={pushup:'push-up',pullup:'pull-up',dip:'dip',plank:'plank',hang:'dead-hang',diamond:'diamond-push-up'};
 const legacyTraining={'incline-push':'incline-push-up','push-up':'push-up','close-push':'diamond-push-up','pike-push':'pike-push-up','squat':'squat','split-squat':'split-squat','plank':'plank','side-plank':'side-plank','dead-hang':'dead-hang','pull-up':'pull-up','hollow-hold':'hollow'};
 const cache=new WeakMap();

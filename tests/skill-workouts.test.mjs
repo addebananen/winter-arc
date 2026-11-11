@@ -10,3 +10,14 @@ test('advanced work cannot bypass missing prerequisites or retroactively unlock 
 test('generic saved plank and pull-up variants count only with the required same-session sets',()=>{const s=base();s.strength.sessions.push({id:'plank',date:'2026-11-09',finishedAt:1,exercises:[{id:'plank',sets:[45,45,45].map(reps=>({reps,done:true}))}]});assert.equal(SK.levelOf(s,'core'),1);s.skills.pull={level:4,log:[]};s.strength.sessions.push({id:'pull',date:'2026-11-10',finishedAt:2,exercises:[{id:'pullup',sets:[8,8,8].map(reps=>({reps,done:true}))}]});assert.equal(SK.levelOf(s,'pull'),5);});
 
 test('single timed goals use seconds and unlock from a matching completed hold',()=>{assert.deepEqual(SK.workoutGoal(SK.treeById.oahs.levels[6]),{sets:1,amount:10,unit:'sek'});const s=base();s.skills={oahs:{level:6,log:[]},handstand:{level:7,log:[]},straddle:{level:1,log:[]}};s.strength.sessions.push(session('oahs',7,[10]));assert.equal(SK.levelOf(s,'oahs'),7);});
+
+test('new mobility progressions are appended, linked to workouts and shipped in migration 020',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ assert.equal(SK.treeById.straddle.levels[0].anim,'pancake');assert.equal(SK.treeById.straddle.levels[1].anim,'straddle-lift');
+ assert.equal(SK.treeById.straddle.levels.at(-1).anim,'middle-split');assert.equal(SK.treeById.hips.levels.at(-1).anim,'front-split');
+ const sql=await readFile(new URL('../supabase/020_mobility_progressions.sql',import.meta.url),'utf8');
+ for(const id of SK.mobilityUpdateIds){assert.ok(SK.workoutById[id],id);assert.match(sql,new RegExp(`"id":"${id}"`));}
+ const s=base();s.skills.straddle={level:2,log:[]};assert.equal(SK.levelOf(s,'straddle'),2);
+ s.strength.sessions.push(session('straddle',3,[45,45,45]),session('hips',1,[30,30,30],'2026-11-10'));
+ assert.equal(SK.levelOf(s,'straddle'),3);assert.equal(SK.levelOf(s,'hips'),1);assert.equal(SK.workoutById['sk-hips-1'].unit,'sek');
+});
