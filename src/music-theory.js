@@ -125,6 +125,21 @@ export function cadence(root, minor = false) {
   ]);
 }
 
+// How each scale degree feels against the key. This is what to listen for.
+export const DEGREE_FEEL = {
+  '1': 'Ettan är hemma. Den känns färdig, som sista tonen i en låt.',
+  'b2': 'Den låga tvåan ligger tätt över hemma och skaver tills den faller ner till 1.',
+  '2': 'Tvåan ligger precis över hemma och vill gärna falla ner till 1.',
+  'b3': 'Den låga trean är mörk. Det är den som ger mollfärgen.',
+  '3': 'Trean är ljus och mjuk. Den ger durfärgen och vilar nästan, men inte helt.',
+  '4': 'Fyran lutar nedåt. Den vill ner ett litet steg till 3.',
+  '#4': 'Den höjda fyran är den mest spända tonen. Den vill upp till 5.',
+  '5': 'Femman är stark och öppen. Stabil, men inte hemma.',
+  'b6': 'Den låga sexan är mörk och vill ner till 5.',
+  '6': 'Sexan är mjuk och lite längtande. Den vill ner till 5.',
+  'b7': 'Den låga sjuan låter bluesig och drar inte lika hårt hem.',
+  '7': 'Sjuan ligger precis under hemma och drar hårt uppåt till 1.',
+};
 export function degreeQuestion(R, {pool, minor = false}) {
   const key = R.pick(KEYS), root = keyRoot(key), iv = R.pick(pool);
   const note = midiOf(root) + semis(iv) + (R() < .3 ? 12 : 0);
@@ -132,8 +147,40 @@ export function degreeQuestion(R, {pool, minor = false}) {
     kind: 'degree', prompt: `Tonart: ${key}${minor ? '-moll' : '-dur'}. Vilket skalsteg är tonen?`,
     options: pool.map(id => ({id, label: degreeLabel(id), sub: id === '1' ? 'grundton' : ''})), answer: iv,
     play: [...cadence(root, minor), {t: 4.4, notes: [note], dur: 1.4, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.4, inst: 'keys'}],
-    reveal: `${degreeLabel(iv)} i ${key}${minor ? '-moll' : '-dur'} är ${nameOf(transpose(root, iv))}.`,
+    reveal: `${degreeLabel(iv)} i ${key}${minor ? '-moll' : '-dur'} är ${nameOf(transpose(root, iv))}.`, why: DEGREE_FEEL[iv] || '',
   };
+}
+
+// The gentlest ear games: no names to learn, only "what happened between the notes?".
+// direction: is the second note higher or lower? same: the same note twice or not? step: a step to the
+// neighbour or a leap? home: after a cadence, does the note rest on the key note or want to move on?
+export function compareQuestion(R, {mode, gaps = [7, 12], leaps = [5, 7, 9, 12]}) {
+  const two = (a, b) => [{t: 0, notes: [a], dur: 1, inst: 'keys'}, {t: 1.2, notes: [b], dur: 1.4, inst: 'keys'}];
+  const names = (a, b) => `${pcName(a)} → ${pcName(b)}`, first = 55 + R.int(10);
+  if (mode === 'home') {
+    const key = R.pick(KEYS), root = keyRoot(key), home = R() < .5, iv = home ? '1' : R.pick(['2', '4', '7']);
+    const note = midiOf(root) + semis(iv) + (home && R() < .3 ? 12 : 0);
+    return {kind: 'compare', prompt: 'Vilar tonen hemma, eller vill den vidare?',
+      options: [{id: 'home', label: 'Hemma', sub: 'vilar'}, {id: 'away', label: 'Borta', sub: 'vill vidare'}], answer: home ? 'home' : 'away', why: home ? 'Tonen var tonartens grundton. Den känns färdig, som slutet på en låt.' : 'Tonen ligger utanför vilan och vill röra sig till en ton i närheten.',
+      play: [...cadence(root, false), {t: 4.4, notes: [note], dur: 1.6, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.6, inst: 'keys'}],
+      facts: [['Tonart', key], ['Ton', nameOf(transpose(root, iv))], ['Skalsteg', degreeLabel(iv)]]};
+  }
+  if (mode === 'same') {
+    const same = R() < .5, gap = same ? 0 : R.pick(gaps) * R.pick([1, -1]), play = two(first, first + gap);
+    return {kind: 'compare', prompt: 'Är det samma ton två gånger?',
+      options: [{id: 'same', label: 'Samma', sub: 'samma ton'}, {id: 'diff', label: 'Olika', sub: 'tonen ändras'}], answer: same ? 'same' : 'diff', why: same ? 'Det var samma ton två gånger. Ingenting rörde sig.' : 'Tonen flyttade sig. Nynna båda, så känner du att rösten byter läge.', play, replay: play,
+      facts: [['Toner', names(first, first + gap)]]};
+  }
+  if (mode === 'step') {
+    const step = R() < .5, gap = (step ? R.pick([1, 2]) : R.pick(leaps)) * R.pick([1, -1]), play = two(first, first + gap);
+    return {kind: 'compare', prompt: 'Går melodin ett steg eller gör den ett hopp?',
+      options: [{id: 'step', label: 'Ett steg', sub: 'till grannen'}, {id: 'leap', label: 'Ett hopp', sub: 'längre bort'}], answer: step ? 'step' : 'leap', why: step ? 'Tonerna är grannar, som två toner i rad i en skala.' : 'Melodin hoppade över flera toner på vägen.', play, replay: play,
+      facts: [['Toner', names(first, first + gap)], ['Halvtoner', String(Math.abs(gap))]]};
+  }
+  const up = R() < .5, gap = R.pick(gaps) * (up ? 1 : -1), play = two(first, first + gap);
+  return {kind: 'compare', prompt: 'Är den andra tonen högre eller lägre?',
+    options: [{id: 'up', label: 'Högre', sub: 'ljusare'}, {id: 'down', label: 'Lägre', sub: 'mörkare'}], answer: up ? 'up' : 'down', why: up ? 'Den andra tonen låg högre: ljusare och tunnare i klangen.' : 'Den andra tonen låg lägre: mörkare och fylligare i klangen.', play, replay: play,
+    facts: [['Toner', names(first, first + gap)], ['Halvtoner', String(Math.abs(gap))]]};
 }
 
 export function intervalQuestion(R, {pool, dir = 'up'}) {
