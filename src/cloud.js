@@ -5,10 +5,10 @@ export const configured = Boolean(config.supabaseUrl && config.supabaseKey);
 export const googleReady = configured && config.googleEnabled === true;
 export const client = configured ? createClient(config.supabaseUrl,config.supabaseKey,{auth:{flowType:'pkce',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}}) : null;
 export let user = null;
-export let trainingReady=false,skillWorkoutsReady=false,coreCatalogReady=false,skillStartReady=false,mobilityReady=false;
+export let trainingReady=false,skillWorkoutsReady=false,coreCatalogReady=false,skillStartReady=false,mobilityReady=false,trainingVersion=0;
 let revision=0;
 const check = ({data,error})=>{if(error)throw error;return data;};
-export async function initialize(){if(!client)return null;const session=check(await client.auth.getSession());user=session.session?.user||null;if(user){try{const result=await client.rpc('training_expansion_ready');trainingReady=result.data>=9;skillWorkoutsReady=result.data>=10;coreCatalogReady=result.data>=14;skillStartReady=result.data>=15;mobilityReady=result.data>=20;}catch{trainingReady=false;}}return user;}
+export async function initialize(){if(!client)return null;const session=check(await client.auth.getSession());user=session.session?.user||null;if(user){try{const result=await client.rpc('training_expansion_ready');trainingReady=result.data>=9;skillWorkoutsReady=result.data>=10;coreCatalogReady=result.data>=14;skillStartReady=result.data>=15;mobilityReady=result.data>=20;trainingVersion=Number(result.data)||0;}catch{trainingReady=false;}}return user;}
 export async function login(){if(!googleReady)throw Error('Google-inloggningen väntar på att OAuth-klienten aktiveras i Supabase.');check(await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}}));}
 export async function logout(){if(client)check(await client.auth.signOut());user=null;}
 export async function load(){const row=check(await client.from('user_states').select('payload,revision').eq('user_id',user.id).maybeSingle());revision=row?.revision||0;return row?.payload||null;}
