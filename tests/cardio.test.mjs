@@ -53,12 +53,12 @@ test('exercise figure: hands close around what they hold, rest flat on the floor
   assert.equal(push.hand.style, 'flat');
   assert.deepEqual(push.hand.d.map(v => Math.round(v * 100) / 100), [1, 0], 'Fingers point forward along the floor');
   assert.equal(framesOf(S.liftById.situp)[0].limbs.an.hand.style, 'open');
-  const svg = movementArt(S.liftById.bench, false);
+  const svg = movementArt(S.liftById.bench, true);
   assert.match(svg, /stroke-width=".7"/, 'Knuckle creases are drawn');
   assert.ok(svg.indexOf('a16 16 0 1 0 32 0') > svg.lastIndexOf('stroke-width=".7"'), 'Seen from the side, the plate is in front of the hand and hides it');
-  const curl = movementArt(S.liftById['db-curl'], false), discs = [...curl.matchAll(/a8 8 0 1 0 16 0/g)].map(m => m.index), hand = curl.lastIndexOf('stroke-width=".7"');
+  const curl = movementArt(S.liftById['db-curl'], true), discs = [...curl.matchAll(/a8 8 0 1 0 16 0/g)].map(m => m.index), hand = curl.lastIndexOf('stroke-width=".7"');
   assert.ok(discs[0] < hand && discs[1] > hand, 'The far dumbbell is behind the body, the near one in front of the hand');
-  const front = movementArt(S.liftById.lateral, false);
+  const front = movementArt(S.liftById.lateral, true);
   assert.ok(front.indexOf('fill="#1f2a30"') < front.lastIndexOf('stroke-width=".7"'), 'From the front, the fingers wrap in front of the dumbbell');
 });
 

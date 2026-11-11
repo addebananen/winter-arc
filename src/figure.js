@@ -177,13 +177,18 @@ const muscleShapes = {
 const headSide = [[2.6, -6.6], [8.5, -7.8], [14.1, -8.8], [19.9, -7.6], [22.6, -2.9], [21.7, 6.4], [18.2, 10.8], [15.2, 12], [13.2, 12.2], [12, 11.9], [10, 13.4], [8.1, 14.5],
   [7.2, 13.9], [7, 12.8], [6.1, 12.9], [5, 13], [4.2, 12.3], [3.7, 12.6], [2.8, 12], [1.5, 12.3], [.4, 11.4], [-.4, 7.4], [-3.6, 5.8], [-7.4, 6.4], [-7.8, -5.8], [-3, -6.4]];
 // Short hair: hairline at the forehead, over the crown, down to the nape, around the ear and a sideburn.
-const hairSide = [[18.4, 10.5], [19.8, 9.7], [22.4, 7], [23.6, 2.6], [23.5, -2.6], [21.4, -7.6], [16.8, -9.6], [11.6, -9.3], [9.8, -8.4], [10.8, -6.4], [13.2, -3.8],
-  [14.6, -1.2], [15.4, 1.6], [16.4, 4.6], [17.4, 7.6], [17.9, 9.6]];
+const hairSide = [[18.6, 9.4], [20.6, 5.4], [21.4, 0], [21, -5.2], [18.8, -9.4], [13, -9.8], [8.6, -8.6], [6.4, -7.2], [7.4, -6], [10.6, -6.2], [13, -3.6], [14.4, -1],
+  [15.2, 1.6], [16.2, 4.8], [17.1, 7.8]];
+// Top of the hair: a quiff at the front, swept back over the crown.
+const hairTop = [[18, 10.5], [19.4, 11.7], [21.8, 11.1], [23.8, 8.4], [24.6, 4], [24.4, -1.2], [22.8, -6], [19.8, -9], [17.6, -8.8], [19.2, -5.6], [20.2, -1.2], [19.8, 3.2], [18.8, 6.8], [18, 8.8]];
+const hairStrands = [[[23, 8.8], [23.8, 3.2], [23.2, -2.4], [21.2, -6.6]], [[21.4, 10.2], [22.6, 4.6], [22.2, -1.2], [20.4, -5.6]], [[19.8, 10.8], [21.2, 6.4], [21.2, .8], [19.8, -3.6]],
+  [[17.6, -1.4], [16.6, -4.8]], [[16.6, 2.4], [15.8, -1.2]], [[15, -6.4], [12.4, -8.2]], [[11.6, -7.4], [9, -7.8]]];
 // Face seen from the front: [up, sideways].
 const headFront = [[1.4, 0], [2.6, 3.6], [5.4, 6.4], [9.4, 7.8], [13.6, 8.2], [17.6, 7.6], [20.6, 5], [22, 0], [20.6, -5], [17.6, -7.6], [13.6, -8.2], [9.4, -7.8], [5.4, -6.4], [2.6, -3.6]];
-const hairFront = [[16.6, 8.4], [19.6, 8.2], [22.2, 5.4], [23, 0], [22.2, -5.4], [19.6, -8.2], [16.6, -8.4], [16.8, -7.4], [18.2, -5.4], [18.9, -2.2], [19, 1.2], [18.6, 4.6], [17.4, 7]];
+const hairFront = [[16.2, 8.6], [19.4, 8.6], [22.4, 7], [24.2, 2.6], [24.2, -2.6], [22.4, -7], [19.4, -8.6], [16.2, -8.6], [16.6, -7.4], [18.4, -5.6], [19, -2.2], [19.1, 1.2], [18.7, 4.6], [17.2, 7.2]];
 
-const palette = {skin: '#e3c6ad', skinFar: '#b99c86', skinLine: '#8a6b57', shirt: '#5f93c9', shirtFar: '#4a77a6', shorts: '#2c3d52', shortsFar: '#22303f', shoe: '#e8eef1', shoeFar: '#b7c2c7', sole: '#7c8b93', hair: '#3b2e27', hl: '#ff7a59'};
+const palette = {skin: '#e3c6ad', skinFar: '#b99c86', skinLine: '#8a6b57', shirt: '#5b6570', shirtFar: '#48515b', trim: '#4a535d', trimFar: '#3c444c', shorts: '#5b6570', shortsFar: '#48515b',
+  shoe: '#eef2f4', shoeFar: '#c3cbcf', sole: '#56636b', stripe: '#e2474b', hair: '#3b2e27', hairSide: '#4d3d33', hairLine: '#6a5444', hl: '#ff7a59'};
 // Which body parts light up for an exercise's muscle group.
 const highlights = {'Bröst': ['chest', 'uarm'], 'Bröst & armar': ['chest', 'uarm', 'farm'], 'Ben': ['thigh', 'glutes', 'shin'], 'Rygg & ben': ['back', 'glutes', 'thigh'], 'Axlar': ['delt'], 'Balans & axlar': ['delt', 'abs'], 'Rygg': ['back', 'delt'], 'Armar': ['uarm', 'farm'], 'Bål': ['abs'], 'Mage': ['abs'], 'Grepp': ['farm', 'hand']};
 
@@ -198,26 +203,43 @@ function shapes(fr, hl) {
       if (on('thigh')) out.push([k + 'thighH', limb(L.root, L.mid, 8.6, 5.6, 8.8, 8.2, .38, fr.n), palette.hl, ' fill-opacity=".45"']);
       out.push([k + 'shin', limb(L.mid, L.end, 5.4, 3.4, 4.8, 6.4, .3, fr.n), skin]);
       if (on('shin')) out.push([k + 'shinH', limb(L.mid, L.end, 5.4, 3.4, 4.8, 6.4, .3, fr.n), palette.hl, ' fill-opacity=".35"']);
-      const sh = add(L.root, mul(norm(sub(L.mid, L.root)), bones.thigh * .55));
+      const sh = add(L.root, mul(norm(sub(L.mid, L.root)), bones.thigh * .6));
       out.push([k + 'shorts', limb(L.root, sh, 9.8, 8.8, 9.8, 9.6, .5, fr.n), far ? palette.shortsFar : palette.shorts]);
-      out.push([k + 'shoe', shoe(L, side), far ? palette.shoeFar : palette.shoe, ` stroke="${palette.sole}" stroke-width="1.2"`]);
+      const sn = sneaker(L, side);
+      out.push([k + 'sole', sn.sole, palette.sole]);
+      out.push([k + 'shoe', sn.upper, far ? palette.shoeFar : palette.shoe, ` stroke="#8c989e" stroke-width=".7"`]);
+      out.push([k + 'stripe', sn.stripe, 'none', ` stroke="${palette.stripe}" stroke-width="1.2" stroke-linecap="round"`]);
+      out.push([k + 'laces', sn.laces, 'none', ' stroke="#9aa7ad" stroke-width=".6" stroke-linecap="round"']);
     } else {
-      out.push([k + 'uarm', limb(L.root, L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), skin]);
+      const sleeve = far ? palette.shirtFar : palette.shirt, trim = far ? palette.trimFar : palette.trim;
+      out.push([k + 'uarm', limb(L.root, L.mid, 6.6, 5, 6.8, 7, .42, fr.n), sleeve]);
       if (on('uarm')) out.push([k + 'uarmH', limb(L.root, L.mid, 5.9, 4.4, 6.1, 6.3, .42, fr.n), palette.hl, ' fill-opacity=".45"']);
-      out.push([k + 'farm', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), skin]);
+      out.push([k + 'farm', limb(L.mid, L.end, 5.2, 4, 5.5, 5.3, .3, fr.n), sleeve]);
+      const wd = norm(sub(L.end, L.mid));
+      out.push([k + 'cuff', limb(sub(L.end, mul(wd, 2.6)), add(L.end, mul(wd, .4)), 3.9, 3.7, 3.9, 3.9, .5, fr.n), trim]);
       if (on('farm')) out.push([k + 'farmH', limb(L.mid, L.end, 4.4, 3.1, 4.9, 4.6, .28, fr.n), palette.hl, ' fill-opacity=".4"']);
       const hm = handModel(L);
       out.push([k + 'hand', smooth(hm.outline), on('hand') ? palette.hl : skin, on('hand') ? ' fill-opacity=".85"' : '']);
       out.push([k + 'crease', hm.creases, 'none', ` stroke="${far ? '#6f574a' : palette.skinLine}" stroke-width=".7" stroke-linecap="round" stroke-opacity=".75"`]);
       out.push([k + 'thumb', limb(hm.thumb[0], hm.thumb[1], 1.9, 1.5, 2, 2, .5, fr.n), skin]);
       const delt = add(L.root, mul(norm(sub(L.mid, L.root)), 5));
-      out.push([k + 'delt', limb(L.root, delt, 6.8, 5.8, 7, 6.6, .5, fr.n), on('delt') ? palette.hl : skin, on('delt') ? ' fill-opacity=".8"' : '']);
+      out.push([k + 'delt', limb(L.root, delt, 7.4, 6.4, 7.6, 7.2, .5, fr.n), on('delt') ? palette.hl : sleeve, on('delt') ? ' fill-opacity=".8"' : '']);
     }
   };
   const torso = () => {
     const o = local(fr.P, mul(fr.u, bones.torso), side ? fr.n : fr.n);
     out.push(['torso', smooth(o(side ? torsoSide : torsoFront)), palette.shirt]);
     out.push(['shorts', smooth(o(side ? shortsSide : shortsFront)), palette.shorts]);
+    // The hoodie's ribbed hem over the waistband, the kangaroo pocket and the hood.
+    out.push(['hem', smooth(o(side ? [[.13, -9.9], [.25, -8.9], [.25, 9.3], [.13, 9.5]] : [[.12, 9.9], [.24, 10], [.24, -10], [.12, -9.9]])), palette.trim]);
+    out.push(['pocket', smooth(o(side ? [[.46, 8.4], [.44, 3.8], [.27, 3.4], [.26, 9]] : [[.46, -5.6], [.46, 5.6], [.26, 7.6], [.26, -7.6]])), palette.trim]);
+    out.push(['hood', smooth(o(side ? [[1.18, -1.4], [1.22, -5.8], [1.06, -10.4], [.88, -10], [.94, -6.4], [1.04, -2.8]] : [[1.14, 6.4], [1.04, 9.8], [.9, 7], [.97, 0], [.9, -7], [1.04, -9.8], [1.14, -6.4], [1.08, 0]])), palette.trim]);
+    if (!side) out.push(['strings', [[.97, 1.6], [.97, -1.6]].map(([a, b]) => `M${pt(o([[a, b]])[0])}L${pt(o([[.74, b * 1.2]])[0])}`).join(''), 'none', ' stroke="#d9dee2" stroke-width=".7" stroke-linecap="round"']);
+    // The Beyond Self logo on the chest: black badge, white mountain, red flag.
+    const lc = add(fr.P, add(mul(fr.u, bones.torso * (side ? .78 : .8)), mul(fr.n, side ? 5.4 : -5.6))), lo = local(lc, fr.u, fr.n);
+    out.push(['logo', smooth(lo([[2.1, -2.1], [2.3, 0], [2.1, 2.1], [0, 2.3], [-2.1, 2.1], [-2.3, 0], [-2.1, -2.1], [0, -2.3]])), '#0d0f11', ' stroke="#e9edef" stroke-width=".4"']);
+    out.push(['logoPeak', `M${pt(lo([[-1.4, -1.6]])[0])}L${pt(lo([[1.1, 0]])[0])}L${pt(lo([[-1.4, 1.6]])[0])}Z`, '#f4f6f7']);
+    out.push(['logoFlag', `M${pt(lo([[1.1, 0]])[0])}L${pt(lo([[1.9, .1]])[0])}L${pt(lo([[1.6, .8]])[0])}Z`, palette.stripe]);
     const m = muscleShapes[fr.view];
     for (const part of ['chest', 'abs', 'back', 'glutes']) if (on(part) && m[part].length) out.push([part, smooth(o(m[part])), palette.hl, ' fill-opacity=".55"']);
     out.push(['neck', limb(fr.S, fr.neck, side ? 4.4 : 5.2, side ? 4.2 : 4.9, side ? 4.4 : 5.2, side ? 4.4 : 5.2, .5, fr.n), palette.skin]);
@@ -233,8 +255,9 @@ function shapes(fr, hl) {
       out.push(['ear', smooth(o([[13.4, .4], [12.8, -1.6], [11, -2.2], [9, -1.4], [7.6, 0], [8.2, 1.2], [10.4, 1.5], [12.4, 1.4]])), palette.skin]);
       named('earFold', line(o([[12.2, .2], [11.6, -1], [10.2, -1.1], [9.2, -.2]]), .7));
       void ear;
-      out.push(['hair', smooth(o(hairSide)), palette.hair]);
-      named('hairLine', line(o([[21.6, 6.4], [22.6, 1.6], [21.8, -3.6], [19, -7.2]]), .8, '#5a463b'));
+      out.push(['hair', smooth(o(hairSide)), palette.hairSide]);
+      out.push(['hairTop', smooth(o(hairTop)), palette.hair]);
+      hairStrands.forEach((st, i) => named('strand' + i, line(o(st), i < 3 ? .7 : .55, palette.hairLine)));
       // Eye, brow and lips.
       // Eye in profile: almond opening with white and iris, an upper lid, the brow above.
       out.push(['brow', smooth(o([[13.15, 11.75], [13.75, 10.7], [13.75, 8.7], [13.3, 8.6], [13.3, 10.4], [12.85, 11.5]])), palette.hair]);
@@ -250,7 +273,9 @@ function shapes(fr, hl) {
       out.push(['earL', smooth(o([[15, -8], [13.6, -9.6], [10.4, -9.4], [9.4, -8]])), palette.skin]);
       out.push(['head', smooth(o(headFront)), palette.skin]);
       out.push(['hair', smooth(o(hairFront)), palette.hair]);
-      named('hairPart', line(o([[22.2, -2.4], [20.4, -3.2], [18.6, -2.6]]), .8, '#5a463b'));
+      out.push(['hairSideR', smooth(o([[17.6, 8.6], [16.2, 8.7], [15.8, 8.3], [17.2, 7.4], [19.2, 7.6]])), palette.hairSide]);
+      out.push(['hairSideL', smooth(o([[17.6, -8.6], [16.2, -8.7], [15.8, -8.3], [17.2, -7.4], [19.2, -7.6]])), palette.hairSide]);
+      [[[23.8, -1.4], [22.4, -3.8], [20.4, -5.6]], [[24, 2.2], [22.6, .8], [20.4, 1.4]]].forEach((st, i) => named('strand' + i, line(o(st), .55, palette.hairLine)));
       for (const [k, sgn] of [['R', 1], ['L', -1]]) out.push(['brow' + k, smooth(o([[14.2, 1.3 * sgn], [14.85, 2.9 * sgn], [14.75, 5.1 * sgn], [14.3, 5.2 * sgn], [14.35, 3.1 * sgn], [13.85, 1.5 * sgn]])), palette.hair]);
       for (const [k, sgn] of [['R', 1], ['L', -1]]) {
         out.push(['eye' + k, smooth(o([[13, 1.8 * sgn], [13.55, 3.3 * sgn], [13, 4.8 * sgn], [12.55, 3.3 * sgn]])), '#f3ede6', ' stroke="#8a6b57" stroke-width=".45"']);
@@ -264,6 +289,22 @@ function shapes(fr, hl) {
   if (side) { segs('lf', true); segs('af', true); torso(); segs('ln', false); head(); segs('an', false); }
   else { segs('lf', false); segs('ln', false); torso(); head(); segs('af', false); segs('an', false); }
   return out;
+}
+// A sneaker: white upper, grey sole, red side stripe and laces. Side view in foot coordinates [along, up].
+function sneaker(L, side) {
+  if (!side) {
+    const at = ([x, y]) => add(L.end, [x, -y]);
+    const upper = smooth([[-4.6, -1], [-4.4, 3], [-2, 4.4], [2, 4.4], [4.4, 3], [4.6, -1]].map(at));
+    const sole = smooth([[-5.2, -.4], [5.2, -.4], [5.4, -2.4], [4.4, -3.6], [-4.4, -3.6], [-5.4, -2.4]].map(at));
+    const lines = p => p.map(([a, b]) => `M${pt(at(a))}L${pt(at(b))}`).join('');
+    return {upper, sole, stripe: lines([[[-4.2, .6], [-2.4, 2.2]]]), laces: lines([[[-1.4, 3.4], [1.4, 3.4]], [[-1.2, 2.2], [1.2, 2.2]]])};
+  }
+  const d = dir(L.tipAngle), n = [-d[1], d[0]], down = dot(n, [0, 1]) >= 0 ? n : mul(n, -1);
+  const at = ([x, y]) => add(L.end, add(mul(d, x), mul(down, -y)));
+  const upper = smooth([[-4.2, -1.2], [-4.6, 2.2], [-3.2, 4.6], [.6, 4.8], [3.6, 3.8], [7.6, 2.4], [11.6, 1.4], [14.4, .4], [15.2, -1.2]].map(at));
+  const sole = smooth([[-5.2, -.8], [15.8, -.8], [16, -2.6], [14.8, -3.8], [-4.4, -3.8], [-5.4, -2.4]].map(at));
+  const lines = p => p.map(pts => pts.map((q, i) => (i ? 'L' : 'M') + pt(at(q))).join('')).join('');
+  return {upper, sole, stripe: lines([[[.4, 2.8], [4, 1.2], [8.6, .6]]]), laces: lines([[[2.4, 4.2], [3.8, 3.2]], [[4.8, 3.6], [6.2, 2.6]]])};
 }
 function shoe(L, side) {
   const d = dir(L.tipAngle), up = side ? mul(d, 1) : [0, 0];
@@ -380,8 +421,10 @@ function specFor(e) {
 }
 
 // Every drawn shape of one frame, in drawing order: gear behind, body, gear in hand, near arm, gear in front.
-function drawList(fr, e, spec, hl) {
-  const body = shapes(fr, hl), gear = gearShapes(fr, e, spec), view = fr.view;
+// Fine details only matter when the figure is shown large; thumbnails leave them out to stay light.
+const FINE = /strand|laces|stripe|crease|logoPeak|logoFlag|earFold|nostril|lid|iris|jaw|strings/;
+function drawList(fr, e, spec, hl, fine = true) {
+  const body = shapes(fr, hl).filter(x => fine || !FINE.test(x[0])), gear = gearShapes(fr, e, spec), view = fr.view;
   const split = body.findIndex(x => x[0] === (view === 'side' ? 'anuarm' : 'afuarm'));
   const layer = name => gear.filter(g => (g[4] || 'top') === name);
   return [...layer('back'), ...body.slice(0, split), ...layer('mid'), ...body.slice(split), ...layer('top')];
@@ -393,7 +436,7 @@ export function figureArt(e, animated = false) {
   const view = spec.view || 'side', hl = highlights[e.muscle] || [];
   const list = frames(spec, view);
   const moving = animated && spec.keys.length > 1;
-  const items = drawList(list[0], e, spec, hl);
+  const items = drawList(list[0], e, spec, hl, animated);
   const paths = items.map(([, d, fill, extra = ''], i) => {
     const outline = fill === 'none' || extra.includes('stroke=') ? '' : ' stroke="#00000038" stroke-width=".8"';
     return `<path${moving ? ` data-i="${i}"` : ''} d="${d}" fill="${fill}"${extra}${outline}/>`;
