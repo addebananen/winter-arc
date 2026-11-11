@@ -161,7 +161,7 @@ function stand(x = 0, extra = {}) {
 {
   const BOX = 46, wx = 0, wy = -BOX + HW;
   const pose = (sx, sy, t) => ({t, n: t + 4, at: {j: 'shoulder', x: sx, y: sy},
-    ik: {an: {x: wx, y: wy, b: -1, h: 270}, af: {x: wx - 2, y: wy, b: -1, h: 270}, ln: {x: sx + 62, y: -7, b: -1, f: 118}, lf: {x: sx + 60, y: -7, b: -1, f: 119}}});
+    ik: {an: {x: wx, y: wy, b: 1, h: 100}, af: {x: wx - 2, y: wy, b: 1, h: 100}, ln: {x: sx + 62, y: -7, b: -1, f: 118}, lf: {x: sx + 60, y: -7, b: -1, f: 119}}});
   def('bench-shoulder', {title: 'Axelstretch bakåt', props: [FLOOR, {k: 'box', x: -40, w: 44, h: BOX}], key: 1, frames: [
     {p: pose(20, -101, 2), hold: 500, move: 1700, cue: 'Händerna bakom dig på bänken, fingrarna framåt.'},
     {p: pose(28, -78, 0), hold: 2200, move: 1500, cue: 'Sänk dig långsamt. Bröstet öppet, axlarna bort från öronen.', focus: ['shoulders'], timer: true},

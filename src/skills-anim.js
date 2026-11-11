@@ -219,7 +219,7 @@ export function sample(anim, time) {
 }
 
 // ---------- drawing ----------
-const C = {edge: '#142022', near: '#d4ece5', far: '#7d9f97', torso: '#bfe0d7', head: '#e9f4f0', focus: '#e0c799', prop: '#56696a', propFill: '#223030', floor: '#3a4b4c', ghost: 'rgba(198,231,223,.13)'};
+const C = {edge: '#142022', near: '#d4ece5', far: '#7d9f97', torso: '#bfe0d7', head: '#e9f4f0', focus: '#e0c799', prop: '#56696a', propFill: '#223030', floor: '#55696a', ghost: 'rgba(198,231,223,.13)'};
 const W = {ua: 9.5, fa: 8, hand: 6, th: 13.5, sh: 10, foot: 6.5};
 
 function propsSVG(props = [], J) {
@@ -298,7 +298,8 @@ export function frameBox(anim, aspect) {
     if (pr.k === 'dip') { take(pr.x - 30, pr.y); take(pr.x + 30, pr.y); }
     if (pr.k === 'para') take(pr.x, -12, 14);
   }
-  if ((anim.props || []).some(p => p.k === 'floor')) take(x0, 4);
+  // Show the floor whenever the body is near it, so nothing seems to float.
+  if ((anim.props || []).some(p => p.k === 'floor') || y1 > -40) take(x0, 12);
   const pad = 14; x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
   aspect ??= Math.max(1.1, Math.min(1.6, (x1 - x0) / (y1 - y0)));
   let w = Math.max(x1 - x0, 170), h = Math.max(y1 - y0, 106);
@@ -313,11 +314,14 @@ function sceneSVG(anim, pose, box, opts = {}) {
   const ghosts = (opts.ghosts || []).map(g => figureSVG(solve(g), {ghost: true})).join('');
   const front = new Set(['bar', 'rings', 'band']), all = anim.props || [];
   const back = propsSVG(all.filter(p => !front.has(p.k)), sol.J), fore = propsSVG(all.filter(p => front.has(p.k)), sol.J);
-  const floorLine = floor ? `<line x1="${box.x}" y1="0.5" x2="${box.x + box.w}" y2="0.5" stroke="url(#skf)" stroke-width="1.4"/>` : '';
+  // The floor: a lighter surface below y = 0 with an edge, and a soft contact shadow under what touches it.
+  const bottom = box.y + box.h, near = Object.values(sol.J).filter(v => v[1] > -16).map(v => v[0]);
+  const shadow = near.length ? `<ellipse cx="${((Math.min(...near) + Math.max(...near)) / 2).toFixed(1)}" cy="1" rx="${((Math.max(...near) - Math.min(...near)) / 2 + 14).toFixed(1)}" ry="3.2" fill="#000" opacity=".35"/>` : '';
+  const floorLine = floor || bottom > 2 ? `<rect x="${(box.x - box.w).toFixed(1)}" y="0.5" width="${(box.w * 3).toFixed(1)}" height="${Math.max(0, bottom).toFixed(1)}" fill="url(#skg)"/><line x1="${(box.x - box.w).toFixed(1)}" y1="0.5" x2="${(box.x + box.w * 2).toFixed(1)}" y2="0.5" stroke="${C.floor}" stroke-width="1.6"/>${shadow}` : '';
   return `${floorLine}${back}${ghosts}${figureSVG(sol, {focus: opts.focus, props: all, fine: opts.fine, memo: opts.memo})}${fore}`;
 }
 
-const DEFS = `<defs><linearGradient id="skf" x1="0" x2="1"><stop offset="0" stop-color="${C.floor}" stop-opacity="0"/><stop offset=".15" stop-color="${C.floor}"/><stop offset=".85" stop-color="${C.floor}"/><stop offset="1" stop-color="${C.floor}" stop-opacity="0"/></linearGradient></defs>`;
+const DEFS = `<defs><linearGradient id="skg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".07"/><stop offset="1" stop-color="#ffffff" stop-opacity=".015"/></linearGradient><linearGradient id="skf" x1="0" x2="1"><stop offset="0" stop-color="${C.floor}" stop-opacity="0"/><stop offset=".15" stop-color="${C.floor}"/><stop offset=".85" stop-color="${C.floor}"/><stop offset="1" stop-color="${C.floor}" stop-opacity="0"/></linearGradient></defs>`;
 
 // Static picture of one keyframe (for tree nodes and thumbnails).
 export function poseSVG(anim, index = anim.key ?? 0, cls = 'sk-thumb') {
