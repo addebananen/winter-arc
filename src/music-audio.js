@@ -1,5 +1,6 @@
-// Small Web Audio engine for the music games: soft keys, a plucked bass, a click and drums,
-// plus a microphone listener for pitch and loudness. Everything is synthesised; no sample files.
+// Small Web Audio engine for the music games: a recorded grand piano and electric bass, a click and
+// drums, plus a microphone listener for pitch and loudness. The piano and bass are real recordings in
+// `src/sounds/` (see docs/musik-skill-tree.md for sources). If they have not loaded, a synth plays instead.
 //
 // iPhone notes: audio may only start inside a tap, so `unlock()` is called from button handlers.
 // `navigator.audioSession` (iOS 17+) makes sound play even with the ring/silent switch on, and is
@@ -22,6 +23,7 @@ export function unlock() {
     master.connect(comp); comp.connect(ctx.destination);
   }
   if (ctx.state !== 'running') ctx.resume?.();
+  decodeAll();
   return ctx;
 }
 export const now = () => ctx?.currentTime || 0;
@@ -37,8 +39,56 @@ export function stopAll() {
   setTimeout(() => { try { b.disconnect(); } catch {} }, 250);
 }
 
-// ---------- instruments ----------
-function keys(midi, t, dur, vel = .7, dest = out()) {
+// ---------- recorded instruments ----------
+// One recording every third semitone; notes in between are the nearest recording, slightly retuned.
+const RECORDED = {piano: [33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78, 81, 84], bass: [28, 31, 34, 37, 40, 43, 46, 49, 52, 55]};
+const NOTE = ['C', 'Cs', 'D', 'Ds', 'E', 'F', 'Fs', 'G', 'Gs', 'A', 'As', 'B'];
+const fileOf = (inst, midi) => `./sounds/${inst}-${NOTE[midi % 12]}${Math.floor(midi / 12) - 1}.mp3`;
+export const soundFiles = () => Object.entries(RECORDED).flatMap(([inst, list]) => list.map(midi => fileOf(inst, midi)));
+const raw = new Map(), bank = {piano: new Map(), bass: new Map()};
+let fetching = null, decoding = null;
+// Download the recordings (no AudioContext needed, so this can start before the first tap).
+export function preload() {
+  if (fetching || !AC() || typeof fetch !== 'function') return fetching;
+  fetching = Promise.all(Object.entries(RECORDED).flatMap(([inst, list]) => list.map(async midi => {
+    try { const r = await fetch(fileOf(inst, midi)); if (r.ok) raw.set(inst + midi, await r.arrayBuffer()); } catch {}
+  })));
+  return fetching;
+}
+function decodeAll() {
+  if (decoding || !ctx) return decoding;
+  decoding = (async () => {
+    await preload();
+    await Promise.all(Object.entries(RECORDED).flatMap(([inst, list]) => list.map(async midi => {
+      const data = raw.get(inst + midi); if (!data) return;
+      try {
+        const buffer = await new Promise((ok, fail) => ctx.decodeAudioData(data, ok, fail));
+        // Find where the note really starts and how loud it is, so every note is tight and equally strong.
+        const d = buffer.getChannelData(0); let peak = 0; for (let i = 0; i < d.length; i += 2) { const v = Math.abs(d[i]); if (v > peak) peak = v; }
+        let first = 0; while (first < d.length && Math.abs(d[first]) < peak * .04) first++;
+        bank[inst].set(midi, {buffer, lead: Math.max(0, first / buffer.sampleRate - .004), gain: .5 / (peak || 1)});
+      } catch {}
+      raw.delete(inst + midi);
+    })));
+  })();
+  return decoding;
+}
+// Resolves when the recordings are ready, or after `ms` so a slow network never blocks a game.
+export const ready = (ms = 1800) => Promise.race([decodeAll() || Promise.resolve(), new Promise(r => setTimeout(r, ms))]);
+function recorded(inst, midi, t, dur, level, release, dest) {
+  let best = null; for (const [m, s] of bank[inst]) if (!best || Math.abs(m - midi) < Math.abs(best.m - midi)) best = {m, s};
+  if (!best || Math.abs(best.m - midi) > 7) return false;
+  const src = ctx.createBufferSource(), g = ctx.createGain(), rate = Math.pow(2, (midi - best.m) / 12);
+  src.buffer = best.s.buffer; src.playbackRate.value = rate;
+  g.gain.setValueAtTime(level * best.s.gain, t); g.gain.setTargetAtTime(0, t + dur, release);
+  src.connect(g); g.connect(dest); src.start(t, best.s.lead * rate); src.stop(t + dur + release * 8);
+  return true;
+}
+function keys(midi, t, dur, vel = .7, dest = out()) { if (!recorded('piano', midi, t, dur, vel * .9, .16, dest)) synthKeys(midi, t, dur, vel, dest); }
+function bass(midi, t, dur, vel = .9) { if (!recorded('bass', midi, t, dur, vel * .85, .05, out())) synthBass(midi, t, dur, vel); }
+
+// ---------- synth instruments (fallback, and the feedback chimes) ----------
+function synthKeys(midi, t, dur, vel = .7, dest = out()) {
   const f = freqOf(midi), g = ctx.createGain(), lp = ctx.createBiquadFilter();
   lp.type = 'lowpass'; lp.frequency.value = Math.min(9000, f * 9); lp.Q.value = .3;
   const peak = .16 * vel;
@@ -52,7 +102,7 @@ function keys(midi, t, dur, vel = .7, dest = out()) {
   }
   g.connect(lp); lp.connect(dest);
 }
-function bass(midi, t, dur, vel = .9) {
+function synthBass(midi, t, dur, vel = .9) {
   const f = freqOf(midi), g = ctx.createGain(), lp = ctx.createBiquadFilter();
   lp.type = 'lowpass'; lp.Q.value = 2.2;
   lp.frequency.setValueAtTime(f * 7, t); lp.frequency.exponentialRampToValueAtTime(f * 2.2, t + .25);
@@ -130,7 +180,7 @@ export function sfx(kind) {
     right: [[76, 0], [83, .07]], wrong: [[52, 0], [51, .09]], combo: [[79, 0], [84, .06], [88, .12]],
     star: [[88, 0], [95, .05]], clear: [[72, 0], [76, .1], [79, .2], [84, .3], [88, .42]], tap: [[84, 0]],
   }[kind] || [];
-  for (const [m, d] of seq) keys(m, t + d, kind === 'clear' ? .5 : .18, kind === 'wrong' ? .45 : .6, master);
+  for (const [m, d] of seq) synthKeys(m, t + d, kind === 'clear' ? .5 : .18, kind === 'wrong' ? .45 : .6, master);
 }
 
 // ---------- microphone ----------
