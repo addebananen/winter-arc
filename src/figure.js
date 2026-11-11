@@ -259,7 +259,7 @@ function shapes(fr, hl) {
     }
   };
   const torso = () => {
-    const o = local(fr.P, mul(fr.u, bones.torso), side ? fr.n : fr.n);
+    const tl = fr.torsoLen ?? bones.torso, o = local(fr.P, mul(fr.u, tl), fr.n);
     if (!side) for (const k of ['af', 'an']) out.push([k + 'sleeveLine', smooth(sleeveOf(fr, fr.limbs[k], k)(sleeveFront)), 'none', ' stroke="#00000038" stroke-width="1.1"']);
     const neck = ['neck', limb(fr.S, fr.neck, side ? 4.4 : 4.7, side ? 4.2 : 4.5, side ? 4.4 : 4.7, side ? 4.4 : 4.6, .5, fr.n), palette.skin];
     if (!side) out.push(neck);
@@ -271,7 +271,7 @@ function shapes(fr, hl) {
       out.push(['neckline', smooth(o([[1.18, 4.5], [1.1, 5], [1.035, 2.9], [1.02, 0], [1.035, -2.9], [1.1, -5], [1.18, -4.5], [1.21, 0]])), palette.skin, ' stroke="none"']);
     }
     // The Beyond Self logo on the chest: black badge, white mountain, red flag.
-    const lc = add(fr.P, add(mul(fr.u, bones.torso * (side ? .78 : .8)), mul(fr.n, side ? 5.4 : -5.6))), lo = local(lc, fr.u, fr.n);
+    const lc = add(fr.P, add(mul(fr.u, tl * (side ? .78 : .8)), mul(fr.n, side ? 5.4 : -5.6))), lo = local(lc, fr.u, fr.n);
     out.push(['logo', smooth(lo([[2.1, -2.1], [2.3, 0], [2.1, 2.1], [0, 2.3], [-2.1, 2.1], [-2.3, 0], [-2.1, -2.1], [0, -2.3]])), '#0d0f11', ' stroke="#e9edef" stroke-width=".4"']);
     out.push(['logoPeak', `M${pt(lo([[-1.4, -1.6]])[0])}L${pt(lo([[1.1, 0]])[0])}L${pt(lo([[-1.4, 1.6]])[0])}Z`, '#f4f6f7']);
     out.push(['logoFlag', `M${pt(lo([[1.1, 0]])[0])}L${pt(lo([[1.9, .1]])[0])}L${pt(lo([[1.6, .8]])[0])}Z`, palette.stripe]);
@@ -328,7 +328,7 @@ function shapes(fr, hl) {
 // A sneaker: white upper, grey sole, red side stripe and laces. Side view in foot coordinates [along, up].
 function sneaker(L, side) {
   if (!side) {
-    const at = ([x, y]) => add(L.end, [x, -y]);
+    const down = norm(sub(L.end, L.mid)), lat = [down[1], -down[0]], at = ([x, y]) => add(L.end, add(mul(lat, x), mul(down, -y)));
     const upper = smooth([[-4.6, -1], [-4.4, 3], [-2, 4.4], [2, 4.4], [4.4, 3], [4.6, -1]].map(at));
     const sole = smooth([[-5.2, -.4], [5.2, -.4], [5.4, -2.4], [4.4, -3.6], [-4.4, -3.6], [-5.4, -2.4]].map(at));
     const lines = p => p.map(([a, b]) => `M${pt(at(a))}L${pt(at(b))}`).join('');
@@ -548,3 +548,40 @@ export const solvePose = (key, view = 'side') => solve(prepare(key, view), view)
 
 // All solved frames of an exercise, start to end (used by tests).
 export function framesOf(e) { const spec = specFor(e); return spec ? frames(spec, spec.view || 'side') : []; }
+
+// ---------- skill-tree figures ----------
+// The skill trees (skills-anim.js) solve their own skeleton: joints in screen coordinates with longer
+// bones. This draws the same human figure on those joints, scaled to its bone lengths, so every
+// exercise in the app shows the same person. focus: the skill's worked parts.
+const SKILL_SCALE = .8;
+const skillFocus = {arms: ['uarm', 'farm'], hands: ['hand'], legs: ['thigh', 'shin'], core: ['abs'], shoulders: ['delt'], feet: []};
+export function skillFigure(J, {front = false, focus = [], fine = true, memo = null, dimLegs = false, grip = () => false, flat = w => w[1] > -12} = {}) {
+  const k = SKILL_SCALE, s = p => mul(p, k), view = front ? 'front' : 'side';
+  MEMO = memo;
+  try {
+    const P = s(J.pelvis), S = s(J.shoulder), u = norm(sub(S, P)), n = [-u[1], u[0]];
+    const hv = sub(s(J.head), S), headAxis = norm(hv), headFwd = [-headAxis[1], headAxis[0]];
+    const neck = add(S, mul(headAxis, Math.max(1, len(hv) - 10)));
+    const fr = {view, P, S, u, n, neck, head: neck, headAxis, headFwd, torsoLen: len(sub(S, P)), limbs: {}};
+    for (const [key, side, leg] of [['an', 'N', false], ['af', 'F', false], ['ln', 'N', true], ['lf', 'F', true]]) {
+      const [root, mid, end, tip] = (leg ? ['hip', 'knee', 'ankle', 'toe'] : ['sh', 'elbow', 'wrist', 'hand']).map(j => s(J[j + side]));
+      const sgn = side === 'N' ? 1 : -1, L = {root, mid, end, tip, tipAngle: angleOf(sub(tip, end)), leg, side: sgn, hand: null};
+      if (!leg) {
+        const w = J['wrist' + side], style = grip(w) ? 'fist' : flat(w) ? 'flat' : 'open';
+        let d = norm(sub(tip, end));
+        if (style === 'flat') { const dx = tip[0] - end[0], out = mul(n, sgn)[0]; d = [Math.abs(dx) > 1.5 ? Math.sign(dx) : Math.sign(out) || 1, 0]; }
+        const toward = style === 'flat' ? [0, 1] : front ? mul(n, -sgn) : n;
+        L.hand = {d, p: keepSide('palm' + key, [-d[1], d[0]], toward), curl: {fist: 1, open: .16, flat: 0}[style], style};
+        L.tipAngle = angleOf(d);
+      }
+      fr.limbs[key] = L;
+    }
+    const hl = [...new Set(focus.flatMap(f => skillFocus[f] || []))];
+    // Seen head-on (dimLegs) the legs point away from the camera and are hidden behind the body.
+    const paths = shapes(fr, hl).filter(x => (fine || !FINE.test(x[0])) && !(dimLegs && /^(l[nf]|shorts$)/.test(x[0]))).map(([, d, fill, extra = '']) => {
+      const outline = fill === 'none' || extra.includes('stroke=') ? '' : ' stroke="#00000038" stroke-width=".8"';
+      return `<path d="${d}" fill="${fill}"${extra}${outline}/>`;
+    }).join('');
+    return `<g transform="scale(${1 / k})">${paths}</g>`;
+  } finally { MEMO = null; }
+}
