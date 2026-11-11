@@ -2689,4 +2689,10 @@ export default {
  "Vinterlegenden": "The Winter Legend",
  "Din karaktär växer med dig. En ny form låses upp vid level 6, 11, 16 och 21.": "Your character grows with you. A new form unlocks at level 6, 11, 16 and 21.",
  "frost, evolution {#}": "frost, evolution {#}",
+ "Kopiera": "Copy",
+ "Medlemmar · {#}": "Members · {#}",
+ "LVL {#} · skapade squadet": "LVL {#} · created the squad",
+ "Squad-kod · dela den så att vänner kan gå med": "Squad code · share it so friends can join",
+ "Squad-koden är kopierad.": "The squad code is copied.",
+ "Fråga den som skapade squadet om koden.": "Ask whoever created the squad for the code.",
 };
