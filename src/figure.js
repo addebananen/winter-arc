@@ -18,7 +18,7 @@ const dot = (a, b) => a[0] * b[0] + a[1] * b[1], rot = (v, a) => [v[0] * Math.co
 const lerp = (a, b, k) => a + (b - a) * k, lerpV = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k)];
 const f1 = n => Math.round(n * 10) / 10, pt = p => f1(p[0]) + ' ' + f1(p[1]);
 
-export const bones = {torso: 40, neck: 6, uarm: 25, farm: 22, hand: 8, thigh: 37, shin: 35, foot: 13, shoulderW: 13, hipW: 7};
+export const bones = {torso: 40, neck: 5, uarm: 25, farm: 22, hand: 8, thigh: 37, shin: 35, foot: 13, shoulderW: 13, hipW: 6};
 export const GROUND = 150;
 
 // Two-bone IK: joint between root a and target t, on the side the preference vector points to.
@@ -174,17 +174,17 @@ function smoothOpen(points) {
 const local = (o, a, b) => list => list.map(([x, y]) => add(o, add(mul(a, x), mul(b, y))));
 
 // Body outlines in body coordinates: [along torso (1 = shoulder line), forward]. Side view.
-const torsoSide = [[-.1, -8.8], [.05, -10.6], [.3, -7.2], [.62, -9], [.88, -9.6], [1.03, -5.4], [1.12, -2], [1.12, 2.6], [.98, 7.6], [.8, 11.2], [.64, 9.8], [.45, 8.4], [.2, 8.6], [.02, 8], [-.1, 2]];
-const shortsSide = [[-.13, -9.2], [.05, -11], [.24, -8.2], [.24, 8.9], [.02, 8.4], [-.13, 2.2]];
-const torsoFront = [[-.08, 8.6], [.2, 9.4], [.38, 8.2], [.6, 10.8], [.8, 13.8], [.94, 15.2], [1.01, 13.6], [1.06, 10.6], [1.12, 7], [1.16, 3.6], [1.17, 0], [1.16, -3.6], [1.12, -7], [1.06, -10.6], [1.01, -13.6], [.94, -15.2], [.8, -13.8], [.6, -10.8], [.38, -8.2], [.2, -9.4], [-.08, -8.6], [-.16, 0]];
+const torsoSide = [[-.1, -7.6], [.05, -9.2], [.3, -7], [.62, -9], [.88, -9.6], [1.03, -5.4], [1.12, -2], [1.12, 2.6], [.98, 7.6], [.8, 11.2], [.64, 9.8], [.45, 8.4], [.2, 8.2], [.02, 7.4], [-.1, 2]];
+const shortsSide = [[-.13, -8], [.05, -9.6], [.24, -8], [.24, 8.5], [.02, 7.8], [-.13, 2]];
+const torsoFront = [[.02, 8.6], [.2, 9], [.38, 8.2], [.6, 10.8], [.8, 13.8], [.94, 15.2], [1.01, 13.6], [1.06, 10.6], [1.12, 7], [1.16, 3.6], [1.17, 0], [1.16, -3.6], [1.12, -7], [1.06, -10.6], [1.01, -13.6], [.94, -15.2], [.8, -13.8], [.6, -10.8], [.38, -8.2], [.2, -9], [.02, -8.6], [-.04, 0]];
 // T-shirt sleeve over the deltoid, in arm coordinates [along the upper arm from the joint, outward]: a
 // rounded muscle cap over the joint that is fullest on the outside and narrows to the hem.
 const sleeveFront = [[-1.8, -1], [-1.2, 2.6], [.6, 5.7], [3.2, 7.5], [6.2, 7.2], [9, 6.3], [11.6, 5.9], [12.1, 0], [11.6, -5.5], [8, -5.9], [4, -6], [.6, -5.2], [-1.4, -3.2]];
 const sleeveSide = [[-2.8, 0], [-2, 4.2], [.6, 6.8], [4, 7.1], [8, 6.4], [11.6, 5.9], [12.1, 0], [11.6, -5.9], [8, -6.4], [4, -6.9], [.6, -6.6], [-2, -4]];
 const deltFront = [[-1.3, -1], [-.7, 2.4], [.9, 5.1], [3.2, 6.8], [6.2, 6.4], [9.6, 4.4], [10.4, 0], [9.6, -4.4], [6, -5.2], [2.4, -5.1], [-.1, -4.2], [-1.1, -2.6]];
-const shortsFront = [[-.12, 9.6], [.24, 10], [.24, -10], [-.12, -9.6], [-.2, 0]];
+const shortsFront = [[-.12, 9], [.24, 9.6], [.24, -9.6], [-.12, -9], [-.2, 0]];
 const muscleShapes = {
-  side: {chest: [[.96, 3], [.92, 7.8], [.8, 11], [.66, 9.6], [.7, 3.4]], abs: [[.58, 8.4], [.42, 8.2], [.2, 8.4], [.2, 4], [.58, 4]], back: [[.94, -5], [.87, -9.4], [.6, -8.8], [.38, -6.8], [.6, -4], [.86, -3.6]], glutes: [[.14, -8], [.04, -10.4], [-.1, -8.6], [-.06, -3.6], [.14, -4.4]]},
+  side: {chest: [[.96, 3], [.92, 7.8], [.8, 11], [.66, 9.6], [.7, 3.4]], abs: [[.58, 8.4], [.42, 8.2], [.2, 8.4], [.2, 4], [.58, 4]], back: [[.94, -5], [.87, -9.4], [.6, -8.8], [.38, -6.8], [.6, -4], [.86, -3.6]], glutes: [[.14, -7.6], [.04, -9.2], [-.1, -7.6], [-.06, -3.6], [.14, -4.4]]},
   front: {chest: [[.94, .8], [.94, 12.6], [.74, 12.8], [.66, .8], [.66, -.8], [.74, -12.8], [.94, -12.6], [.94, -.8]], abs: [[.6, 5], [.22, 5.2], [.22, -5.2], [.6, -5]], back: [[.86, 13.4], [.6, 10.4], [.5, 8.6], [.7, 11]], glutes: []},
 };
 // Head outlines in head coordinates: [up from the top of the neck, forward]. Profile modelled on a
@@ -202,7 +202,7 @@ const hairStrands = [[[23, 8.8], [23.8, 3.2], [23.2, -2.4], [21.2, -6.6]], [[21.
 const headFront = [[1.4, 0], [2.6, 3.6], [5.4, 6.4], [9.4, 7.8], [13.6, 8.2], [17.6, 7.6], [20.6, 5], [22, 0], [20.6, -5], [17.6, -7.6], [13.6, -8.2], [9.4, -7.8], [5.4, -6.4], [2.6, -3.6]];
 const hairFront = [[16.2, 8.6], [19.4, 8.6], [22.4, 7], [24.2, 2.6], [24.2, -2.6], [22.4, -7], [19.4, -8.6], [16.2, -8.6], [16.6, -7.4], [18.4, -5.6], [19, -2.2], [19.1, 1.2], [18.7, 4.6], [17.2, 7.2]];
 
-const palette = {skin: '#e3c6ad', skinFar: '#b99c86', skinLine: '#8a6b57', shirt: '#5b6570', shirtFar: '#48515b', trim: '#4a535d', trimFar: '#3c444c', shorts: '#5b6570', shortsFar: '#48515b',
+const palette = {skin: '#e3c6ad', skinFar: '#b99c86', skinLine: '#8a6b57', shirt: '#5b6570', shirtFar: '#48515b', trim: '#4a535d', trimFar: '#3c444c', shorts: '#4a525c', shortsFar: '#3d444d',
   shoe: '#eef2f4', shoeFar: '#c3cbcf', sole: '#56636b', stripe: '#e2474b', hair: '#3b2e27', hairSide: '#4d3d33', hairLine: '#6a5444', hl: '#ff7a59'};
 // Which body parts light up for an exercise's muscle group.
 const highlights = {'Bröst': ['chest', 'uarm'], 'Bröst & armar': ['chest', 'uarm', 'farm'], 'Ben': ['thigh', 'glutes', 'shin'], 'Rygg & ben': ['back', 'glutes', 'thigh'], 'Axlar': ['delt'], 'Balans & axlar': ['delt', 'abs'], 'Rygg': ['back', 'delt'], 'Armar': ['uarm', 'farm'], 'Bål': ['abs'], 'Mage': ['abs'], 'Grepp': ['farm', 'hand']};
@@ -214,6 +214,16 @@ function sleeveOf(fr, L, k) {
   const guide = side ? fr.n : add(norm(sub(L.root, fr.S)), mul(fr.u, .5)), out = side ? keepSide('sleeve' + k, f, guide) : dot(f, guide) >= 0 ? f : mul(f, -1);
   return local(L.root, ad, out);
 }
+// One shorts leg in thigh coordinates [along the thigh from the hip, forward]: it starts inside the hips and
+// ends in a straight hem at mid-thigh.
+const SHORTS_HEM = bones.thigh * .5;
+const shortsLeg = [[-3, -7.4], [-4.4, 0], [-3, 7.8], [4, 8.8], [SHORTS_HEM, 8], [SHORTS_HEM + .3, 0], [SHORTS_HEM, -7.4], [4, -8.2]];
+function shortsOf(fr, L, k) {
+  const td = norm(sub(L.mid, L.root));
+  return local(L.root, td, keepSide('shorts' + k, [-td[1], td[0]], fr.n));
+}
+const RING = ' stroke="#00000038" stroke-width="1.1"', NO_STROKE = ' stroke="none"', HEM_LINE = ' stroke="#00000045" stroke-width=".8" stroke-linecap="round"';
+const shortsHem = so => smoothOpen(so([[SHORTS_HEM - .2, -7.3], [SHORTS_HEM + .3, 0], [SHORTS_HEM - .2, 7.9]]));
 // Shapes of one solved frame, in drawing order. Each entry: [key, path, fill, extra attributes].
 function shapes(fr, hl) {
   limbCount = 0;
@@ -221,16 +231,27 @@ function shapes(fr, hl) {
   const segs = (k, far) => {
     const L = fr.limbs[k], skin = far ? palette.skinFar : palette.skin;
     if (L.leg) {
-      out.push([k + 'thigh', limb(L.root, L.mid, 8.6, 5.6, 8.8, 8.2, .38, fr.n), skin]);
-      if (on('thigh')) out.push([k + 'thighH', limb(L.root, L.mid, 8.6, 5.6, 8.8, 8.2, .38, fr.n), palette.hl, ' fill-opacity=".45"']);
+      out.push([k + 'thigh', limb(add(L.root, mul(norm(sub(L.mid, L.root)), 3)), L.mid, 7.6, 5.2, 8, 7.4, .38, fr.n), skin]);
+      if (on('thigh')) out.push([k + 'thighH', limb(add(L.root, mul(norm(sub(L.mid, L.root)), 3)), L.mid, 7.6, 5.2, 8, 7.4, .38, fr.n), palette.hl, ' fill-opacity=".45"']);
       out.push([k + 'shin', limb(L.mid, L.end, 5.4, 3.4, 4.8, 6.4, .3, fr.n), skin]);
       if (on('shin')) out.push([k + 'shinH', limb(L.mid, L.end, 5.4, 3.4, 4.8, 6.4, .3, fr.n), palette.hl, ' fill-opacity=".35"']);
       const td = norm(sub(L.mid, L.root)), tf = keepSide('mLeg' + k, [-td[1], td[0]], fr.n), sd = norm(sub(L.end, L.mid));
       const tAt = (t, o) => add(add(L.root, mul(td, bones.thigh * t)), mul(tf, o)), sAt = (t, o) => add(add(L.mid, mul(sd, bones.shin * t)), mul(tf, o));
       if (!far) out.push([k + 'muscleLeg', `M${pt(tAt(.62, 4.6))}Q${pt(tAt(.84, 2.4))} ${pt(tAt(.9, -1.6))}M${pt(tAt(.96, 2.6))}Q${pt(add(L.mid, mul(tf, 4)))} ${pt(sAt(.06, 2.6))}M${pt(sAt(.12, -4.4))}Q${pt(sAt(.32, -3))} ${pt(sAt(.52, -2.2))}`, 'none', ` stroke="${palette.skinLine}" stroke-width=".6" stroke-linecap="round" stroke-opacity=".45"`]);
-      const sh = add(L.root, mul(td, bones.thigh * .6));
-      out.push([k + 'shorts', limb(L.root, sh, 9.8, 8.8, 9.8, 9.6, .5, fr.n), far ? palette.shortsFar : palette.shorts]);
-      const sn = sneaker(L, side);
+      // Shorts: the far leg behind the body is drawn whole; the near leg's outline is drawn behind the hips
+      // (see torso()), so the shorts read as one garment. From the front both legs are drawn in torso().
+      if (side) {
+        const so = shortsOf(fr, L, k);
+        out.push([k + 'shorts', smooth(so(shortsLeg)), far ? palette.shortsFar : palette.shorts, far ? '' : NO_STROKE]);
+        if (!far) {
+          out.push([k + 'hem', shortsHem(so), 'none', HEM_LINE]);
+          // The t-shirt hangs over the shorts, also in front of the near leg.
+          const to = local(fr.P, mul(fr.u, fr.torsoLen ?? bones.torso), fr.n);
+          out.push(['shirtHem', smooth(to([[.2, 8.2], [.02, 7.4], [-.1, 2], [-.1, -7.6], [.05, -9.2], [.2, -7.8], [.24, 0]])), palette.shirt, NO_STROKE]);
+          out.push(['shirtHemLine', smoothOpen(to([[.24, 8.3], [.2, 8.2], [.02, 7.4], [-.1, 2], [-.1, -7.6], [.05, -9.2], [.2, -7.8]])), 'none', ' stroke="#00000038" stroke-width=".8" stroke-linecap="round"']);
+        }
+      }
+      const sn = sneaker(L, side, fr.n);
       out.push([k + 'sole', sn.sole, palette.sole]);
       out.push([k + 'shoe', sn.upper, far ? palette.shoeFar : palette.shoe, ` stroke="#8c989e" stroke-width=".7"`]);
       out.push([k + 'stripe', sn.stripe, 'none', ` stroke="${palette.stripe}" stroke-width="1.2" stroke-linecap="round"`]);
@@ -259,19 +280,25 @@ function shapes(fr, hl) {
     }
   };
   const torso = () => {
-    const o = local(fr.P, mul(fr.u, bones.torso), side ? fr.n : fr.n);
+    const tl = fr.torsoLen ?? bones.torso, o = local(fr.P, mul(fr.u, tl), fr.n);
     if (!side) for (const k of ['af', 'an']) out.push([k + 'sleeveLine', smooth(sleeveOf(fr, fr.limbs[k], k)(sleeveFront)), 'none', ' stroke="#00000038" stroke-width="1.1"']);
     const neck = ['neck', limb(fr.S, fr.neck, side ? 4.4 : 4.7, side ? 4.2 : 4.5, side ? 4.4 : 4.7, side ? 4.4 : 4.6, .5, fr.n), palette.skin];
     if (!side) out.push(neck);
+    // Shorts as one garment: outlines first, then the fills on top hide the seams between hips and legs.
+    // The t-shirt is worn over the shorts.
+    const legs = side ? ['ln'] : ['lf', 'ln'], shortsHips = smooth(o(side ? shortsSide : shortsFront));
+    for (const k of legs) out.push([k + 'shortsLine', smooth(shortsOf(fr, fr.limbs[k], k)(shortsLeg)), 'none', RING]);
+    out.push(['shortsLine', shortsHips, 'none', RING]);
+    if (!side) for (const k of legs) { const so = shortsOf(fr, fr.limbs[k], k); out.push([k + 'shorts', smooth(so(shortsLeg)), palette.shorts, NO_STROKE], [k + 'hem', shortsHem(so), 'none', HEM_LINE]); }
+    out.push(['shorts', shortsHips, palette.shorts, NO_STROKE]);
     out.push(['torso', smooth(o(side ? torsoSide : torsoFront)), palette.shirt]);
-    out.push(['shorts', smooth(o(side ? shortsSide : shortsFront)), palette.shorts]);
     // T-shirt neckline seen from the front.
     if (!side) {
       out.push(['collar', smooth(o([[1.17, 5.4], [1.08, 6.2], [1.01, 3.6], [.985, 0], [1.01, -3.6], [1.08, -6.2], [1.17, -5.4], [1.2, 0]])), palette.trim]);
       out.push(['neckline', smooth(o([[1.18, 4.5], [1.1, 5], [1.035, 2.9], [1.02, 0], [1.035, -2.9], [1.1, -5], [1.18, -4.5], [1.21, 0]])), palette.skin, ' stroke="none"']);
     }
     // The Beyond Self logo on the chest: black badge, white mountain, red flag.
-    const lc = add(fr.P, add(mul(fr.u, bones.torso * (side ? .78 : .8)), mul(fr.n, side ? 5.4 : -5.6))), lo = local(lc, fr.u, fr.n);
+    const lc = add(fr.P, add(mul(fr.u, tl * (side ? .78 : .8)), mul(fr.n, side ? 5.4 : -5.6))), lo = local(lc, fr.u, fr.n);
     out.push(['logo', smooth(lo([[2.1, -2.1], [2.3, 0], [2.1, 2.1], [0, 2.3], [-2.1, 2.1], [-2.3, 0], [-2.1, -2.1], [0, -2.3]])), '#0d0f11', ' stroke="#e9edef" stroke-width=".4"']);
     out.push(['logoPeak', `M${pt(lo([[-1.4, -1.6]])[0])}L${pt(lo([[1.1, 0]])[0])}L${pt(lo([[-1.4, 1.6]])[0])}Z`, '#f4f6f7']);
     out.push(['logoFlag', `M${pt(lo([[1.1, 0]])[0])}L${pt(lo([[1.9, .1]])[0])}L${pt(lo([[1.6, .8]])[0])}Z`, palette.stripe]);
@@ -326,15 +353,22 @@ function shapes(fr, hl) {
   return out;
 }
 // A sneaker: white upper, grey sole, red side stripe and laces. Side view in foot coordinates [along, up].
-function sneaker(L, side) {
+// Which way the sole of a side-view foot faces: away from the knee when the foot is flexed, and to the back
+// of the leg when the toes are pointed in line with the shin (the knee cap and the top of the foot face forward).
+export function soleSide(L, forward = [1, 0]) {
+  const d = dir(L.tipAngle), n = [-d[1], d[0]], bend = sub(L.mid, lerpV(L.root, L.end, .5));
+  const front = len(bend) > 3 ? norm(bend) : forward, guide = add(norm(sub(L.mid, L.end)), front);
+  return dot(n, guide) <= 0 ? n : mul(n, -1);
+}
+function sneaker(L, side, forward = [1, 0]) {
   if (!side) {
-    const at = ([x, y]) => add(L.end, [x, -y]);
+    const down = norm(sub(L.end, L.mid)), lat = [down[1], -down[0]], at = ([x, y]) => add(L.end, add(mul(lat, x), mul(down, -y)));
     const upper = smooth([[-4.6, -1], [-4.4, 3], [-2, 4.4], [2, 4.4], [4.4, 3], [4.6, -1]].map(at));
     const sole = smooth([[-5.2, -.4], [5.2, -.4], [5.4, -2.4], [4.4, -3.6], [-4.4, -3.6], [-5.4, -2.4]].map(at));
     const lines = p => p.map(([a, b]) => `M${pt(at(a))}L${pt(at(b))}`).join('');
     return {upper, sole, stripe: lines([[[-4.2, .6], [-2.4, 2.2]]]), laces: lines([[[-1.4, 3.4], [1.4, 3.4]], [[-1.2, 2.2], [1.2, 2.2]]])};
   }
-  const d = dir(L.tipAngle), n = [-d[1], d[0]], down = dot(n, [0, 1]) >= 0 ? n : mul(n, -1);
+  const d = dir(L.tipAngle), down = soleSide(L, forward);
   const at = ([x, y]) => add(L.end, add(mul(d, x), mul(down, -y)));
   const upper = smooth([[-4.2, -1.2], [-4.6, 2.2], [-3.2, 4.6], [.6, 4.8], [3.6, 3.8], [7.6, 2.4], [11.6, 1.4], [14.4, .4], [15.2, -1.2]].map(at));
   const sole = smooth([[-5.2, -.8], [15.8, -.8], [16, -2.6], [14.8, -3.8], [-4.4, -3.8], [-5.4, -2.4]].map(at));
@@ -548,3 +582,40 @@ export const solvePose = (key, view = 'side') => solve(prepare(key, view), view)
 
 // All solved frames of an exercise, start to end (used by tests).
 export function framesOf(e) { const spec = specFor(e); return spec ? frames(spec, spec.view || 'side') : []; }
+
+// ---------- skill-tree figures ----------
+// The skill trees (skills-anim.js) solve their own skeleton: joints in screen coordinates with longer
+// bones. This draws the same human figure on those joints, scaled to its bone lengths, so every
+// exercise in the app shows the same person. focus: the skill's worked parts.
+const SKILL_SCALE = .8;
+const skillFocus = {arms: ['uarm', 'farm'], hands: ['hand'], legs: ['thigh', 'shin'], core: ['abs'], shoulders: ['delt'], feet: []};
+export function skillFigure(J, {front = false, focus = [], fine = true, memo = null, dimLegs = false, grip = () => false, flat = w => w[1] > -12} = {}) {
+  const k = SKILL_SCALE, s = p => mul(p, k), view = front ? 'front' : 'side';
+  MEMO = memo;
+  try {
+    const P = s(J.pelvis), S = s(J.shoulder), u = norm(sub(S, P)), n = [-u[1], u[0]];
+    const hv = sub(s(J.head), S), headAxis = norm(hv), headFwd = [-headAxis[1], headAxis[0]];
+    const neck = add(S, mul(headAxis, Math.max(1, len(hv) - 10)));
+    const fr = {view, P, S, u, n, neck, head: neck, headAxis, headFwd, torsoLen: len(sub(S, P)), limbs: {}};
+    for (const [key, side, leg] of [['an', 'N', false], ['af', 'F', false], ['ln', 'N', true], ['lf', 'F', true]]) {
+      const [root, mid, end, tip] = (leg ? ['hip', 'knee', 'ankle', 'toe'] : ['sh', 'elbow', 'wrist', 'hand']).map(j => s(J[j + side]));
+      const sgn = side === 'N' ? 1 : -1, L = {root, mid, end, tip, tipAngle: angleOf(sub(tip, end)), leg, side: sgn, hand: null};
+      if (!leg) {
+        const w = J['wrist' + side], style = grip(w) ? 'fist' : flat(w) ? 'flat' : 'open';
+        let d = norm(sub(tip, end));
+        if (style === 'flat') { const dx = tip[0] - end[0], out = mul(n, sgn)[0]; d = [Math.abs(dx) > 1.5 ? Math.sign(dx) : Math.sign(out) || 1, 0]; }
+        const toward = style === 'flat' ? [0, 1] : front ? mul(n, -sgn) : n;
+        L.hand = {d, p: keepSide('palm' + key, [-d[1], d[0]], toward), curl: {fist: 1, open: .16, flat: 0}[style], style};
+        L.tipAngle = angleOf(d);
+      }
+      fr.limbs[key] = L;
+    }
+    const hl = [...new Set(focus.flatMap(f => skillFocus[f] || []))];
+    // Seen head-on (dimLegs) the legs point away from the camera and are hidden behind the body.
+    const paths = shapes(fr, hl).filter(x => (fine || !FINE.test(x[0])) && !(dimLegs && /^(l[nf]|shorts)/.test(x[0]))).map(([, d, fill, extra = '']) => {
+      const outline = fill === 'none' || extra.includes('stroke=') ? '' : ' stroke="#00000038" stroke-width=".8"';
+      return `<path d="${d}" fill="${fill}"${extra}${outline}/>`;
+    }).join('');
+    return `<g transform="scale(${1 / k})">${paths}</g>`;
+  } finally { MEMO = null; }
+}
