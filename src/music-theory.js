@@ -115,15 +115,27 @@ export const keyRoot = (name, octave = 3) => { const n = parseNote(name + octave
 // Each returns {prompt, options:[{id,label,sub}], answer, play:[audio events], reveal}.
 // Audio events: {t: beats from start, notes:[midi], dur: beats, inst:'keys'|'bass'|'click'}.
 
+// Every chord tone placed inside one octave starting at `lo`: a close voicing in a clear register.
+const voiceIn = (notes, lo) => notes.map(n => lo + (((n - lo) % 12) + 12) % 12).sort((x, y) => x - y);
 export function cadence(root, minor = false) {
-  // I–IV–V–I (or i–iv–V–i) to set the key before a functional question.
+  // I–IV–V–I (or i–iv–V–i) to set the key before a functional question. The chords sit around middle C,
+  // where a real piano is clear; lower down, close chords turn muddy. The last chord is home: it is
+  // longer and stronger and has the key note on top, so the ear lands on it.
   const r = midiOf(root), chord = (iv, q) => CHORDS[q].tones.map(t => r + semis(iv) + semis(t));
   const seq = minor ? [['1', 'min'], ['4', 'min'], ['5', 'maj'], ['1', 'min']] : [['1', 'maj'], ['4', 'maj'], ['5', 'maj'], ['1', 'maj']];
-  return seq.flatMap(([iv, q], i) => [
-    {t: i, notes: chord(iv, q).map(n => n >= r + 8 ? n - 12 : n), dur: .9, inst: 'keys'},
-    {t: i, notes: [r + semis(iv) - 12 - (semis(iv) > 4 ? 12 : 0)], dur: .9, inst: 'bass'},
-  ]);
+  return seq.flatMap(([iv, q], i) => {
+    const last = i === seq.length - 1, top = 64 + (((r - 64) % 12) + 12) % 12;
+    const notes = voiceIn(chord(iv, q), last ? top - 11 : 55);
+    return [
+      {t: i, notes, dur: last ? 1.9 : .9, inst: 'keys', vel: last ? .8 : .5},
+      {t: i, notes: [r + semis(iv) - 12 - (semis(iv) > 4 ? 12 : 0)], dur: last ? 1.9 : .9, inst: 'bass', vel: last ? 1 : .8},
+    ];
+  });
 }
+// The question note comes after the last chord has rung: this many beats from the start.
+const AFTER_CADENCE = 5.4;
+// Where a question note is played: in the octave above middle C, sometimes an octave lower.
+const noteFor = (R, root, iv) => 60 + pcOf(midiOf(root)) + semis(iv) - (R() < .2 ? 12 : 0);
 
 // How each scale degree feels against the key. This is what to listen for.
 export const DEGREE_FEEL = {
@@ -140,13 +152,34 @@ export const DEGREE_FEEL = {
   'b7': 'Den låga sjuan låter bluesig och drar inte lika hårt hem.',
   '7': 'Sjuan ligger precis under hemma och drar hårt uppåt till 1.',
 };
-export function degreeQuestion(R, {pool, minor = false}) {
-  const key = R.pick(KEYS), root = keyRoot(key), iv = R.pick(pool);
-  const note = midiOf(root) + semis(iv) + (R() < .3 ? 12 : 0);
+
+// The way home: from a note, step by step down the scale to the key note. Counting the notes on the
+// way gives the scale degree, so this is both the method and the answer key. 7 is the exception: it
+// sits just under home and goes up.
+export function wayHome(note, iv, minor = false) {
+  const scale = minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11], rel = semis(iv) % 12, home = note - rel;
+  let path;
+  if (iv === '7' && !minor) path = [rel, 12];
+  else {
+    path = [rel];
+    // A note outside the scale first moves to its neighbour in the scale: sharps up, flats down.
+    let at = rel; if (!scale.includes(at)) { at += iv.startsWith('#') ? 1 : -1; path.push(at); }
+    for (let i = scale.indexOf(at) - 1; i >= 0; i--) path.push(scale[i]);
+  }
+  return path.map((x, i) => ({t: i * .6, notes: [home + x], dur: i === path.length - 1 ? 1.5 : .55, inst: 'keys', vel: i === path.length - 1 ? .8 : .6}));
+}
+// The key note (1) to compare with, in the note's own octave, and the way home to play after an answer.
+const homeOf = (note, iv, minor) => ({home: [{t: 0, notes: [note - semis(iv) % 12], dur: 1.4, inst: 'keys'}], way: wayHome(note, iv, minor), after: wayHome(note, iv, minor)});
+// walk: the way home is played as part of the question (count the notes). help: it is offered as a button.
+export function degreeQuestion(R, {pool, minor = false, walk = false, help = false}) {
+  const key = R.pick(KEYS), root = keyRoot(key), iv = R.pick(pool), note = noteFor(R, root, iv);
+  const ask = [...cadence(root, minor), {t: AFTER_CADENCE, notes: [note], dur: 1.4, inst: 'keys'}], way = wayHome(note, iv, minor);
   return {
     kind: 'degree', prompt: `Tonart: ${key}${minor ? '-moll' : '-dur'}. Vilket skalsteg är tonen?`,
     options: pool.map(id => ({id, label: degreeLabel(id), sub: id === '1' ? 'grundton' : ''})), answer: iv,
-    play: [...cadence(root, minor), {t: 4.4, notes: [note], dur: 1.4, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.4, inst: 'keys'}],
+    play: walk ? [...ask, ...way.map(e => ({...e, t: e.t + AFTER_CADENCE + 2.2}))] : ask,
+    replay: walk ? [{t: 0, notes: [note], dur: 1.4, inst: 'keys'}, ...way.map(e => ({...e, t: e.t + 2.2}))] : [{t: 0, notes: [note], dur: 1.4, inst: 'keys'}],
+    ...homeOf(note, iv, minor), help: help || walk,
     reveal: `${degreeLabel(iv)} i ${key}${minor ? '-moll' : '-dur'} är ${nameOf(transpose(root, iv))}.`, why: DEGREE_FEEL[iv] || '',
   };
 }
@@ -159,10 +192,10 @@ export function compareQuestion(R, {mode, gaps = [7, 12], leaps = [5, 7, 9, 12]}
   const names = (a, b) => `${pcName(a)} → ${pcName(b)}`, first = 55 + R.int(10);
   if (mode === 'home') {
     const key = R.pick(KEYS), root = keyRoot(key), home = R() < .5, iv = home ? '1' : R.pick(['2', '4', '7']);
-    const note = midiOf(root) + semis(iv) + (home && R() < .3 ? 12 : 0);
+    const note = noteFor(R, root, iv);
     return {kind: 'compare', prompt: 'Vilar tonen hemma, eller vill den vidare?',
       options: [{id: 'home', label: 'Hemma', sub: 'vilar'}, {id: 'away', label: 'Borta', sub: 'vill vidare'}], answer: home ? 'home' : 'away', why: home ? 'Tonen var tonartens grundton. Den känns färdig, som slutet på en låt.' : 'Tonen ligger utanför vilan och vill röra sig till en ton i närheten.',
-      play: [...cadence(root, false), {t: 4.4, notes: [note], dur: 1.6, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.6, inst: 'keys'}],
+      play: [...cadence(root, false), {t: AFTER_CADENCE, notes: [note], dur: 1.6, inst: 'keys'}], replay: [{t: 0, notes: [note], dur: 1.6, inst: 'keys'}], ...homeOf(note, iv, false),
       facts: [['Tonart', key], ['Ton', nameOf(transpose(root, iv))], ['Skalsteg', degreeLabel(iv)]]};
   }
   if (mode === 'same') {
@@ -243,6 +276,26 @@ export function progressionQuestion(R, {set}) {
   };
 }
 
+// Play by ear: the piano plays four chords in a key and the player answers with the root of each on the
+// bass. Only the key is told. `bass` adds the root as the piano's lowest note (easier); without it the
+// chords are close voicings around middle C and the root has to be heard inside the chord.
+// `first` starts on the key's own chord. No chord comes twice in a row, so each answer is a new note.
+export function earBassQuestion(R, {degs, keys = ['C', 'G', 'D', 'A', 'E'], bass = true, first = false}) {
+  const key = R.pick(keys), root = keyRoot(key), r = midiOf(root), seq = [];
+  // At least three different chords, so it is a progression and not two chords taking turns.
+  do { seq.length = 0; for (let i = 0; i < 4; i++) { let d; do d = i === 0 && first ? 'I' : R.pick(degs); while (i && d === seq[i - 1]); seq.push(d); } } while (new Set(seq).size < 3);
+  const chords = seq.map(deg => {
+    const d = diatonic(deg), note = transpose(root, d.iv), base = r + semis(d.iv);
+    return {deg, name: chordName(note, d.q), root: nameOf(note), pc: pcOf(base), notes: voiceIn(CHORDS[d.q].tones.map(t => base + semis(t)), 55)};
+  });
+  const piano = (c, i) => ({t: i * 2, notes: bass ? [36 + pcOf(c.pc - 36), ...c.notes] : c.notes, dur: 1.85, inst: 'keys', vel: .6});
+  return {
+    kind: 'earbass', key, chords, play: chords.map(piano),
+    // The answer: the same chords with the bass guitar playing the roots underneath.
+    answer: chords.flatMap((c, i) => [{t: i * 2, notes: c.notes, dur: 1.85, inst: 'keys', vel: .5}, {t: i * 2, notes: [28 + pcOf(c.pc - 28)], dur: 1.85, inst: 'bass', vel: 1}]),
+  };
+}
+
 // Inversions: which chord tone is in the bass (slash chords).
 export function inversionQuestion(R) {
   const q = R.pick(['maj', 'min']), key = R.pick(KEYS), root = keyRoot(key), tones = CHORDS[q].tones, which = R.int(3);
@@ -264,16 +317,78 @@ export function fretQuestion(R, {strings, frets, naturals = true}) {
   return {kind: 'fret', prompt: `Hitta ${name}${strings.length === 1 ? ' på ' + STRINGS[strings[0]].name + '-strängen' : ''}`, pc: pcOf(midiOf(parseNote(name + 4))), strings, frets, answer: spots, reveal: `${name}: ${spots.map(([s, f]) => STRINGS[s].name + '-strängen band ' + f).join(', ')}.`};
 }
 
+// What each scale and chord is, in one line: the theory shown before you play it.
+export const ABOUT = {
+  major: 'Grunden för allt annat. Alla andra skalor beskrivs som ändringar av durskalan.',
+  minor: 'Durskalan med sänkt 3, 6 och 7. Mörkare och mer vemodig.',
+  minPent: 'Mollskalan utan 2 och 6. Fem toner som alltid låter bra i rock och blues.',
+  majPent: 'Durskalan utan 4 och 7. Ljus och öppen, vanlig i country, soul och pop.',
+  mixo: 'Durskalan med sänkt 7. Passar över 7-ackord i blues och funk.',
+  dorian: 'Mollskalan med höjd 6. En mjukare moll, vanlig i funk och jazz.',
+  blues: 'Mollpentatonisk med en extra ton: ♭5, den blå tonen.',
+  maj: 'Durtreklang: grundton, stor ters och kvint.',
+  min: 'Molltreklang: grundton, liten ters och kvint.',
+  dom7: 'Durtreklang med liten septima. Spänt, vill vidare.',
+  maj7: 'Durtreklang med stor septima. Mjukt och drömmande.',
+  min7: 'Molltreklang med liten septima. Mjukt och lite jazzigt.',
+};
+// The distance between neighbouring scale tones, the way a teacher says it.
+export const STEP_NAMES = {1: 'halv', 2: 'hel', 3: '1½'};
+
 // Play a scale or arpeggio on the fretboard from a given root position.
 export function patternQuestion(R, {scales, chords}) {
   const s = R.int(2), f = 1 + R.int(7), root = fretMidi(s, f);
-  const steps = scales ? SCALES[R.pick(scales)] : null, q = chords ? R.pick(chords) : null;
-  const ivs = steps ? steps.steps : [...CHORDS[q].tones, '8'];
-  const name = pcName(root);
+  const id = scales ? R.pick(scales) : R.pick(chords), steps = scales ? SCALES[id] : null;
+  const ivs = steps ? steps.steps : [...CHORDS[id].tones, '8'];
+  const name = pcName(root), rootNote = parseNote(name + '2'), targets = ivs.map(iv => root + semis(iv));
   return {
-    kind: 'pattern', title: steps ? `${name} ${steps.name.toLowerCase()}` : `${name}${CHORDS[q].sym} arpeggio`, prompt: 'Spela tonerna i ordning, nerifrån och upp.',
-    root: [s, f], targets: ivs.map(iv => root + semis(iv)), labels: ivs.map(degreeLabel), frets: [Math.max(0, f - 2), Math.min(FRETS, f + 6)],
+    kind: 'pattern', id, scale: !!steps, title: steps ? `${name} ${steps.name.toLowerCase()}` : `${name}${CHORDS[id].sym} arpeggio`, prompt: 'Spela tonerna i ordning, nerifrån och upp.',
+    root: [s, f], targets, labels: ivs.map(degreeLabel), names: ivs.map(iv => nameOf(transpose(rootNote, iv))),
+    gaps: steps ? targets.slice(1).map((m, i) => STEP_NAMES[m - targets[i]] || String(m - targets[i])) : null,
+    positions: patternPositions([s, f], targets), frets: [Math.max(0, f - 2), Math.min(FRETS, f + 6)],
   };
+}
+// The standard one-octave fingering: stay within four frets of the root (one fret below it at most)
+// and move to the next string as soon as a note would fall outside that box.
+export function patternPositions([s, f], targets) {
+  return targets.map(m => {
+    for (let st = s; st < STRINGS.length; st++) { const fr = m - STRINGS[st].midi; if (fr >= Math.max(0, f - 1) && fr <= f + 3) return [st, fr]; }
+    for (let st = STRINGS.length - 1; st >= 0; st--) { const fr = m - STRINGS[st].midi; if (fr >= 0 && fr <= FRETS) return [st, fr]; }
+    return null;
+  });
+}
+
+// ---------- the whole neck, by playing ----------
+// A level is two passes over the same notes: `learn` in order with the map showing, then `test` shuffled
+// without it. Each target is {s, f, name, pc}. No two targets in a row share a note name, so a string
+// that is still ringing can never count for the next one.
+const NATURALS = new Set([0, 2, 4, 5, 7, 9, 11]);
+export function neckTargets(R, {strings = [0], notes = 'natural', across = false, count}) {
+  const spot = (s, f) => ({s, f, midi: fretMidi(s, f), pc: pcOf(fretMidi(s, f)), name: pcName(fretMidi(s, f))});
+  // Swap a repeated note with a later (or, at the end of the list, an earlier) one that fits in both places.
+  const apart = list => {
+    const clash = (i, x) => (i > 0 && list[i - 1].pc === x.pc) || (i + 1 < list.length && list[i + 1].pc === x.pc);
+    for (let i = 1; i < list.length; i++) {
+      if (list[i].pc !== list[i - 1].pc) continue;
+      const j = list.findIndex((x, k) => Math.abs(k - i) > 1 && !clash(i, x) && !clash(k, list[i]));
+      if (j >= 0) [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  };
+  if (across) {
+    // The same few notes on every string: their lowest position on each, one string at a time from the E string up.
+    const picks = R.shuffle(['A', 'C', 'D', 'E', 'F', 'G', 'B']).slice(0, count || 4).map(name => pcOf(midiOf(parseNote(name + 4)))), test = [];
+    for (const s of [0, 1, 2, 3]) for (const pc of picks) test.push(spot(s, (((pc - STRINGS[s].midi) % 12) + 12) % 12));
+    return {learn: [], test};
+  }
+  const all = strings.flatMap(s => Array.from({length: FRETS + 1}, (_, f) => spot(s, f)).filter(x => notes === 'all' || NATURALS.has(x.pc)));
+  const learn = notes === 'all' ? [] : all;
+  const n = count || (notes === 'all' ? 16 : Math.max(10, all.length));
+  // Every note once in random order first, then extra draws, so nothing on the string is skipped.
+  let test = R.shuffle(all.filter(x => !(notes !== 'all' && x.f === 12)));
+  while (test.length < n) test.push(R.pick(all));
+  test = apart(test.slice(0, n));
+  return {learn, test};
 }
 
 // ---------- bass line builder ----------
@@ -377,30 +492,97 @@ export function gradeTaps(taps, targets, beatMs) {
 }
 
 // ---------- pitch detection ----------
+// Below this a signal is digital silence. Everything else is judged against the room noise, never a fixed level.
+export const QUIET = .00005;
 // Autocorrelation with parabolic interpolation (a simplified McLeod/YIN approach).
 // Returns {freq, clarity} or null when there is no clear pitch.
-export function detectPitch(buf, sampleRate, minF = 70, maxF = 1100) {
-  const n = buf.length;
-  let rms = 0;
-  for (let i = 0; i < n; i++) rms += buf[i] * buf[i];
-  rms = Math.sqrt(rms / n);
-  if (rms < .01) return null;
-  const minLag = Math.floor(sampleRate / maxF), maxLag = Math.min(Math.floor(sampleRate / minF), n - 2);
-  const nsdf = new Float32Array(maxLag + 2);
-  for (let lag = minLag; lag <= maxLag + 1; lag++) {
-    let ac = 0, m = 0;
-    for (let i = 0; i < n - lag; i++) { ac += buf[i] * buf[i + lag]; m += buf[i] * buf[i] + buf[i + lag] * buf[i + lag]; }
-    nsdf[lag] = m ? 2 * ac / m : 0;
+export function detectPitch(buf, sampleRate, minF = 70, maxF = 1100, decimate = 1) {
+  // Averaging neighbouring samples halves the work for low instruments and acts as a mild low-pass.
+  const n = Math.floor(buf.length / decimate), sr = sampleRate / decimate;
+  const x = scratch(n, 0);
+  let mean = 0;
+  for (let i = 0; i < n; i++) { let v = 0; for (let j = 0; j < decimate; j++) v += buf[i * decimate + j]; x[i] = v / decimate; mean += x[i]; }
+  mean /= n;
+  // Prefix sums of squares give the NSDF denominator for every lag without another loop.
+  const sq = scratch(n + 1, 1); sq[0] = 0;
+  for (let i = 0; i < n; i++) { x[i] -= mean; sq[i + 1] = sq[i] + x[i] * x[i]; }
+  const rms = Math.sqrt(sq[n] / n);
+  if (rms < QUIET) return null;
+  const minLag = Math.max(2, Math.floor(sr / maxF)), maxLag = Math.min(Math.ceil(sr / minF), (n >> 1) - 1);
+  const nsdf = scratch(maxLag + 2, 2);
+  for (let lag = 1; lag <= maxLag + 1; lag++) {
+    let ac = 0; const end = n - lag;
+    for (let i = 0; i < end; i++) ac += x[i] * x[i + lag];
+    const m = sq[end] + sq[n] - sq[lag];
+    nsdf[lag] = m > 0 ? 2 * ac / m : 0;
   }
-  // First peak above 90 % of the highest peak avoids octave errors.
-  let max = 0;
-  for (let lag = minLag + 1; lag <= maxLag; lag++) if (nsdf[lag] > max) max = nsdf[lag];
-  if (max < .6) return null;
-  let lag = -1;
-  for (let l = minLag + 1; l <= maxLag; l++) if (nsdf[l] > nsdf[l - 1] && nsdf[l] >= nsdf[l + 1] && nsdf[l] >= .9 * max) { lag = l; break; }
-  if (lag < 0) return null;
-  const a = nsdf[lag - 1], b = nsdf[lag], c = nsdf[lag + 1], shift = (a - c) / (2 * (a - 2 * b + c) || 1);
-  return {freq: sampleRate / (lag + (Number.isFinite(shift) ? shift : 0)), clarity: b, rms};
+  // McLeod: skip the lobe around lag 0, then take the highest point of each positive region (a "key
+  // maximum"). The first key maximum close to the best one is the fundamental; later ones are octaves below.
+  let lag = 1; while (lag <= maxLag && nsdf[lag] > 0) lag++;
+  const peaks = []; let top = 0, cur = -1;
+  for (; lag <= maxLag; lag++) {
+    if (nsdf[lag] > 0) { if (nsdf[lag] > nsdf[lag - 1] && nsdf[lag] >= nsdf[lag + 1] && (cur < 0 || nsdf[lag] > nsdf[cur])) cur = lag; }
+    else if (cur >= 0) { if (cur >= minLag) { peaks.push(cur); if (nsdf[cur] > top) top = nsdf[cur]; } cur = -1; }
+  }
+  if (cur >= minLag) { peaks.push(cur); if (nsdf[cur] > top) top = nsdf[cur]; }
+  if (top < .5) return null;
+  const pick = peaks.find(l => nsdf[l] >= .9 * top);
+  const a = nsdf[pick - 1], b = nsdf[pick], c = nsdf[pick + 1], shift = (a - c) / (2 * (a - 2 * b + c) || 1);
+  return {freq: sr / (pick + (Number.isFinite(shift) && Math.abs(shift) < 1 ? shift : 0)), clarity: b, rms};
+}
+const pads = [];
+function scratch(n, slot) { if (!pads[slot] || pads[slot].length < n) pads[slot] = new Float32Array(n); return pads[slot]; }
+export const midiFloat = freq => 69 + 12 * Math.log2(freq / 440);
+
+// Turns a stream of pitch frames into "a new note was played" events, for playing an instrument into
+// the microphone. A note counts once it has held the same pitch for `hold` seconds. A ringing note
+// that slips to its own octave as it fades is not a new note unless the level jumps (a new pluck).
+// `floor` follows the room noise, so it works with a quiet phone microphone as well as a loud one.
+export function createNoteTracker({hold = .06, clarity = .82} = {}) {
+  let floor = null, prevT = 0, cand = null, candT = 0, candN = 0, last = null, lastT = 0, quietT = null, peak = 0;
+  const levels = [];
+  return {
+    get candidate() { return cand; },
+    get floor() { return floor; },
+    push(f) {
+      // The floor drops to the quietest level at once and rises slowly (it doubles in 20 seconds), so long
+      // unbroken playing never raises it above the notes.
+      floor = floor == null ? f.rms : Math.min(f.rms, floor * Math.pow(2, Math.max(0, f.t - prevT) / 20)); prevT = f.t;
+      levels.push(f.rms); if (levels.length > 10) levels.shift();
+      const voiced = f.freq && f.clarity >= clarity && f.rms > Math.max(floor * 2.5, QUIET);
+      if (!voiced) {
+        cand = null;
+        if (quietT == null) quietT = f.t; else if (f.t - quietT > .2) { last = null; peak = 0; }
+        return null;
+      }
+      quietT = null; peak = Math.max(peak * .995, f.rms);
+      const m = midiFloat(f.freq), near = Math.round(m);
+      if (near !== cand) { cand = near; candT = f.t; candN = 1; return null; }
+      candN++;
+      const attack = f.rms > 1.5 * Math.min(...levels);
+      // The same note plucked again (on another string, say): only a clear new attack counts.
+      // A new pluck shows as a big jump in level, or as a smaller jump right after the pitch reading broke
+      // up for a moment (the pluck itself has no clear pitch). A note that just rings on does neither.
+      if (near === last) {
+        const low = Math.min(...levels), broke = candT > lastT;
+        const struck = (f.rms >= 2.5 * low && f.rms >= .45 * peak) || (broke && f.rms >= 1.5 * low && f.rms >= .3 * peak);
+        if (!struck || f.t - lastT < .25 || f.t - candT < hold) return null;
+        lastT = f.t; peak = Math.max(peak, f.rms);
+        return {midi: near, pc: pcOf(near), cents: Math.round((m - near) * 100), t: f.t, again: true};
+      }
+      if (candN < 2 || f.t - candT < hold) return null;
+      // The dying tail of a note can flicker to one of its overtones for a moment: far below the note's own
+      // level and with no rise in level, so skip it. A softly plucked note after a loud one either rises
+      // or simply stays, so it still counts, a little later.
+      if (f.rms < .25 * peak && !attack && f.t - candT < .2) return null;
+      // Out of silence a real note always starts with a rise in level; a blip in a fading tail does not.
+      if (last == null && !attack) return null;
+      const echo = last != null && pcOf(near) === pcOf(last) && !attack;
+      last = near; lastT = f.t;
+      if (!echo) peak = f.rms; // from here on, "loud" is measured against this note, not the one before
+      return echo ? null : {midi: near, pc: pcOf(near), cents: Math.round((m - near) * 100), t: f.t};
+    },
+  };
 }
 // Cents between a frequency and a MIDI note.
 export const centsOff = (freq, midi) => 1200 * Math.log2(freq / freqOf(midi));
