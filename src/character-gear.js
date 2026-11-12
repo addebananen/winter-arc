@@ -63,9 +63,12 @@ export function equip(state, slot, id, progress = progressOf(state)) {
   state.profile.look[slot] = id;
 }
 
+// The emblem sits as a small badge in the lower corner of the character, never over the body or face:
+// the drawn characters and the picture characters (Adrian, Frostmagikern, Arkanmagikern) differ in shape.
+const EMBLEM_CORNER='left:auto;top:auto;right:6%;bottom:8%;transform:none';
 // Placeholder artwork around a character svg. Returns html to wrap the character in.
 export function gearLayer(characterSvg, look, icon) {
   const aura = gearById[look.aura], cape = gearById[look.cape], emblem = gearById[look.emblem];
   if (!aura && !cape && !emblem) return characterSvg;
-  return `<span class="gear-wrap" style="${aura ? `--aura:${aura.color};` : ''}${cape ? `--cape:${cape.color};` : ''}">${aura ? '<i class="gear-aura"></i>' : ''}${cape ? '<i class="gear-cape"></i>' : ''}${characterSvg}${emblem ? `<i class="gear-emblem" style="--emblem:${emblem.color}" title="${emblem.name}">${icon(emblem.icon)}</i>` : ''}</span>`;
+  return `<span class="gear-wrap" style="${aura ? `--aura:${aura.color};` : ''}${cape ? `--cape:${cape.color};` : ''}">${aura ? '<i class="gear-aura"></i>' : ''}${cape ? '<i class="gear-cape"></i>' : ''}${characterSvg}${emblem ? `<i class="gear-emblem" style="--emblem:${emblem.color};${EMBLEM_CORNER}" title="${emblem.name}">${icon(emblem.icon)}</i>` : ''}</span>`;
 }
