@@ -2806,4 +2806,7 @@ export default {
  "Goblet Squat": "Dumbbell goblet squat",
  "Tricep Kickback": "Dumbbell tricep kickback",
  "DB Pullovers": "Dumbbell pullover",
+ "Visa äldre pass ({#})": "Show older sessions ({#})",
+ "Visa äldre aktiviteter ({#})": "Show older activities ({#})",
+ "Inga pass den senaste veckan.": "No sessions in the last week.",
 };
