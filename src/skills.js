@@ -51,13 +51,13 @@ export const trees = [
       L('standing-pike', 'Stående pikefällning', '3 × 30 s med handflatorna i golvet', ['Raka knän, fäll från höften.', 'Låt huvudet hänga tungt.', 'Vikten lätt fram mot tårna.'], ['Att runda ländryggen i stället för att fälla i höften.']),
     ]},
   {id: 'straddle-base', short: 'Straddle-start', name: 'Straddle från grunden', branch: 'mobility', stat: 'Flexibility', col: 0, row: 4,
-    about: 'Kommer du bara halvvägs ner i en straddle? Börja här. Stegen öppnar insidan av låren och höfterna i lugn takt, så att pancake och straddle-trädet blir möjliga.',
+    about: 'Kommer du bara halvvägs ner? Börja här. Stegen blandar knävänlig stretch (grodan), styrka i ytterläget (glid och good mornings) och upphöjd pancake, som coacher som Antranik och Simple Calisthenics lär ut. Träna 3–5 dagar i veckan, kontrakt-slapp högst två av dem. Gå till ungefär 7 av 10 i stretch, aldrig smärta i knät.',
     levels: [
-      L('butterfly', 'Fjärilen', '3 × 30 s', ['Sitt med fotsulorna mot varandra.', 'Håll i fötterna och sitt lång i ryggen.', 'Låt knäna sjunka av sig själva, tryck inte.'], ['Att trycka ner knäna med händerna.']),
-      L('straddle-sit', 'Sittande straddle, rak rygg', '3 × 45 s', ['Benen så brett det går utan smärta, knäna får vara lätt böjda.', 'Händerna i golvet bakom dig.', 'Sitt lång och andas lugnt.'], ['Att sjunka ihop i ländryggen.']),
-      L('side-lunge', 'Sidoutfall', '2 × 8 per sida', ['Brett steg åt sidan.', 'Böj ena knät och sätt dig bakåt, det andra benet rakt.', 'Gå bara så djupt det känns bra.'], ['Att knät faller inåt.']),
-      L('supported-fold', 'Bred fällning med stöd', '3 × 30 s', ['Fötterna brett isär.', 'Händerna på en stol, låda eller block.', 'Fäll från höften med lång rygg.'], ['Att runda ryggen för att komma längre ner.']),
-      L('half-pancake', 'Halv pancake', '3 × 30 s', ['Sitt bredbent, knäna får vara lätt böjda.', 'Gå fram med händerna tills du känner stretch.', 'Stanna där och andas ut.'], ['Att tvinga sig längre än en sjua av tio i stretch.']),
+      L('frog-stretch', 'Grodan', '3 × 45 s', ['På underarmar och knän, knäna brett och i linje med höften.', 'Smalbenen parallella, fotlederna i linje med knäna.', 'Pressa knäna mot golvet 5 s på halv kraft, slappna av 20 s och glid lite bredare.'], ['Att svanka eller låta höften hamna bakom knäna.', 'Smärta i knät: smalna av.']),
+      L('adductor-slide', 'Adduktorglid', '3 × 8', ['Strumpor på ett halt golv, händerna på höften.', 'Låt fötterna glida isär med raka ben, bara så långt du har kontroll.', 'Dra ihop benen med insidan av låren.'], ['Att böja knäna för att ta sig tillbaka.']),
+      L('straddle-good-morning', 'Bredbent good morning', '3 × 8, 2 s i botten', ['Fötterna brett, knäna lätt böjda och pressade utåt.', 'Fäll från höften med platt rygg, bröstet först.', 'Res dig med säte och baksida lår.'], ['Att runda ländryggen.', 'Knäna faller inåt.']),
+      L('elevated-pancake-gm', 'Upphöjd pancake good morning', '3 × 8, 2 s i botten', ['Sitt på en kudde eller ett block, benen brett och tårna mot taket.', 'Fäll framåt med lång rygg, håll 2 s.', 'Res dig med höften och ryggen, inte med armarna.'], ['Att runda ryggen för att komma längre ner.']),
+      L('elevated-pancake', 'Upphöjd pancake, kontrakt-slapp', '3 × 30 s', ['Sitt upphöjt, benen brett, knäna får vara lätt böjda.', 'Pressa hälarna mot golvet 5 s, slappna av och fäll lite längre.', 'Stanna och andas i det nya läget.'], ['Att studsa eller dra sig ner med armarna.']),
     ]},
   {id: 'straddle', short: 'Straddle', name: 'Straddle', branch: 'mobility', stat: 'Flexibility', col: 0, row: 5,
     about: 'Bred straddle behövs för straddle-varianter av planche, levers, flagga och enarms-handstand. De senare nivåerna tar dig steg för steg ner i en mittspagat.',
@@ -334,10 +334,10 @@ export const workoutCatalog=trees.flatMap(t=>t.levels.map(l=>{const g=workoutGoa
 export const workoutById=Object.fromEntries(workoutCatalog.map(e=>[e.id,e]));
 // Mobility levels added after the first skill catalog. Saving them needs database update 020.
 export const mobilityUpdateIds=new Set(['sk-pike-4','sk-straddle-3','sk-straddle-4','sk-straddle-5','sk-straddle-6','sk-ankles-3',...[1,2,3,4,5,6].map(n=>'sk-hips-'+n)]);
-// Beginner straddle steps. Saving them needs database update 022.
+// Beginner straddle steps. Added in 022 and replaced with research-based exercises in 024; saving them needs 024.
 export const straddleBaseIds=new Set([1,2,3,4,5].map(n=>'sk-straddle-base-'+n));
 // Database version (training_expansion_ready) a skill workout needs before it can be saved.
-export const workoutVersion=id=>straddleBaseIds.has(id)?22:mobilityUpdateIds.has(id)?20:0;
+export const workoutVersion=id=>straddleBaseIds.has(id)?24:mobilityUpdateIds.has(id)?20:0;
 const legacyStrength={pushup:'push-up',pullup:'pull-up',dip:'dip',plank:'plank',hang:'dead-hang',diamond:'diamond-push-up'};
 const legacyTraining={'incline-push':'incline-push-up','push-up':'push-up','close-push':'diamond-push-up','pike-push':'pike-push-up','squat':'squat','split-squat':'split-squat','plank':'plank','side-plank':'side-plank','dead-hang':'dead-hang','pull-up':'pull-up','hollow-hold':'hollow'};
 const cache=new WeakMap();

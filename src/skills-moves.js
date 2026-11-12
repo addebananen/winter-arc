@@ -265,50 +265,54 @@ function stand(x = 0, extra = {}) {
   ]});
 }
 
-// Straddle from the ground up: gentle steps before the pancake.
+// Straddle from the ground up (research-based beginner steps before the pancake).
 {
-  // Butterfly (side view): soles together, knees sink as the thighs open. The thigh is
-  // foreshortened because it points out towards the viewer.
-  const fly = (a, lean = 0) => {
-    const k = .75, knee = [44 * k * Math.sin(a * Math.PI / 180), -10 - 44 * k * Math.cos(a * Math.PI / 180)], ankle = [20, -6];
-    const d = [ankle[0] - knee[0], ankle[1] - knee[1]], sh = Math.atan2(d[0], -d[1]) * 180 / Math.PI, sl = Math.hypot(...d) / 42;
-    const p = {t: lean, n: lean + 6, len: {thN: k, thF: k, shN: sl, shF: sl}, ln: [a, sh, 118], lf: [a + 2, sh + 1, 119], at: {j: 'pelvis', x: 0, y: -10}};
-    p.ik = {an: {x: 22, y: -12, b: 1, h: 100}, af: {x: 20, y: -12, b: 1, h: 100}};
-    return p;
+  // Frog stretch seen from the front: forearms and knees on the floor, thighs out to the
+  // sides. The wider the knees, the lower the hips. Knees stay on the floor.
+  const frog = a => {
+    const py = -6 - 44 * -Math.cos(a * Math.PI / 180);
+    return {front: 1, t: 0, n: 0, sw: 16, hw: 9, len: {torso: .3, neck: .5, shN: .15, shF: .15, faN: .6, faF: .6, hand: .4}, at: {j: 'pelvis', x: 0, y: py},
+      ln: [a, 180, 180], lf: [-a, -180, -180], ik: {an: {x: 15, y: -4, b: -1, h: 180}, af: {x: -15, y: -4, b: 1, h: 180}}};
   };
-  def('butterfly', {title: 'Fjärilen', props: [FLOOR], key: 1, frames: [
-    {p: fly(58), hold: 500, move: 1800, cue: 'Fotsulorna mot varandra. Sitt lång i ryggen.'},
-    {p: fly(84, 6), hold: 2400, move: 1800, cue: 'Låt knäna sjunka av sig själva. Andas ut.', focus: ['legs'], timer: true},
+  def('frog-stretch', {title: 'Grodan', view: 'front', props: [FLOOR], key: 2, ghost: [0], frames: [
+    {p: frog(114), hold: 500, move: 1600, cue: 'Knäna brett, i linje med höften. Smalbenen parallella.'},
+    {p: frog(108), hold: 1400, move: 300, cue: 'Pressa knäna mot golvet 5 s på halv kraft.', focus: ['legs']},
+    {p: frog(97), hold: 2200, move: 1600, cue: 'Slappna av och låt höften sjunka. Glid lite bredare.', focus: ['legs'], timer: true},
   ]});
-  // Seated straddle seen from the front: legs open along the floor, hands behind.
-  const sit = (w, fold = 0) => ({front: 1, t: 0, n: 0, sw: 16, hw: 9, len: {torso: .9 - fold * .5, neck: 1 - fold * .5, thN: w, shN: w, thF: w, shF: w},
-    ln: [100, 100, 10], lf: [-100, -100, -10], at: {j: 'pelvis', x: 0, y: -8},
-    ik: fold ? {an: {x: 30 - fold * 6, y: HW, b: -1, h: 180}, af: {x: -30 + fold * 6, y: HW, b: 1, h: 180}} : {an: {x: 26, y: HW, b: -1, h: 120}, af: {x: -26, y: HW, b: 1, h: -120}}});
-  def('straddle-sit', {title: 'Sittande straddle, rak rygg', view: 'front', props: [FLOOR], key: 1, frames: [
-    {p: sit(.45), hold: 500, move: 1800, cue: 'Sitt med benen isär och händerna bakom dig.'},
-    {p: sit(.72), hold: 2400, move: 1600, cue: 'Öppna benen så brett det går utan smärta. Sitt lång.', focus: ['legs'], timer: true},
+  // Adductor slides on socks: straight legs slide apart, the inner thighs pull them back.
+  const slide = fx => {
+    const py = -7 - Math.sqrt(86 * 86 - (fx - 9) ** 2) + 1;
+    return {front: 1, t: 0, n: 0, sw: 16, hw: 9, at: {j: 'pelvis', x: 0, y: py},
+      ik: {ln: {x: fx, y: -7, b: 1, f: 100}, lf: {x: -fx, y: -7, b: -1, f: -100}, an: {x: 21, y: py - 4, b: -1, h: 200}, af: {x: -21, y: py - 4, b: 1, h: 160}}};
+  };
+  def('adductor-slide', {title: 'Adduktorglid', view: 'front', props: [FLOOR], key: 1, ghost: [0], frames: [
+    {p: slide(20), hold: 300, move: 1800, cue: 'Strumpor på halt golv. Händerna på höften.'},
+    {p: slide(54), hold: 500, move: 1300, cue: 'Låt fötterna glida isär med raka ben.', focus: ['legs']},
+    {p: slide(20), hold: 300, move: 0, cue: 'Dra ihop benen med insidan av låren.', focus: ['legs']},
+  ].map((f, i) => i === 2 ? {...f, move: 1800} : f)});
+  // Bent-knee straddle good morning (front view): the torso hinges towards the viewer.
+  const ARMS = {an: [194, 300, 300], af: [166, 60, 60]};
+  const gm = (s, py = -74) => ({front: 1, t: 0, n: 0, sw: 16, hw: 9, ...ARMS, len: {torso: s, neck: Math.max(.35, s), faN: .7, faF: .7}, at: {j: 'pelvis', x: 0, y: py},
+    ik: {ln: {x: 46, y: -7, b: -1, f: 120}, lf: {x: -46, y: -7, b: 1, f: -120}}});
+  def('straddle-good-morning', {title: 'Bredbent good morning', view: 'front', props: [FLOOR], key: 1, ghost: [0], frames: [
+    {p: gm(1), hold: 300, move: 1500, cue: 'Fötterna brett, knäna lätt böjda och pressade utåt.'},
+    {p: gm(.16, -70), hold: 900, move: 1300, cue: 'Fäll från höften med platt rygg. Håll 2 s.', focus: ['legs', 'core'], timer: true},
   ]});
-  // Side lunge: a shallow cossack, the straight leg opens the inner thigh.
-  const lunge = (px, py) => ({front: 1, t: 0, n: 0, sw: 16, hw: 9, an: [194, 300, 300], af: [166, 60, 60], len: {faN: .7, faF: .7}, at: {j: 'pelvis', x: px, y: py},
-    ik: {ln: {x: 40, y: -7, b: 1, f: 120}, lf: {x: -40, y: -7, b: -1, f: -120}}});
-  def('side-lunge', {title: 'Sidoutfall', view: 'front', props: [FLOOR], key: 1, frames: [
-    {p: lunge(0, -80), hold: 300, move: 1300, cue: 'Brett steg åt sidan.'},
-    {p: lunge(20, -58), hold: 700, move: 1200, cue: 'Böj ena knät och sätt dig bakåt. Det andra benet rakt.', focus: ['legs']},
-    {p: lunge(0, -80), hold: 300, move: 1300, cue: 'Tryck tillbaka till mitten.'},
-    {p: lunge(-20, -58), hold: 700, move: 1200, cue: 'Och åt andra hållet.', focus: ['legs']},
+  // Elevated pancake (side view): sitting on a block tips the pelvis forward.
+  const SEAT = 20;
+  const legs = 90 + Math.atan2(SEAT + 4 - 7, 86) * 180 / Math.PI;
+  const sit = (t, arms) => ({t, n: t + 8, ln: [legs, legs, 12], lf: [legs + 1, legs + 1, 13], at: {j: 'pelvis', x: 0, y: -SEAT - 4}, ...arms});
+  const crossed = t => ({an: [t + 160, t + 20, t + 20], af: [t + 162, t + 22, t + 22]});
+  const block = {k: 'box', x: -16, w: 26, h: SEAT};
+  def('elevated-pancake-gm', {title: 'Upphöjd pancake good morning', props: [FLOOR, block], key: 1, ghost: [0], frames: [
+    {p: sit(0, crossed(0)), hold: 300, move: 1500, cue: 'Sitt på ett block, benen brett och tårna mot taket.'},
+    {p: sit(70, crossed(70)), hold: 900, move: 1300, cue: 'Fäll fram med lång rygg, bröstet först. Håll 2 s.', focus: ['legs', 'core'], timer: true},
   ]});
-  // Wide fold with the hands on a box: the torso stops at horizontal.
-  const BOX = 46;
-  const fold = s => ({front: 1, t: 0, n: 0, sw: 16, hw: 9, len: {torso: s, neck: s}, at: {j: 'pelvis', x: 0, y: -78},
-    ik: {ln: {x: 54, y: -7, b: 1, f: 100}, lf: {x: -54, y: -7, b: -1, f: -100},
-      an: s < .9 ? {x: 13, y: -BOX + HW, b: -1, h: 120} : {x: 24, y: -80, b: -1, h: 180}, af: s < .9 ? {x: -13, y: -BOX + HW, b: 1, h: -120} : {x: -24, y: -80, b: 1, h: 180}}});
-  def('supported-fold', {title: 'Bred fällning med stöd', view: 'front', props: [FLOOR, {k: 'box', x: -22, w: 44, h: BOX}], key: 1, frames: [
-    {p: fold(1), hold: 500, move: 1600, cue: 'Fötterna brett isär, stödet framför dig.'},
-    {p: fold(.18), hold: 2400, move: 1400, cue: 'Händerna på stödet. Fäll från höften med lång rygg.', focus: ['legs'], timer: true},
-  ]});
-  def('half-pancake', {title: 'Halv pancake', view: 'front', props: [FLOOR], key: 1, frames: [
-    {p: sit(.6), hold: 400, move: 1500, cue: 'Sitt bredbent, knäna får vara lätt böjda.'},
-    {p: sit(.6, .8), hold: 2400, move: 1800, cue: 'Gå fram med händerna tills du känner stretch. Andas ut.', focus: ['legs'], timer: true},
+  const reach = (t, hx, hy) => sit(t, {ik: {an: {x: hx, y: hy, b: 1, h: 90}, af: {x: hx - 2, y: hy, b: 1, h: 90}}});
+  def('elevated-pancake', {title: 'Upphöjd pancake, kontrakt-slapp', props: [FLOOR, block], key: 2, ghost: [0], frames: [
+    {p: reach(10, 30, -24), hold: 500, move: 1500, cue: 'Sitt upphöjt, händerna på låren.'},
+    {p: reach(56, 48, HW), hold: 1400, move: 300, cue: 'Pressa hälarna mot golvet i 5 s.', focus: ['legs']},
+    {p: reach(66, 60, HW), hold: 2200, move: 1600, cue: 'Slappna av och fäll lite längre. Andas.', focus: ['legs'], timer: true},
   ]});
 }
 
