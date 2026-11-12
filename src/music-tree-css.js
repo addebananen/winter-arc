@@ -321,6 +321,18 @@ body.mg-open{overflow:hidden}
 .mg-fret.m-now i{background:var(--c);color:#1a2426;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 35%,transparent);animation:mg-glow 1.2s ease-in-out infinite}
 .mg-fret.heard i{animation:mg-heard .5s ease-out}
 @keyframes mg-heard{0%{background:var(--mint);color:#16302c;transform:scale(1.25)}100%{transform:scale(1)}}
+.mg-listen.small{width:84px;height:84px;margin:0}
+.mg-listen.small>svg{width:28px;height:28px}
+.mg-listen.small .mg-eq{height:26px}
+.mg-tries{display:grid;gap:8px;justify-content:center}
+.mg-try{display:grid;grid-template-columns:64px repeat(4,54px);gap:8px;align-items:center;transition:opacity .2s}
+.mg-try.later{opacity:.35}
+.mg-try small{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.mg-try>span{height:46px;border-radius:14px;display:grid;place-items:center;font-family:Manrope,sans-serif;font-weight:800;font-size:17px;background:#172123;border:1px solid var(--line);color:#4f6163}
+.mg-try.now>span{border-color:color-mix(in srgb,var(--c) 55%,var(--line))}
+.mg-try>span.in{background:color-mix(in srgb,var(--c) 22%,#172123);color:var(--text);border-color:var(--c);animation:mg-pop .3s var(--ease-out,ease-out)}
+.mg-try>span.ok{background:var(--mint);color:#16302c;border-color:var(--mint)}
+.mg-try>span.bad{background:#5c3636;color:#ffd9d4;border-color:#8a5050}
 .mg-timer{height:5px;border-radius:3px;background:#243033;overflow:hidden}
 .mg-timer i{display:block;height:100%;background:var(--c);transform-origin:left;animation:mg-timer var(--s) linear forwards}
 @keyframes mg-timer{to{transform:scaleX(0)}}

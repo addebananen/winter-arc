@@ -676,6 +676,7 @@ export function createMusicTreeUI({state, commit, esc, toast, today, modal, clos
     if (M.QUIZ_TYPES.has(t)) return quizLevel(node, level);
     if (t === 'pattern') return play.patternLevel(node, level);
     if (t === 'neck') return play.neckLevel(node, level);
+    if (t === 'earbass') return play.earBassLevel(node, level);
     if (t === 'bassline') return basslineLevel(node, level);
     if (t === 'rhythm') return rhythmLevel(node, level);
     if (t === 'breath') return breathLevel(node, level);

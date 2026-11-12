@@ -286,6 +286,62 @@ test('playing the neck and a scale by tapping: learn first, then from memory', a
   w.close();
 });
 
+test('play by ear: the piano plays four chords, only the key is told, three attempts', async t => {
+  const R = T.rng(4);
+  for (const level of M.nodeById.earbass.levels) for (let i = 0; i < 60; i++) {
+    const game = level.game, q = T.earBassQuestion(R, game);
+    assert.equal(q.chords.length, 4);
+    q.chords.forEach((c, k) => {
+      assert.ok(game.degs.includes(c.deg));
+      if (k) assert.notEqual(c.pc, q.chords[k - 1].pc, 'No chord twice in a row');
+      assert.equal(T.pcOf(T.midiOf(T.parseNote(c.root + 3))), c.pc);
+      assert.ok(c.notes.every(n => n >= 55 && n < 67) && c.notes.some(n => T.pcOf(n) === c.pc), 'A close chord around middle C');
+    });
+    if (game.first) assert.equal(q.chords[0].deg, 'I');
+    assert.ok(new Set(q.chords.map(c => c.deg)).size >= 3, 'At least three different chords');
+    assert.ok((game.keys || ['C', 'G', 'D', 'A', 'E']).includes(q.key));
+    assert.ok(q.play.every(e => e.inst === 'keys'), 'Only the piano plays the question');
+    const lows = q.play.map(e => Math.min(...e.notes));
+    if (game.bass) lows.forEach((n, k) => assert.ok(T.pcOf(n) === q.chords[k].pc && n < 48, 'The root is the lowest piano note'));
+    else assert.ok(lows.every(n => n >= 55), 'No bass note to lean on');
+    assert.deepEqual(q.answer.filter(e => e.inst === 'bass').map(e => T.pcOf(e.notes[0])), q.chords.map(c => c.pc), 'The answer adds the roots on bass');
+  }
+  // In the app, by tapping. The clock is held still while the level starts, so the test knows the chords.
+  const {w, q, click} = await app('en');
+  t.after(() => w.close());
+  const leftovers = texts => texts.filter(x => swedish.test(x));
+  await click('nav:skills'); await click('mt:node:earbass');
+  const seed = Date.parse('2026-11-11T10:00:00Z'), now = w.Date.now; w.Date.now = () => seed;
+  await click('mt:play:earbass:1');
+  assert.deepEqual(leftovers(visible(q('.mg'))), [], 'Intro');
+  await click('start'); w.Date.now = now;
+  const R2 = T.rng(seed), fret = pc => `fret:0:${(pc - 4 + 12) % 12}`, count = sel => w.document.querySelectorAll(sel).length;
+  for (let n = 0; n < 4; n++) {
+    const want = T.earBassQuestion(R2, M.nodeById.earbass.levels[0].game);
+    assert.equal(q('.mg-ctx b').textContent, want.key, 'Only the key is shown');
+    assert.equal(q('.mg-reveal'), null);
+    assert.deepEqual(leftovers(visible(q('.mg'))), [], 'Playing');
+    if (n === 0) {
+      // First attempt: the last note is wrong. Three of four are marked right and a new attempt opens.
+      for (const [k, c] of want.chords.entries()) await click(fret(c.pc + (k === 3 ? 1 : 0)));
+      await click('undo'); await click(fret(want.chords[3].pc + 2));
+      await sleep(1000);
+      assert.deepEqual([count('.mg-try span.ok'), count('.mg-try span.bad')], [3, 1]);
+      assert.match(q('.mg-status').textContent, /3\s*of 4 right/);
+      assert.equal(q('.mg-reveal'), null, 'No answer is given away');
+    }
+    for (const c of want.chords) await click(fret(c.pc));
+    await sleep(1000);
+    assert.ok(q('.mg-reveal.ok'), 'Solved');
+    assert.ok(q('.mg-reveal').textContent.includes(want.chords.map(c => c.root).join(' – ')));
+    assert.deepEqual(leftovers(visible(q('.mg'))), [], 'Reveal');
+    await click('next');
+  }
+  await sleep(80);
+  assert.equal(q('[data-count]').dataset.count, '96', 'One progression on the second attempt, three on the first');
+  w.close();
+});
+
 // A plucked string as a phone microphone hears it: many overtones, hardly any fundamental, some noise.
 function pluck(R, midi, sr, len, gain = .3) {
   const f = T.freqOf(midi), out = new Float32Array(len), H = Math.min(14, Math.floor(sr / 2 / f) - 1), ph = Array.from({length: H + 1}, () => R() * 6.28);
@@ -331,6 +387,7 @@ test('played notes are heard once each, in order, loud or quiet, and silence is 
     ['a scale', scale, .5, {}], ['a fast scale', scale, .3, {}], ['every fret on the E string', [28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40], .5, {}],
     ['open strings left ringing', [28, 33, 38, 43, 31, 36], .6, {ring: true}], ['a guitar', scale.map(m => m + 12), .4, {}],
     ['a quiet phone microphone', scale, .5, {gain: .004}], ['a very loud amp', scale, .5, {gain: .9}],
+    ['the same note plucked again', [33, 33, 38, 38, 45, 45], .5, {}],
     ['soft notes between loud ones', scale, .5, {dyn: k => k % 2 ? .22 : 1}], ['an unplugged bass, barely above the room noise', scale, .5, {gain: .0006, noise: .02}],
   ];
   for (const sr of [44100, 48000]) for (const [what, notes, gap, opts] of cases) {

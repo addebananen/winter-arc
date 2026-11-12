@@ -23,6 +23,7 @@ export const HOW = {
   fret: ['Du får ett tonnamn. Hitta tonen på halsen.', 'Spela den på din bas eller gitarr så hör mikrofonen vilken ton det är. Du kan också trycka på greppbrädan på skärmen.', 'Tio toner. Åtta rätt klarar nivån.'],
   pattern: ['Först visas hela mönstret: var fingrarna sitter, vad tonerna heter och hur långt det är mellan dem. Titta, lyssna och spela efter i lugn takt.', 'Sedan döljs mönstret. Spela tonerna i ordning från grundtonen och uppåt.', 'Tre mönster på olika ställen på halsen. Varje fel ton eller titt på facit drar ner resultatet.'],
   neck: ['Först med karta: tonerna visas på halsen. Spela dem i ordning och säg namnet högt.', 'Sedan utan karta: tonerna kommer i blandad ordning. Spela rätt ton på rätt sträng.', 'En fel ton, eller att trycka på Visa, räknas som en miss. Åtta av tio utan miss klarar nivån.'],
+  earbass: ['Pianot spelar fyra ackord. Du får bara veta tonarten.', 'Lyssna efter den lägsta tonen i varje ackord och nynna den. Spela sedan fyra toner, en per ackord. Mikrofonen lyssnar inte medan pianot spelar.', 'Efter fyra toner rättas försöket: grönt är rätt och rött är fel. Du har tre försök per ackordföljd och kan lyssna hur många gånger du vill.'],
   bassline: ['Du får fyra ackord och en regel för vilka toner som får användas.', 'Tryck på ett slag och välj en ton. Lyssna på din basgång med trummor och ackord.', 'Tryck på Rätta. Röda slag bryter mot regeln. Jämför med exemplet och försök igen.'],
   rhythm: ['Klicket räknar in en takt. Lyssna först.', 'Tryck på plattan på varje markerat slag i fyra takter.', 'Du får poäng för hur nära slaget du trycker. 80 % klarar nivån.'],
   guided: ['Lägg en hand på magen och en på bröstet.', 'Andas in genom näsan när cirkeln växer. Säg ett mjukt ”sss” när den krymper.', 'Följ alla andetag så är nivån klar. Ingen mikrofon behövs.'],
@@ -30,7 +31,7 @@ export const HOW = {
   pitch: ['Lyssna på tonerna. Mikrofonen lyssnar inte medan de spelas.', 'Sjung samma toner. Linjen visar om du ligger för högt eller för lågt.', 'Håll tonen inne i det ljusa fältet en kort stund så räknas den.'],
   harmony: ['Lyssna på ackordet och på tonen du ska utgå från.', 'Sjung den ton som nivån ber om. Linjen visar om du ligger för högt eller för lågt.', 'Slå på Hörlurar om du vill ha en ton att sjunga mot.'],
 };
-const PLAYED = new Set(['fret', 'pattern', 'neck']);
+const PLAYED = new Set(['fret', 'pattern', 'neck', 'earbass']);
 
 export function createPlay({ic, esc, toast, S, current, runRound, setScreen, fretboard, closeGame, openOverlay, frame, finish, branchOf}) {
   const cap = s => s.replace(/^./, c => c.toUpperCase());
@@ -40,7 +41,7 @@ export function createPlay({ic, esc, toast, S, current, runRound, setScreen, fre
   function instrument(g) {
     if (g.ctl) return g.ctl;
     const tr = T.createNoteTracker();
-    let stop = null, starting = false, lastPc = null, pend = null;
+    let stop = null, starting = false, lastPc = null, pend = null, heard = null;
     const ctl = g.ctl = {
       mode: pref.get(), handlers: null, redraw: null,
       // After a note is accepted, the same note still ringing must not count against the next one.
@@ -70,6 +71,8 @@ export function createPlay({ic, esc, toast, S, current, runRound, setScreen, fre
       if (live) { live.querySelector('b').textContent = c != null ? T.pcName(c) : '–'; live.querySelector('u').style.transform = `scaleX(${f.level.toFixed(2)})`; live.classList.toggle('on', c != null); }
       const h = ctl.handlers; if (!h) return;
       if (ev && h.free) h.free(ev);
+      // Free playing (any note is an answer): the note has to hold for a moment, so a brushed string is not one.
+      if (h.note) { if (ev) heard = {midi: ev.midi, t: f.t}; if (heard) { if (c !== heard.midi) heard = null; else if (f.t - heard.t > .1) { const m = heard.midi; heard = null; h.note(m); } } }
       const want = h.expect?.();
       if (want == null) { pend = null; return; }
       if (ev) {
@@ -172,6 +175,68 @@ export function createPlay({ic, esc, toast, S, current, runRound, setScreen, fre
       })});
   }
 
+  // ---------- play by ear: four piano chords, answer with the roots ----------
+  function earBassLevel(node, level) {
+    const b = branchOf(node.branch), R = T.rng(), count = 4, tries = 3;
+    const head = {title: esc(level.name), sub: `<span>${esc(node.name)}</span> · <span>nivå</span> ${level.n}`, color: b.color, count};
+    return runRound({node, level, color: b.color, count, title: head.title, sub: head.sub,
+      ask: (i, g) => new Promise(resolve => {
+        const q = T.earBassQuestion(R, level.game), ctl = instrument(g), rows = [{notes: [], res: null}];
+        let done = false, solved = false, best = 0, said = '<span>Lyssna först.</span> <span>Spela sedan fyra toner, en per ackord.</span>', timer = 0, locked = false, over = false, playing = 0, listening = false;
+        const hear = (events = q.play) => {
+          A.stopAll(); const id = ++playing, end = A.play(events, {bpm: 80}); listening = true;
+          g.root.querySelector('.mg-listen')?.classList.add('playing');
+          setTimeout(() => { if (id !== playing || over) return; listening = false; if (current() === g) g.root.querySelector('.mg-listen')?.classList.remove('playing'); }, Math.max(300, (end - A.now()) * 1000));
+        };
+        const slot = (row, k, judged) => { const m = row.notes[k]; return `<span class="${m == null ? '' : judged ? (row.res[k] ? 'ok' : 'bad') : 'in'}">${m == null ? k + 1 : T.pcName(m)}</span>`; };
+        const draw = () => {
+          const keep = g.root.querySelector('.mg-board')?.scrollLeft || 0, row = rows[rows.length - 1];
+          setScreen(g, head, `
+            <div class="mg-prompt"><span class="mg-ctx"><small>Tonart</small><b>${q.key}</b><span>Dur</span></span><h2>Spela grundtonen till varje ackord</h2></div>
+            <button type="button" class="mg-listen small ${listening ? 'playing' : ''}" data-mg="hear" aria-label="Lyssna igen"><span class="mg-pulse"></span><span class="mg-pulse two"></span>${ic('play')}<span class="mg-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
+            <div class="mg-tries">${Array.from({length: done ? rows.length : tries}, (_, r) => { const x = rows[r]; return `<div class="mg-try ${x && !x.res && !done ? 'now' : ''} ${x ? '' : 'later'}"><small><span>Försök</span> ${r + 1}</small>${[0, 1, 2, 3].map(k => slot(x || {notes: []}, k, !!x?.res)).join('')}</div>`; }).join('')}</div>
+            <p class="mg-status muted">${said}</p>
+            ${done ? '' : `${ctl.mode === 'tap' ? fretboard({frets: [0, 12]}) : ''}${ctl.bar()}
+            <div class="mg-sub-actions">${row.notes.length ? `<button type="button" class="chip" data-mg="undo">${ic('replay')}<span>Ångra senaste tonen</span></button>` : ''}</div>`}
+            <div class="mg-after">${done ? `<div class="mg-reveal ${solved ? 'ok' : 'bad'}"><strong>${solved ? (rows.length === 1 ? 'Rätt på första försöket!' : 'Rätt!') : 'Så här var det'}</strong><div class="mg-facts">${q.chords.map(c => `<span><small>${c.deg}</small><b>${c.name}</b></span>`).join('')}<span class="wide"><small>Grundtoner</small><b>${q.chords.map(c => c.root).join(' – ')}</b></span></div><p class="mg-why">Nu spelas ackorden med basens grundtoner under. Spela gärna med.</p></div><button type="button" class="btn mg-next" data-mg="next"><span>Nästa</span>${ic('arrow')}</button>` : ''}</div>`);
+          const board = g.root.querySelector('.mg-board'); if (board) board.scrollLeft = keep;
+        };
+        const end = ok => {
+          done = true; solved = ok; g._ok = ok; said = ''; A.sfx(ok ? 'combo' : 'wrong'); navigator.vibrate?.(ok ? 12 : [20, 40, 20]);
+          draw(); setTimeout(() => current() === g && !over && hear(q.answer), 800);
+        };
+        const check = () => {
+          locked = false; const row = rows[rows.length - 1];
+          row.res = row.notes.map((m, k) => T.pcOf(m) === q.chords[k].pc);
+          const right = row.res.filter(Boolean).length; best = Math.max(best, right);
+          if (right === 4) return end(true);
+          if (rows.length >= tries) return end(false);
+          rows.push({notes: [], res: null});
+          said = `<b>${right}</b> <span>av 4 rätt.</span> <span>Lyssna igen och försök en gång till.</span>`;
+          A.sfx('wrong'); navigator.vibrate?.([20, 40, 20]); draw();
+          setTimeout(() => current() === g && !over && !done && !rows[rows.length - 1].notes.length && hear(), 900);
+        };
+        const add = midi => {
+          if (done || locked || over) return;
+          const row = rows[rows.length - 1]; row.notes.push(midi); said = ''; navigator.vibrate?.(8);
+          // A short pause before the attempt is judged, so the last note can still be undone.
+          if (row.notes.length === 4) { locked = true; timer = setTimeout(() => current() === g && !over && check(), 900); }
+          draw();
+        };
+        ctl.redraw = draw;
+        ctl.handlers = {note: add};
+        draw(); ctl.start(); hear();
+        g.on = cmd => {
+          if (cmd === 'close') return closeGame();
+          if (cmd === 'input') return ctl.toggle();
+          if (cmd === 'hear') return hear(done ? q.answer : q.play);
+          if (cmd === 'undo' && !done) { clearTimeout(timer); locked = false; rows[rows.length - 1].notes.pop(); return draw(); }
+          if (cmd === 'next') { over = true; clearTimeout(timer); A.stopAll(); g.on = null; ctl.handlers = null; return resolve({ok: solved, score: solved ? [1, .85, .7][rows.length - 1] : .4 * best / 4}); }
+          if (cmd.startsWith('fret:') && !done) { const [, s, f] = cmd.split(':').map(Number), midi = T.fretMidi(s, f); A.note(midi, .6, 'bass'); add(midi); }
+        };
+      })});
+  }
+
   // ---------- the whole neck ----------
   function neckLevel(node, level) {
     const b = branchOf(node.branch), game = level.game, R = T.rng(), {learn, test} = T.neckTargets(R, game);
@@ -267,5 +332,5 @@ export function createPlay({ic, esc, toast, S, current, runRound, setScreen, fre
   }
 
   const needsIntro = (id, n) => M.levelOf(S(), id) < n;
-  return {instrument, intro, needsIntro, patternLevel, neckLevel, tuner};
+  return {instrument, intro, needsIntro, patternLevel, neckLevel, earBassLevel, tuner};
 }

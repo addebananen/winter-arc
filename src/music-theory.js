@@ -276,6 +276,26 @@ export function progressionQuestion(R, {set}) {
   };
 }
 
+// Play by ear: the piano plays four chords in a key and the player answers with the root of each on the
+// bass. Only the key is told. `bass` adds the root as the piano's lowest note (easier); without it the
+// chords are close voicings around middle C and the root has to be heard inside the chord.
+// `first` starts on the key's own chord. No chord comes twice in a row, so each answer is a new note.
+export function earBassQuestion(R, {degs, keys = ['C', 'G', 'D', 'A', 'E'], bass = true, first = false}) {
+  const key = R.pick(keys), root = keyRoot(key), r = midiOf(root), seq = [];
+  // At least three different chords, so it is a progression and not two chords taking turns.
+  do { seq.length = 0; for (let i = 0; i < 4; i++) { let d; do d = i === 0 && first ? 'I' : R.pick(degs); while (i && d === seq[i - 1]); seq.push(d); } } while (new Set(seq).size < 3);
+  const chords = seq.map(deg => {
+    const d = diatonic(deg), note = transpose(root, d.iv), base = r + semis(d.iv);
+    return {deg, name: chordName(note, d.q), root: nameOf(note), pc: pcOf(base), notes: voiceIn(CHORDS[d.q].tones.map(t => base + semis(t)), 55)};
+  });
+  const piano = (c, i) => ({t: i * 2, notes: bass ? [36 + pcOf(c.pc - 36), ...c.notes] : c.notes, dur: 1.85, inst: 'keys', vel: .6});
+  return {
+    kind: 'earbass', key, chords, play: chords.map(piano),
+    // The answer: the same chords with the bass guitar playing the roots underneath.
+    answer: chords.flatMap((c, i) => [{t: i * 2, notes: c.notes, dur: 1.85, inst: 'keys', vel: .5}, {t: i * 2, notes: [28 + pcOf(c.pc - 28)], dur: 1.85, inst: 'bass', vel: 1}]),
+  };
+}
+
 // Inversions: which chord tone is in the bass (slash chords).
 export function inversionQuestion(R) {
   const q = R.pick(['maj', 'min']), key = R.pick(KEYS), root = keyRoot(key), tones = CHORDS[q].tones, which = R.int(3);
@@ -541,7 +561,15 @@ export function createNoteTracker({hold = .06, clarity = .82} = {}) {
       candN++;
       const attack = f.rms > 1.5 * Math.min(...levels);
       // The same note plucked again (on another string, say): only a clear new attack counts.
-      if (near === last) { if (f.rms < 2.5 * Math.min(...levels) || f.rms < .45 * peak || f.t - lastT < .3 || f.t - candT < hold) return null; lastT = f.t; return {midi: near, pc: pcOf(near), cents: Math.round((m - near) * 100), t: f.t, again: true}; }
+      // A new pluck shows as a big jump in level, or as a smaller jump right after the pitch reading broke
+      // up for a moment (the pluck itself has no clear pitch). A note that just rings on does neither.
+      if (near === last) {
+        const low = Math.min(...levels), broke = candT > lastT;
+        const struck = (f.rms >= 2.5 * low && f.rms >= .45 * peak) || (broke && f.rms >= 1.5 * low && f.rms >= .3 * peak);
+        if (!struck || f.t - lastT < .25 || f.t - candT < hold) return null;
+        lastT = f.t; peak = Math.max(peak, f.rms);
+        return {midi: near, pc: pcOf(near), cents: Math.round((m - near) * 100), t: f.t, again: true};
+      }
       if (candN < 2 || f.t - candT < hold) return null;
       // The dying tail of a note can flicker to one of its overtones for a moment: far below the note's own
       // level and with no rise in level, so skip it. A softly plucked note after a loud one either rises

@@ -5,7 +5,7 @@ Den här filen beskriver musikkategorin i skill tree: vad spelaren kan göra, hu
 ## Funktioner
 
 ### Trädet
-Skill tree → kategorin **Musik** har tre grenar, 16 noder och 80 nivåer. Varje nivå är ett kort spel. En nivå klaras med minst 80 %. Stjärnor: 80 % ger 1, 90 % ger 2 och 100 % ger 3.
+Skill tree → kategorin **Musik** har tre grenar, 17 noder och 85 nivåer. Varje nivå är ett kort spel. En nivå klaras med minst 80 %. Stjärnor: 80 % ger 1, 90 % ger 2 och 100 % ger 3.
 
 | Gren | Nod | Nivåer | Spel |
 |---|---|---|---|
@@ -22,6 +22,7 @@ Skill tree → kategorin **Musik** har tre grenar, 16 noder och 80 nivåer. Varj
 | Bas | Skalor | 5 | Först visas hela mönstret med skalsteg, tonnamn och hel- och halvsteg. Sedan spelas skalan ur minnet: dur, pentatoniskt, moll, modalt. |
 | Bas | Arpeggion | 4 | Samma två steg som skalorna, med ackordets toner: dur, moll, septimackord. |
 | Bas | Basgångar | 5 | Bygg en basgång över fyra takter: grundton, grundton + kvint, treklang, närmande ton och walking bass. Lyssna på den med trummor och ackord, rätta, och hör ett exempel. |
+| Bas | Spela efter gehör | 5 | Pianot spelar fyra ackord och bara tonarten visas. Spela grundtonen till varje ackord på basen. Tre försök per ackordföljd, och efter varje försök visas vilka toner som var rätt. Först med grundtonen längst ner i pianot, sedan utan, till sist i alla tonarter. |
 | Sång | Andning och stöd | 5 | Guidad låg andning, ett jämnt ”sss” i 10 och 20 sekunder, och stödd ton i 8 och 15 sekunder. Mikrofonen mäter tid och jämnhet. |
 | Sång | Tonträff | 4 | Lyssna och sjung samma toner. En stämapparat visar hur nära du ligger. |
 | Sång | Stämsång | 5 | Sjung grundton, kvint, ters eller moll-ters till ett ackord, eller en ters över en melodi. Hörlursläge spelar en ton under tiden. |
@@ -29,7 +30,7 @@ Skill tree → kategorin **Musik** har tre grenar, 16 noder och 80 nivåer. Varj
 En nod låses upp när du klarat en viss nivå i noden före (se `requires` i `src/music-tree.js`). Nivåerna i en nod spelas i ordning. Varje nivå har en kort lärtext och ofta ett tips.
 
 ### Spela på riktigt
-Greppbrädan, Hela halsen, Skalor och Arpeggion spelas på en riktig bas eller gitarr. Mikrofonen hör vilken ton som spelas och appen går vidare av sig själv, så telefonen kan ligga still. Bas och gitarr har samma fyra lägsta strängar (E, A, D, G) och appen jämför bara tonnamnet, inte oktaven, så samma övningar fungerar på båda. Knappen **Mikrofon på / Tryck på skärmen** byter till tryck på greppbrädan. Valet sparas i telefonen (`arc-music-input`), inte i kontot.
+Greppbrädan, Hela halsen, Skalor, Arpeggion och Spela efter gehör spelas på en riktig bas eller gitarr. Mikrofonen hör vilken ton som spelas och appen går vidare av sig själv, så telefonen kan ligga still. Bas och gitarr har samma fyra lägsta strängar (E, A, D, G) och appen jämför bara tonnamnet, inte oktaven, så samma övningar fungerar på båda. Knappen **Mikrofon på / Tryck på skärmen** byter till tryck på greppbrädan. Valet sparas i telefonen (`arc-music-input`), inte i kontot.
 
 - Rutan **Jag hör** visar hela tiden vilken ton appen uppfattar och hur stark signalen är.
 - En rätt ton räknas direkt. En fel ton måste hållas en kort stund innan den räknas, så att en sträng man råkar nudda inte blir ett svar.
@@ -106,6 +107,7 @@ musicTree: {
 ### Rättning i korthet
 - **Gehör och greppbräda**: rätt eller fel per fråga, tio frågor. Samma ton frågas aldrig två gånger i rad.
 - **Skalor och arpeggion**: tre mönster. Poängen är antal toner delat med toner plus missar. En fel ton och en titt på mönstret räknas som missar.
+- **Spela efter gehör**: fyra ackordföljder. Rätt på första försöket ger 100 %, andra 85 % och tredje 70 %. Utan rätt svar ges upp till 40 % efter bästa försöket. Samma ackord kommer aldrig två gånger i rad.
 - **Hela halsen**: bara passet utan karta räknas. En ton är ren om den kom utan fel ton, utan Visa och (på tidsnivån) inom tiden. Med mikrofon jämförs tonnamnet, med tryck även strängen.
 - **Basgångar**: varje slag kontrolleras mot nivåns regel (`gradeBassLine`). I walking bass spelas slag 4 i oktaven närmast tonen innan (`voiceLine`), och hopp större än en kvint inom en takt räknas som fel. Exempellinjen klarar alltid sin egen regel (testat i alla tonarter).
 - **Groove**: varje tryck jämförs med närmaste mål (`gradeTaps`), med en takts inräkning och kompensation för ljudfördröjning.
@@ -116,7 +118,7 @@ musicTree: {
 Texterna skrivs på svenska i koden och översätts när de visas, som i resten av appen. Varje ny text behöver en rad i `src/i18n-music-en.js`. Text som byggs ihop av flera delar läggs i egna `<span>` så att varje del kan översättas.
 
 ### Lägga till en nivå
-1. Lägg till `L(namn, mål, spel, tips)` i rätt nod i `src/music-tree.js`. Spelet återanvänder en befintlig speltyp (`compare`, `degree`, `interval`, `quality`, `chordtone`, `progression`, `inversion`, `fret`, `neck`, `pattern`, `bassline`, `rhythm`, `breath`, `pitch`, `harmony`).
+1. Lägg till `L(namn, mål, spel, tips)` i rätt nod i `src/music-tree.js`. Spelet återanvänder en befintlig speltyp (`compare`, `degree`, `interval`, `quality`, `chordtone`, `progression`, `inversion`, `fret`, `neck`, `earbass`, `pattern`, `bassline`, `rhythm`, `breath`, `pitch`, `harmony`).
 2. Lägg till de nya texterna i `src/i18n-music-en.js`. En ny speltyp behöver också sina tre steg i `HOW`.
 3. Kör `npm test` och `npm run build`. Testerna kontrollerar att alla nivåer har ett spel som finns och att texterna är översatta.
 

@@ -143,6 +143,16 @@ export const NODES = [
       L('Walking bass', 'Fyra slag, mjuk melodisk linje.', {type: 'bassline', rule: 'walk'}, 'Gå i små steg. Byt riktning när det behövs, men hoppa högst en kvint.'),
     ]},
 
+  {id: 'earbass', branch: 'bass', name: 'Spela efter gehör', short: 'Gehörsspel', requires: [],
+    learn: 'Det här är basistens viktigaste färdighet: höra ett ackord och hitta dess grundton. Börja med tonartens grundton. Den är hemma och ofta första eller sista ackordet. De andra grundtonerna ligger i tonartens skala, så leta längs skalan i stället för att gissa fritt. Nynna tonen innan du spelar den: kan du nynna den kan du hitta den.',
+    levels: [
+      L('Tre ackord', 'I, IV och V. Pianot spelar grundtonen längst ner.', {type: 'earbass', degs: ['I', 'IV', 'V'], bass: true, first: true}, 'Första ackordet är alltid tonartens eget. I C-dur är de tre ackorden C, F och G: skalsteg 1, 4 och 5.'),
+      L('Fyra ackord', 'Nu även vi, ett mollackord.', {type: 'earbass', degs: ['I', 'IV', 'V', 'vi'], bass: true, first: true}, 'Mollackordet låter mörkare. Dess grundton ligger två skalsteg under tonartens grundton: A i C-dur.'),
+      L('Sex ackord', 'Alla ackord i tonarten utom det sjunde.', {type: 'earbass', degs: ['I', 'ii', 'iii', 'IV', 'V', 'vi'], bass: true}, 'Nu kan följden börja var som helst, och skalsteg 2 och 3 dyker upp. Båda är mollackord.'),
+      L('Utan baston', 'Bara ackorden. Hitta grundtonen själv.', {type: 'earbass', degs: ['I', 'IV', 'V', 'vi'], bass: false}, 'Pianot spelar inte längre grundtonen längst ner. Lyssna efter den ton som hela ackordet vilar på och nynna den.'),
+      L('Alla tonarter', 'Åtta tonarter och sex ackord, utan baston.', {type: 'earbass', degs: ['I', 'ii', 'iii', 'IV', 'V', 'vi'], keys: ['C', 'G', 'D', 'A', 'E', 'F', 'B♭', 'E♭'], bass: false}, 'Hitta först tonartens grundton på halsen och spela skalan en gång innan du lyssnar.'),
+    ]},
+
   // ---------------- SÅNG ----------------
   {id: 'breath', branch: 'voice', name: 'Andning & stöd', short: 'Stöd', requires: [],
     learn: 'Stöd betyder att du styr utandningen: revben och mage får stanna ute medan luften släpps långsamt. Andas lågt (magen och sidorna rör sig, inte axlarna). Ett jämnt ”sss” är ett tydligt sätt att öva: målet är en stadig ström, inte mest luft. Övningen lyssnar på hur jämnt du låter.',
