@@ -6,7 +6,8 @@ import {poseSVG, mountPlayer} from './skills-anim.js';
 let moves = null, loading = null;
 const loadMoves = () => moves ? Promise.resolve(moves) : (loading ||= import('./skills-moves.js').then(m => (moves = m.moves)));
 
-export function createSkillsUI({getState, I, esc, button, bar, today, modal, commit, toast, render}) {
+export function createSkillsUI({getState, I, esc, button, bar, today, modal, commit, toast, render, startReady = () => true}) {
+  const startOf = (s, id) => s.skills?.[id]?.level || 0;
   let branch = 'all';
   const state = () => SK.ensureSkills(getState());
   const STATUS = {locked: 'Förkunskap saknas', open: 'Redo att börja', progress: 'Pågår', mastered: 'Bemästrad'};
@@ -39,7 +40,7 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
         <rect x="${x + 82}" y="${y + 51}" width="${NW - 96}" height="3" rx="1.5" class="sk-node-track"/><rect x="${x + 82}" y="${y + 51}" width="${Math.max(0, (NW - 96) * ratio)}" height="3" rx="1.5" class="sk-node-fill"/>
       </g>`;
     }).join('');
-    return `<svg class="sk-map" viewBox="0 0 918 ${RY(6) + 4}" role="group" aria-label="Karta över skill-trädet">${heads}${edges.join('')}${nodes}</svg>`;
+    return `<svg class="sk-map" viewBox="0 0 918 ${RY(Math.max(...SK.trees.map(t => t.row)) + 1) + 4}" role="group" aria-label="Karta över skill-trädet">${heads}${edges.join('')}${nodes}</svg>`;
   }
 
   // ---------- list ----------
@@ -61,9 +62,10 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
     const list = SK.trees.filter(t => branch === 'all' || t.branch === branch);
     return `<section class="card sk-hero"><div><span class="eyebrow">SKILL TREE · CALISTHENICS</span><h2>Från grund till skill.</h2>
       <p>${sum.levels} av ${sum.total} nivåer klara · ${sum.mastered} av ${sum.trees} träd bemästrade. Varje nivå stärker din karaktär.</p>
-      <div class="sk-stat-row">${Object.entries(pts).map(([k, v]) => `<span class="pill">${I(k === 'Flexibility' ? 'stretch' : k === 'Discipline' ? 'bolt' : 'dumbbell')}${k} +${v}</span>`).join('')}</div></div>
+      <div class="sk-stat-row">${Object.entries(pts).map(([k, v]) => `<span class="pill">${I(k === 'Flexibility' ? 'stretch' : k === 'Discipline' ? 'bolt' : 'dumbbell')}${k} +${v}</span>`).join('')}</div>
+      ${button(I('flag') + ' Ange var jag är', 'fit:sk:levels', 'btn secondary sk-levels-btn')}</div>
       <span class="pill">${I('dumbbell')} Länkat till sparade pass</span></section>
-      ${started ? '' : `<div class="notice">${I('info')}<span>Välj ett steg och lägg till det i ditt pass. När alla målset är sparade och passet avslutas låses nivån upp automatiskt. Tidigare angivna nivåer finns kvar som utgångsläge.</span></div>`}
+      ${started ? '' : `<div class="notice">${I('info')}<span>Välj ett steg och lägg till det i ditt pass. När alla målset är sparade och passet avslutas låses nivån upp automatiskt. Tidigare angivna nivåer finns kvar som utgångsläge. Har du redan kommit en bit? Tryck på Ange var jag är.</span></div>`}
       <div class="sk-map-wrap" tabindex="0" aria-label="Skill-trädets karta, scrolla i sidled">${mapSVG(s)}</div>
       <div class="chips">${button('Alla', 'fit:sk:branch:all', `chip ${branch === 'all' ? 'active' : ''}`)}${SK.branches.map(b => button(I(b.icon) + b.name, 'fit:sk:branch:' + b.id, `chip ${branch === b.id ? 'active' : ''}`)).join('')}</div>
       <div class="sk-grid">${list.map(t => card(s, t)).join('')}</div>
@@ -80,6 +82,7 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
     const pts = SK.levelPoints(l);
     modal(esc(t.name), `<div class="sk-detail" style="--cat:${b.color}">
       <p class="intro">${esc(t.about)}</p>
+      <div class="sk-start"><div><strong>${startOf(s, id) ? `Startnivå: ${startOf(s, id)} av ${t.levels.length}` : 'Ingen startnivå angiven'}</strong><small>Har du redan kommit längre? Ange var du är, så börjar trädet därifrån.</small></div>${button(startOf(s, id) ? 'Ändra' : 'Ange min nivå', 'fit:sk:setup:' + id, 'btn secondary')}</div>
       ${treeMiss.length && lvl === 0 ? `<div class="notice">${I('info')}<span>Förkunskap krävs: ${reqText(treeMiss)}.</span></div>` : ''}
       <div class="sk-anim" data-skill-anim="${l.anim}" data-label="${esc(l.name)}"></div>
       <div class="sk-focus"><div class="flex between"><span class="pill">${done ? I('check') + ' Klar' : isNext ? 'Ditt nästa steg' : 'Senare steg'} · nivå ${focus} av ${t.levels.length}</span>${l.og ? `<span class="muted sk-og" title="Svårighetsnivå enligt Overcoming Gravity">OG ${l.og}</span>` : ''}</div>
@@ -91,9 +94,9 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
       </div>
       <h3 class="space">Hela progressionen</h3>
       <ol class="sk-ladder">${t.levels.map(x => {
-        const st = x.n <= lvl ? 'done' : x.n === lvl + 1 ? 'next' : 'later';
+        const st = x.n <= lvl ? 'done' : x.n === lvl + 1 ? 'next' : 'later', fromStart = x.n <= startOf(s, id);
         return `<li><button class="sk-rung ${st} ${x.n === focus ? 'focus' : ''}" data-action="fit:sk:show:${id}:${x.n}" aria-current="${x.n === focus}">
-          <span class="sk-rung-art">${thumb(x)}</span><span class="sk-rung-text"><strong>${x.n}. ${esc(x.name)}</strong><small>${esc(x.goal)}</small></span>
+          <span class="sk-rung-art">${thumb(x)}</span><span class="sk-rung-text"><strong>${x.n}. ${esc(x.name)}${fromStart ? ' <span class="sk-start-tag">startnivå</span>' : ''}</strong><small>${esc(x.goal)}</small></span>
           <span class="sk-rung-state">${st === 'done' ? I('check') : st === 'next' ? I('arrow') : ''}</span></button></li>`;
       }).join('')}</ol>
       <p class="fitness-hint space">Nivåer från sparade pass uppdateras automatiskt. Ingen separat XP-belöning för att öppna eller visa trädet.</p>
@@ -115,12 +118,39 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
       case 'branch': branch = a; return true;
       case 'open': await detail(a); return false;
       case 'show': await detail(a, Number(b)); return false;
-      case 'setup':case 'up':case 'down':throw Error('Nya nivåer låses upp genom sparade workouts. Välj Lägg till i workout.');
+      case 'setup': startModal(a); return false;
+      case 'levels': levelsModal(); return false;
+      case 'up':case 'down':throw Error('Nya nivåer låses upp genom sparade workouts. Välj Lägg till i workout.');
     }
     return false;
   }
 
-  async function submit(){throw Error('Nivåer uppdateras via avslutade workouts.');}
+  // One place to set where you are in every tree, reachable straight from the Skill tree page.
+  function levelsModal() {
+    const s = state();
+    modal('Var är du i dina skill-träd?', `<p class="intro">Välj ett träd och ange den högsta nivån du redan klarar. Då börjar trädet därifrån.</p>
+      ${SK.branches.map(b => {
+        const trees = SK.trees.filter(t => t.branch === b.id);
+        return trees.length ? `<h3 class="sk-levels-head">${esc(b.name)}</h3><div class="sk-levels-list">${trees.map(t => {
+          const lvl = SK.levelOf(s, t.id), start = startOf(s, t.id);
+          return button(`<span><strong>${esc(t.name)}</strong><small>${lvl ? `Nivå ${lvl} av ${t.levels.length}` : 'Inte påbörjad'}${start ? ` · startnivå ${start}` : ''}</small></span>${I('chevron')}`, 'fit:sk:setup:' + t.id, 'sk-levels-row');
+        }).join('')}</div>` : '';
+      }).join('')}`);
+  }
+
+  // Self-assessed starting level: levels up to it count as done; the next level still needs a saved workout.
+  function startModal(id) {
+    const s = state(), t = SK.treeById[id], cur = startOf(s, id);
+    const row = (n, title, sub) => `<label class="sk-start-option ${n === cur ? 'selected' : ''}"><input type="radio" name="level" value="${n}" ${n === cur ? 'checked' : ''}><span><strong>${title}</strong><small>${sub}</small></span></label>`;
+    modal('Var är du i ' + esc(t.name) + '?', `<p class="intro">Välj den högsta nivån du redan klarar med ren teknik. Nivåerna upp till den räknas som klara, och nästa nivå låses upp med ett sparat pass.</p><form id="fitness-skill-setup" class="form"><input type="hidden" name="tree" value="${id}"><div class="sk-start-list">${row(0, 'Börja från början', 'Ingen nivå är klar än.')}${t.levels.map(l => row(l.n, `${l.n}. ${esc(l.name)}`, esc(l.goal))).join('')}</div><p class="fitness-hint">Startnivån är självskattad. Den ger karaktärens stats men aldrig XP eller rank.</p><p class="form-error" role="alert"></p><button class="btn full" type="submit">Spara startnivå</button></form>`);
+  }
+  async function submit(v) {
+    if (!startReady()) throw Error('Startnivåer aktiveras med databasuppdatering 015. Ladda om appen efter aktivering.');
+    const t = SK.treeById[v.tree], n = Number(v.level);
+    if (!t || !Number.isInteger(n) || n < 0 || n > t.levels.length) throw Error('Välj en nivå i listan.');
+    await commit(s => SK.setLevel(s, v.tree, n, today()), n ? `Startnivå sparad: ${t.levels[n - 1].name}.` : 'Startnivån är borttagen.');
+    await detail(v.tree);
+  }
   let thumbQueued=false;
   function workoutThumb(id){if(!moves){if(!thumbQueued){thumbQueued=true;loadMoves().then(()=>{thumbQueued=false;render();});}return '';}const e=SK.workoutById[id];return e?thumb(SK.treeById[e.skillTree].levels[e.skillLevel-1],'movement-art'):'';}
 

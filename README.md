@@ -34,9 +34,9 @@ Dagens vanor, 68 biblioteksförslag inom åtta kategorier, egna vanor och schema
 
 **Skill tree** är en egen destination i menyn, med en kategorilista överst. Kategorin **Calisthenics**: 20 träd och 105 nivåer i tre grenar. Rörlighet: handleder, axlar upp och bakåt, pike, straddle och fotleder. Grund: kroppslinje, armhävning → enarms, pull-ups, dips och ben → pistol. Skills: L-sit, handstand, handstand push-up, enarms-handstand, muscle-up, front lever, back lever, planche och human flag. Ordningen följer nivåtabellerna i *Overcoming Gravity 2* (Steven Low) och r/bodyweightfitness *Bodyweight Fitness Progressions v5.4*. Varje nivå har mål, teknikpunkter, vanliga fel, rekommenderade förkunskaper och en animation. Användaren anger sin nivå per träd och markerar nästa nivå när målet klaras. Nivåerna sparas i kontots molndata (`skills` i sparfilen) och ger karaktärens stats (Strength, Flexibility, Discipline). Uppnådda personliga mål ger +50 i sitt livsområde. Ingen av dem påverkar XP eller rank, som fortsatt kontrolleras av servern.
 
-Animationerna (`src/skills-anim.js`, `src/skills-moves.js`) är en 2D-figur med riktiga segmentlängder. Händer och fötter låses mot golv, stång eller vägg med tvåleds-IK, och balansskills löses så att tyngdpunkten ligger över stödet. En anatomikontroll (`lint`) stoppar omöjliga ledvinklar och kontakter som inte nås. `dev/skill-review.html` och `dev/skill-gallery.html` visar alla animationer för granskning. `dev/app.html` kör appen lokalt i utvecklingsläge utan backend (`python3 -m http.server` i repots rot).
+Animationerna (`src/skills-anim.js`, `src/skills-moves.js`) är en 2D-figur med riktiga segmentlängder. Händer och fötter låses mot golv, stång eller vägg med tvåleds-IK, och balansskills löses så att tyngdpunkten ligger över stödet. En anatomikontroll (`lint`) stoppar omöjliga ledvinklar och kontakter som inte nås. Figuren ritas med samma människa som övningsanimationerna (`skillFigure` i `src/figure.js`): t-shirt med logga, shorts, sneakers, huvud och händer som greppar stång, ringar, parallettes och dipsräcke eller ligger platt mot golvet. Rörelser filmade rakt framifrån (till exempel archer push-up) visar bara överkroppen, eftersom benen pekar bort från kameran. `dev/skill-review.html` och `dev/skill-gallery.html` visar alla animationer för granskning. `dev/app.html` kör appen lokalt i utvecklingsläge utan backend (`python3 -m http.server` i repots rot).
 
-Fyra fasta mobildestinationer: Idag, Träning, Skill tree och Squad. Nya skill tree-kategorier (till exempel Musik, som visas som "Kommer snart") läggs till i `src/skill-tree-ui.js`. Profilen nås från avataren, vanor och expedition från startsidan. Tydlig installationsknapp i inställningar.
+Fyra fasta mobildestinationer: Idag, Träning, Skill tree och Squad. Kategorin **Musik** har 17 noder och 85 nivåer i Gehör, Bas och Sång, som klaras genom korta spel (gehörsquiz, greppbräda, skalor, basgångsbyggare, timing, andning och tonträff med mikrofon). Se `docs/skill-tree-kategorier.md`. Nya skill tree-kategorier läggs till i `src/skill-tree-ui.js`. Profilen nås från avataren, vanor och expedition från startsidan. Tydlig installationsknapp i inställningar.
 
 Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensam streak och veckouppdrag. Privat kroppstracker med bilder, vikt, midjemått, graf och jämförelse. Bildjournal, veckoreflektioner, 90-dagarsöversikt, Wrapped som nedladdningsbar SVG och JSON-export av journaldata. En användare tillhör ett squad i denna version. Flödet hämtar de 50 senaste inläggen.
 
@@ -146,7 +146,7 @@ Migration 009 rättar även Storage INSERT-regeln så att en inloggad användare
 
 Träningsinlägg öppnar en läsvy med övningar, genomförda set, kg/reps/sekunder och settyper. Konditionspass visar tid, distans och löptempo. Befintliga automatiska inlägg kopplas till redan sparad träningshistorik; inga kopior av privat användardata görs. Raderade inlägg lämnar inga åtkomliga passdetaljer. Saknas ett äldre pass visas detta uttryckligen.
 
-Kör `supabase/014_squad_workout_details.sql` en gång efter merge. RPC:n kontrollerar squadmedlemskap och returnerar enbart tillåtna träningsfält för flödets senaste 50 inlägg. Privata anteckningar, kroppsmått, spegelbilder och trackers lämnas utanför. Migrationen utökar också till åtta reaktioner. Innan den är installerad fungerar de tre tidigare reaktionerna och vanliga inlägg, medan passdetaljer visar en återförsöksnotis. Ingen profil, XP eller historik nollställs.
+Kör `supabase/024_squad_workout_details.sql` en gång efter merge. RPC:n kontrollerar squadmedlemskap och returnerar enbart tillåtna träningsfält för flödets senaste 50 inlägg. Privata anteckningar, kroppsmått, spegelbilder och trackers lämnas utanför. Migrationen utökar också till åtta reaktioner. Innan den är installerad fungerar de tre tidigare reaktionerna och vanliga inlägg, medan passdetaljer visar en återförsöksnotis. Ingen profil, XP eller historik nollställs.
 
 Verifiering: `node --test tests/*.test.mjs` och `node scripts/build.mjs`. `node scripts/review-social.mjs` skapar en isolerad granskning i `dist/review/` med exempeldata, mockad molnanslutning och minneslagring. Den ingår inte i den vanliga produktionsbyggnaden.
 
@@ -154,6 +154,57 @@ Verifiering: `node --test tests/*.test.mjs` och `node scripts/build.mjs`. `node 
 Glömde du trycka Avsluta kan du korta passtiden när du sparar passet. Tiden kan bara kortas, aldrig förlängas, och XP räknas på den nya tiden. Har passet pågått i minst tre timmar visar appen en påminnelse. Varje set kan markeras som vanligt set, till failure (F) eller drop-set (D) genom att trycka på setets nummer. Sparade pass är fortfarande låsta.
 
 `supabase/013_workout_time_and_set_types.sql` låter servern godkänna en kortare passtid (`adjustedMinutes`, klampas till den riktiga tiden) och räkna XP på den, och nekar okända settyper. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 012. Kör den direkt efter merge: innan den är körd sparas den kortare tiden och settyperna, men servern räknar fortfarande XP och leaderboard på den fulla tiden.
+
+## Språk
+Appen är på **engelska som standard** och kan bytas till **svenska** under Inställningar → Språk (även på inloggningsskärmen). Valet sparas på enheten. Källtexterna är svenska; `src/i18n.js` översätter det som visas med ordlistorna `src/i18n-en.js` (svenska → engelska) och `src/i18n-sv.js` (engelska övningsnamn → svenska). Siffror skrivs som `{#}` i nycklarna, och långa texter översätts mening för mening. Användarskrivet innehåll översätts aldrig.
+
+## Startnivå i skill-trädet (migration 015)
+I varje skill-träd kan man trycka **Ange min nivå** och välja den högsta nivå man redan klarar. Nivåerna upp till den räknas som klara (märkta "startnivå"), och nästa nivå låses fortfarande upp med ett sparat pass. Startnivån är självskattad: den ger karaktärens stats men aldrig XP eller rank, och kan ändras eller tas bort.
+
+`supabase/015_skill_start_level.sql` låter servern godkänna en startnivå om trädet och nivån finns. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 014. Innan den är körd förklarar appen att databasuppdateringen behövs.
+
+## Karaktärens utrustning (förberedelse)
+
+Under Profil → Karaktär finns Utrustning med tre platser: aura, mantel och emblem. Föremålen låses upp av level, antal styrkepass, bästa träningsstreak och nivåer i skill tree, och valet sparas i `profile.look`. Grafiken är enkla platshållare (färgsken, mantelfärg, märke på bröstet) tills riktiga karaktärsbilder finns. Byt då bara ut `gearLayer()` i `src/character-gear.js`; platser, upplåsning och sparade val stannar som de är. Ingen databasändring behövs.
+
+## Övningsanimationer
+
+Övningarna ritas av en människofigur i `src/figure.js` med fasta benlängder och mänskliga proportioner. Varje övning i `src/figure-poses.js` beskrivs med två nyckellägen: höftens position, bålens lutning och var händer och fötter ska vara. Knän och armbågar räknas fram med invers kinematik, så att knän alltid böjs framåt, armbågar bakåt och fötter som står i golvet står still. Mellanlägena räknas om i varje steg, och bålen, låren, vaderna, biceps och bröstet har anatomiska former med kläder och skor. Muskelgruppen som tränas markeras. Figuren bär en grå t-shirt med Beyond Self-loggan på bröstet, matchande shorts och vita sneakers med röd rand. Håret är en kort frisyr med volym på toppen och kortare sidor ner mot nacken. Små detaljer (hårstrån, snören, knogveck) ritas bara när figuren visas stort, så att miniatyrerna i listan förblir lätta. Händerna har handflata, fyra fingrar i tre leder och tumme: de sluter sig runt stången, hanteln eller handtaget, ligger platt mot golvet i armhävningar och är öppna när man sträcker sig. Redskap följer händerna: viktskiva för skivstång i sidovy, en hantel i varje hand, kabel från ett fäste, band och hjul. Bänkar, säten, räcken och maskiner står i bakgrunden.
+
+Lägg till en ny övning genom att ge den en `pose` som finns i `figure-poses.js`, eller lägg till en ny pose där. Testerna kontrollerar att benlängderna är konstanta i alla mellanlägen. Animationen spelas upp live: varje bild räknas fram från skelettet och alla former ritas om (ingen SMIL-morfning, som plattade till armar på iPhone). Formerna minns vilken sida de låg åt i förra bilden, och varje knä och armbåge behåller sin böjriktning hela rörelsen.
+## Hemskärmsikon
+
+Service workern hämtar och sparar aldrig ikonerna eller manifestet. iPhone visar annars en bokstav i stället för ikonen när service workern svarar på ikonhämtningen.
+
+## Träningspass: ordning, borttagning och uppvärmningsset (migration 019)
+
+Varje övning i ett pågående pass har en meny (⋯) med Flytta upp, Flytta ner och Ta bort övning. Har övningen loggade set frågar appen först. Ett set kan märkas som uppvärmning (W), failure (F) eller drop-set (D). Uppvärmningsset räknas aldrig som personbästa.
+
+`supabase/019_warmup_sets.sql` låter servern godkänna settypen `warmup`. Den ändrar ingen data. Kör den en gång i SQL Editor efter 018. Innan den är körd går det inte att spara ett pass med uppvärmningsset i molnet.
+
+## XP-regler (migration 018)
+
+Från och med 2026-11-10 ger bara fem aktiviteter XP, högst en gång per dag var: styrkepass 40 (avslutat pass i styrkehubben eller vanan Styrketräning, oavsett längd), löpningspass 35 (löppass eller vanan Löpning), Läs en bok 25, Rörlighet 20 och Kall avslutning på duschen 15. En vana med lägre mål ger proportionellt mindre.
+
+Egna vanor, övriga vanor, dagens uppdrag, combo, träningsprogram, andning, musik, annan kondition och skill tree bygger fortfarande karaktärens stats i sin kategori men ger ingen XP. XP som tjänats till och med 2026-11-09 räknas som förut, så ingen förlorar något.
+
+Reglerna finns i `src/xp-rules.js` och speglas på servern i `supabase/018_xp_rules.sql`, som byter ut `arc_total_xp` (leaderboard, vänner, profiler). Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 017.
+
+## Social och vänner (migration 016)
+
+Fliken längst ner heter nu **Social** och har fyra delar: **Vänner**, **Squad** (gemensamt flöde med vanor och pass), **Leaderboard** och **Uppdrag**.
+
+Vänner är en bredare krets än squadet. Var och en har en egen vänkod på åtta tecken. Den ena lägger in den andras kod, den andra godkänner. Vänner ser bara varandras namn, level, rank, karaktär, vanestreak och träningsstreak. Bilder, mått, journaler och mål förblir privata, och ingenting syns innan förfrågan är godkänd.
+
+`supabase/016_friends.sql` lägger till tabellerna `friend_codes` och `friendships` samt funktionerna `my_friend_code`, `request_friend`, `respond_friend`, `remove_friend` och `friends_overview`. Den ändrar ingen befintlig data. Tryck på en vän, en rad i leaderboarden eller ett namn i flödet för att öppna personens profil med karaktär, rank, level, streaks och antal pass. Det kräver `supabase/017_member_profiles.sql` (funktionen `member_profile`), som bara visar profiler för dig själv, dina vänner och personer i ditt squad. Kör den efter 016; den ändrar ingen data. Kör den en gång i SQL Editor efter 015. Innan den är körd visar Vänner-fliken att databasuppdateringen behövs.
+
+## Färgteman
+Under kugghjulet → Färgtema finns fyra vinterteman: **Nordljus** (standard), **Frost** (isblått), **Polarnatt** (indigo) och **Beyond Self** (svart, vitt och rött som appikonen). Valet sparas på enheten. `src/themes.js` läser appens CSS vid start och räknar om de svala färgerna för valt tema, medan varma accenter (guld, flamma, rött) behålls. Ny CSS får därför automatiskt alla teman, så skriv nya färger i appens svala grundpalett.
+
+## Mage- och rörlighetsövningar (migration 014)
+Styrkehubben har två nya muskelgrupper: **Mage** (bl.a. situps, crunches, leg raise, captain's chair leg raise, hängande knä- och benlyft, ab wheel och kabelcrunch) och **Rörlighet** (bl.a. höftböjarstretch, couch stretch, duvan, world's greatest stretch, 90/90, kobran och fotledsrörlighet). Övningarna finns i `src/strength-catalog-core.js`. Rörlighet påverkar aldrig helhetsranken.
+
+`supabase/014_core_mobility_catalog.sql` lägger till övningarna i serverns katalog och genereras med `node scripts/core-catalog-migration.mjs`. Den ändrar ingen sparad data. Kör den en gång i SQL Editor efter 013. Innan den är körd visar appen ett meddelande om man försöker lägga till de nya övningarna i ett pass.
 
 ## Träningsstreak (migration 011)
 En flamma per dag med ett sparat pass i Styrkehubben. En vilodag mellan passen är okej, men två dagar i rad utan pass nollställer streaken. Flera pass samma dag ger en flamma. Streaken visas på startsidan, i Styrkehubben och i squadets leaderboard. Andra pass (Pass & andning, kondition) räknas inte.

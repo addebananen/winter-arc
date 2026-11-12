@@ -1,6 +1,7 @@
 import {cardioXP} from './cardio.js';
 import {ensureStrength,strengthXP} from './strength.js';
-import {SEASON_START,extraHabits,ensureTraining,trainingXP,trainingStats,hasRecovery} from './fitness.js';
+import {SEASON_START,extraHabits,ensureTraining,trainingXP,trainingStats,hasRecovery,trainingDays} from './fitness.js';
+import {XP_RULES_START,rulesActive,rulesDayXP} from './xp-rules.js';
 export const categories = {
  music: {name:'Musik',stat:'Music',icon:'music',color:'#e1b6d8'},
  strength: {name:'Träning', stat:'Strength', icon:'dumbbell', color:'#a7bcfa'},
@@ -82,7 +83,11 @@ export function challengeRewards(record){
 }
 export function challengeXP(record){return Math.min(100,Math.round(challengeRewards(record).reduce((n,e)=>n+e.earned,0)));}
 export function dayXP(record) {if(Object.values(record?.entries||{}).some(e=>e.durationMinutes)){const done=Object.values(record.entries).filter(e=>e.source!=='challenge'&&e.value>=e.target);return Math.min(240,done.reduce((n,e)=>n+(e.durationMinutes?2*e.durationMinutes:e.xp),0))+challengeXP(record);}const all=Object.values(record?.entries||{}).filter(e=>e.value>=e.target),done=all.filter(e=>e.source!=='challenge');return Math.round(Math.min(200,done.reduce((sum,e)=>sum+e.xp,0))*multiplier(done.length))+challengeXP(record);}
-export function totalXP(state){return Object.entries(state.history).filter(([d])=>d>=state.expedition.start).reduce((s,[,r])=>s+dayXP(r),0)+Object.values(state.claims).filter(c=>c.date>=state.expedition.start).reduce((s,c)=>s+c.xp,0)+trainingXP(state)+strengthXP(state)+cardioXP(state);}
+function legacyTotalXP(state){return Object.entries(state.history).filter(([d])=>d>=state.expedition.start).reduce((s,[,r])=>s+dayXP(r),0)+Object.values(state.claims).filter(c=>c.date>=state.expedition.start).reduce((s,c)=>s+c.xp,0)+trainingXP(state)+strengthXP(state)+cardioXP(state);}
+// Total XP: the old rules up to the day before XP_RULES_START (kept as earned), the new rules from then on.
+function xpDays(state){const days=new Set(Object.keys(state.history||{}));for(const w of state.strength?.sessions||[])days.add(w.date);for(const w of state.cardio?.sessions||[])days.add(w.date);for(const d of Object.keys(trainingDays(state)))days.add(d);return [...days].filter(d=>typeof d==='string'&&rulesActive(d)&&d>=state.expedition.start);}
+export function dayTotalXP(state,day){if(day<state.expedition.start)return 0;if(rulesActive(day))return rulesDayXP(state,day).total;return dayXP(state.history[day])+trainingXP(state,day)+strengthXP(state,day)+cardioXP(state,day);}
+export function totalXP(state){let xp=legacyTotalXP(state);for(const d of xpDays(state))xp+=rulesDayXP(state,d).total-(dayXP(state.history[d])+trainingXP(state,d)+strengthXP(state,d)+cardioXP(state,d));return xp-Object.values(state.claims||{}).filter(c=>c.date>=state.expedition.start&&rulesActive(c.date)).reduce((s,c)=>s+c.xp,0);}
 export function levelInfo(xp){const level=Math.floor(Math.sqrt(xp/80))+1,base=80*(level-1)**2,next=80*level**2;return {level,base,next,ratio:(xp-base)/(next-base)};}
 export function streak(state,today=dateKey()) {
  let d=progress(state,today).perfect?today:shiftDate(today,-1),n=0;

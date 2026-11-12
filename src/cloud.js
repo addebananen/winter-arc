@@ -5,23 +5,29 @@ export const configured = Boolean(config.supabaseUrl && config.supabaseKey);
 export const googleReady = configured && config.googleEnabled === true;
 export const client = configured ? createClient(config.supabaseUrl,config.supabaseKey,{auth:{flowType:'pkce',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}}) : null;
 export let user = null;
-export let trainingReady=false,skillWorkoutsReady=false;
+export let trainingReady=false,skillWorkoutsReady=false,coreCatalogReady=false,skillStartReady=false,mobilityReady=false,trainingVersion=0;
 let revision=0;
 const check = ({data,error})=>{if(error)throw error;return data;};
-export async function initialize(){if(!client)return null;const session=check(await client.auth.getSession());user=session.session?.user||null;if(user){try{const result=await client.rpc('training_expansion_ready');trainingReady=result.data>=9;skillWorkoutsReady=result.data>=10;}catch{trainingReady=false;}}return user;}
+export async function initialize(){if(!client)return null;const session=check(await client.auth.getSession());user=session.session?.user||null;if(user){try{const result=await client.rpc('training_expansion_ready');trainingReady=result.data>=9;skillWorkoutsReady=result.data>=10;coreCatalogReady=result.data>=14;skillStartReady=result.data>=15;mobilityReady=result.data>=20;trainingVersion=Number(result.data)||0;}catch{trainingReady=false;}}return user;}
 export async function login(){if(!googleReady)throw Error('Google-inloggningen väntar på att OAuth-klienten aktiveras i Supabase.');check(await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}}));}
 export async function logout(){if(client)check(await client.auth.signOut());user=null;}
 export async function load(){const row=check(await client.from('user_states').select('payload,revision').eq('user_id',user.id).maybeSingle());revision=row?.revision||0;return row?.payload||null;}
 export async function save(payload){const result=check(await client.rpc('save_arc_state_v3',{p_payload:payload,p_expected_revision:revision}));revision=result.revision;return result.payload;}
 export async function mySquad(){const memberships=check(await client.from('squad_members').select('squad_id').eq('user_id',user.id));if(!memberships?.length)return null;return check(await client.from('squads').select('id,name,created_by').eq('id',memberships[0].squad_id).single());}
+export async function friendsOverview(){return check(await client.rpc('friends_overview'))||[];}
+export async function myFriendCode(){return check(await client.rpc('my_friend_code'));}
+export async function requestFriend(code){return check(await client.rpc('request_friend',{p_code:code}));}
+export async function respondFriend(id,accept){return check(await client.rpc('respond_friend',{p_id:id,p_accept:accept}));}
+export async function memberProfile(id){return check(await client.rpc('member_profile',{p_user:id}))?.[0]||null;}
+export async function removeFriend(id){return check(await client.rpc('remove_friend',{p_id:id}));}
 export async function createSquad(name){return check(await client.rpc('create_squad',{p_name:name}));}
 export async function joinSquad(code){return check(await client.rpc('join_squad',{p_code:code.trim()}));}
 export async function invite(squadId){return check(await client.rpc('get_squad_code',{p_squad:squadId}));}
 const socialClient=createSocialClient(client,()=>user);
-export async function social(squad){if(!squad)return {posts:[],members:[],missions:[]};const [posts,members,missions,missionCounts,activityStatus,trainingStatus]=await Promise.all([
+export async function social(squad){if(!squad)return {posts:[],members:[],missions:[]};const [posts,members,missions,missionCounts,activityStatus,trainingStatus,avatarStatus]=await Promise.all([
  socialClient.feed(squad),
  client.rpc('squad_progress',{p_squad:squad.id}),
- client.from('missions').select('*').eq('squad_id',squad.id).order('created_at',{ascending:false}),client.rpc('mission_progress',{p_squad:squad.id}),client.rpc('squad_activity_ready'),client.rpc('squad_training_streaks',{p_squad:squad.id})]);const counts=check(missionCounts),training=trainingStatus.error?[]:trainingStatus.data||[];const workouts=await client.rpc('squad_workout_feed',{p_squad:squad.id});return {workoutReady:!workouts.error,activityReady:activityStatus.data===true,posts:posts.map(p=>({...p,workout:workouts.data?.find(w=>w.post_id===p.id)?.workout})),members:check(members).map(m=>({...m,...(training.find(t=>t.user_id===m.user_id)||{})})),missions:check(missions).map(m=>({...m,completed:counts.find(c=>c.id===m.id)?.completed||0}))};}
+ client.from('missions').select('*').eq('squad_id',squad.id).order('created_at',{ascending:false}),client.rpc('mission_progress',{p_squad:squad.id}),client.rpc('squad_activity_ready'),client.rpc('squad_training_streaks',{p_squad:squad.id}),client.rpc('squad_avatars',{p_squad:squad.id})]);const counts=check(missionCounts),training=trainingStatus.error?[]:trainingStatus.data||[],avatars=avatarStatus.error?[]:avatarStatus.data||[];const workouts=await client.rpc('squad_workout_feed',{p_squad:squad.id});return {workoutReady:!workouts.error,activityReady:activityStatus.data===true,posts:posts.map(p=>({...p,workout:workouts.data?.find(w=>w.post_id===p.id)?.workout})),members:check(members).map(m=>({...m,...(training.find(t=>t.user_id===m.user_id)||{}),photo:avatars.find(a=>a.user_id===m.user_id)?.photo||null})),missions:check(missions).map(m=>({...m,completed:counts.find(c=>c.id===m.id)?.completed||0}))};}
 export const publish=(...args)=>socialClient.publish(...args);
 export const react=(...args)=>socialClient.react(...args);
 export const removePost=id=>socialClient.remove(id);

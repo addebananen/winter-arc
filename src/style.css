@@ -274,3 +274,143 @@ button.skt-opt:hover{background:#ffffff08}
 @media(max-width:380px){.shared-workout{padding:15px}.shared-metrics strong{font-size:25px}.reaction-options{gap:4px}.reaction-label{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.reaction-menu,.react-btn.reaction-pop .reaction-emoji,.react-btn.reaction-pop:after{animation:none}.shared-workout,.post-reaction-zone .react-btn{transition:none}}
 
+/* Language switch (settings and sign-in screen) */
+.lang-switch{display:flex;gap:8px;flex-wrap:wrap}
+.release-welcome .lang-switch{margin-top:18px;justify-content:center;width:100%}
+
+/* Settings within reach on every page; language on the profile */
+.page-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.profile-lang{margin:16px 0 4px;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:var(--panel);gap:14px}
+.profile-lang h3{font-size:14px}
+.profile-lang p{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* Colour theme picker (settings) */
+.settings-theme{padding:16px 0;border-bottom:1px solid var(--line)}
+.settings-theme>p{font-size:11px;color:var(--muted);margin:4px 0 12px}
+.theme-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.theme-choice{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--text);text-align:left}
+.theme-choice.active{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint) inset}
+.theme-choice strong{font-size:13px;margin-top:4px}
+.theme-choice small{font-size:10px;color:var(--muted);line-height:1.4}
+.theme-swatch{display:flex;width:100%;height:30px;border-radius:9px;overflow:hidden;border:1px solid #ffffff14}
+.theme-swatch i{flex:1}
+.theme-swatch i:last-child{flex:.6}
+
+/* Skill tree: self-assessed starting level */
+.sk-start{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.sk-start strong{display:block;font-size:13px}
+.sk-start small{display:block;font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.sk-start .btn{flex:0 0 auto;margin:0}
+.sk-start-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--gold);background:#e0c7991f;vertical-align:middle}
+.sk-start-list{display:grid;gap:6px;margin:14px 0}
+.sk-start-option{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer}
+.sk-start-option:has(input:checked){border-color:var(--mint);background:var(--surface)}
+.sk-start-option input{accent-color:var(--mint);width:18px;height:18px;flex:0 0 18px;margin:0}
+.sk-start-option strong{display:block;font-size:13px}
+.sk-start-option small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.form .sk-start-option{display:flex;flex-direction:row;align-items:center;gap:12px;margin:0;font-size:inherit;color:var(--text)}
+.form .sk-start-option input[type=radio]{display:inline-block;width:18px;height:18px;min-height:0;padding:0;margin:0;flex:0 0 18px;border:0;background:none}
+
+/* Settings always in the same place: top bar, left of the profile picture */
+.top-actions>.top-settings{display:grid;place-items:center;width:40px;height:40px;min-width:40px;min-height:40px;border-radius:50%}
+.top-actions>.top-settings .i{width:20px;height:20px}
+/* Social → Vänner */
+.friend-code{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.friend-code strong{display:block;margin:8px 0 6px;font-size:26px;letter-spacing:.18em;font-variant-numeric:tabular-nums}
+.friend-code small{display:block;max-width:420px;color:var(--muted);font-size:12px;line-height:1.6}
+.friend-code-actions{display:flex;flex-wrap:wrap;gap:8px}
+.friend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.friend-card{display:flex;align-items:center;gap:12px;padding:12px 14px;position:relative}
+.friend-char{flex:0 0 64px;width:64px;height:72px;display:grid;place-items:center;overflow:hidden}
+.friend-char svg{width:100%;height:100%}
+.friend-main{flex:1;min-width:0}
+.friend-main strong{display:block;font-size:15px}
+.friend-main small{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.friend-stats{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px}
+.friend-stats .flame-badge{margin-left:0}
+.friend-today{font-size:11px;color:var(--mint);font-weight:700}
+.friend-remove{position:absolute;top:8px;right:8px;width:28px;height:28px;opacity:.55}
+.friend-remove:hover,.friend-remove:focus-visible{opacity:1}
+.friend-row{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line)}
+.friend-row .leader-name{flex:1;min-width:0}
+.friend-row .btn{padding:8px 12px}
+/* Profiler: tryck på en vän, en leaderboard-rad eller ett namn i flödet */
+.member-link{display:flex;align-items:center;gap:inherit;flex:1;min-width:0;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:12px}
+.post-head .member-link{gap:10px}
+.member-link:focus-visible,.friend-open:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+.friend-open{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:12px}
+.member-profile{text-align:center}
+.member-character{width:180px;height:200px;margin:0 auto 6px}
+.member-character .character,.member-character svg{width:100%;height:100%}
+.member-profile h3{margin:8px 0 6px;font-size:22px}
+.member-profile .muted{font-size:12px}
+.member-xp{height:6px;margin:14px 0 18px;border-radius:6px;background:#ffffff14;overflow:hidden}
+.member-xp i{display:block;height:100%;border-radius:inherit;background:var(--mint)}
+.member-profile .mini-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));text-align:left}
+.member-profile .friend-today{margin-top:12px}
+/* Skill tree: ange var man är i alla träd från översikten */
+.sk-levels-btn{margin-top:14px}
+.sk-levels-head{margin:16px 0 8px;font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.sk-levels-list{display:grid;gap:8px}
+.sk-levels-row{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#ffffff08;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.sk-levels-row strong{display:block;font-size:14px}
+.sk-levels-row small{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.sk-levels-row .i{flex:0 0 auto;width:16px;height:16px;color:var(--muted)}
+/* XP-regler: bara fem aktiviteter ger XP, övriga vanor ger stats */
+.xp.stat-only{color:var(--muted)}
+.xp-rules .section-head{margin-bottom:10px}
+.xp-rule-list{display:grid;gap:6px}
+.xp-rule{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:#ffffff08;font-size:13px}
+.xp-rule .i{width:16px;height:16px;color:var(--muted)}
+.xp-rule span{flex:1}
+.xp-rule b{font-size:12px;color:var(--muted)}
+.xp-rule.done .i,.xp-rule.done b{color:var(--mint)}
+.xp-rules .fitness-hint{margin-top:10px}
+/* Träningspass: uppvärmningsset och övningsmeny */
+.set-num.warmup{color:#9ec9ff;background:#9ec9ff1a;border-color:#9ec9ff55}
+.quick-row .set-num .i{width:16px;height:16px}
+.xp-rule-add{padding:4px 9px;font-size:11px}
+.xp-rule-add .i{width:12px;height:12px}
+/* Karaktärens utrustning: platshållare tills riktig grafik finns */
+.gear-wrap{position:relative;display:inline-block;isolation:isolate}
+.gear-aura{position:absolute;inset:-6% -10%;z-index:-2;border-radius:50%;background:radial-gradient(closest-side,var(--aura),transparent);opacity:.45;animation:gear-glow 3.6s ease-in-out infinite}
+.gear-cape{position:absolute;left:28%;right:28%;top:30%;bottom:12%;z-index:-1;background:var(--cape);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%);border-radius:4px;opacity:.9}
+.gear-emblem{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);display:grid;place-items:center;width:22%;max-width:34px;aspect-ratio:1;border-radius:50%;background:#101719cc;border:2px solid var(--emblem);color:var(--emblem)}
+.gear-emblem .i{width:60%;height:60%}
+@keyframes gear-glow{50%{opacity:.7}}
+@media (prefers-reduced-motion:reduce){.gear-aura{animation:none}}
+.gear-slot{margin:18px 0 8px;font-size:14px}
+.gear-slot small{color:var(--muted);font-weight:400;font-size:11px;margin-left:4px}
+.gear-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.gear-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border:1px solid var(--line);border-radius:14px;background:#ffffff08;color:inherit;font:inherit;font-size:12px;text-align:center;cursor:pointer}
+.gear-item small{display:block;color:var(--muted);font-size:10px;line-height:1.4}
+.gear-item small .i{width:11px;height:11px;margin-right:3px;vertical-align:-1px}
+.gear-item.selected{border-color:var(--mint);background:#c6e7df14}
+.gear-item.locked{opacity:.55}
+.gear-swatch{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6,transparent 60%),var(--c);color:#101719}
+.gear-swatch .i{width:18px;height:18px}
+.gear-swatch.none{background:transparent;border:2px dashed var(--line)}
+.hero-photo{transform-box:fill-box;transform-origin:50% 60%;animation:hero-breathe 5.6s ease-in-out infinite}
+.hero-aura{mix-blend-mode:screen;animation:hero-aura 2.8s ease-in-out infinite}
+.hero-energy{mix-blend-mode:screen}
+.hero-orb,.hero-ring,.hero-wave{transform-box:fill-box;transform-origin:center}
+.hero-orb{animation:hero-pulse 2.8s ease-in-out infinite;animation-delay:inherit}
+.hero-ring{animation:hero-spin 2.4s linear infinite}
+.hero-ring.reverse{animation-duration:3.6s;animation-direction:reverse}
+.hero-wave{opacity:0;animation:hero-wave 3.6s ease-out infinite}
+.hero-bolt{mix-blend-mode:screen;opacity:0;animation:hero-bolt 1.4s steps(1,end) infinite}
+.hero-spark{opacity:0;animation:hero-rise 5s linear infinite}
+.hero-frame{stroke-opacity:.3;animation:hero-frame 2.8s ease-in-out infinite}
+@keyframes hero-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035) translateY(-.6%)}}
+@keyframes hero-aura{0%,100%{opacity:.15}50%{opacity:.55}}
+@keyframes hero-pulse{0%,100%{transform:scale(.8);opacity:.4}50%{transform:scale(1.15);opacity:.95}}
+@keyframes hero-spin{to{transform:rotate(360deg)}}
+@keyframes hero-wave{0%{transform:scale(.5);opacity:0}15%{opacity:.55}100%{transform:scale(2.6);opacity:0}}
+@keyframes hero-bolt{0%{opacity:.95}8%{opacity:0}14%{opacity:.7}20%{opacity:0}58%{opacity:.85}64%{opacity:0}100%{opacity:0}}
+@keyframes hero-rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-150px);opacity:0}}
+@keyframes hero-frame{0%,100%{stroke-opacity:.2}50%{stroke-opacity:.65}}
+@media (prefers-reduced-motion:reduce){.hero-photo,.hero-aura,.hero-orb,.hero-ring,.hero-wave,.hero-bolt,.hero-spark,.hero-frame{animation:none}}
+.hero-video{display:flex;justify-content:center;align-items:center;filter:none}
+.hero-video video{height:100%;max-width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8%/6%;border:1px solid #94a6a74d;background:#101719;pointer-events:none}
+.member-character .hero-video{width:100%;height:100%}.friend-char .hero-video{width:64px;height:72px}
+/* Remove sets and exercises: swipe a set left (or use the set-number sheet), trash icon on each exercise. */.lift-log-head .icon-btn+.icon-btn{margin-left:6px}.lift-remove:active{color:#ff8a7a;border-color:#ff6b5b55}.set-swipe{position:relative;margin:10px 0;border-radius:11px;overflow:hidden;touch-action:pan-y}.set-swipe>.form.set-row{margin:0;position:relative;z-index:1;background:var(--bg);transform:translateX(var(--dx,0px));transition:transform .3s var(--ease-out);touch-action:pan-y}.set-swipe.dragging>.form.set-row{transition:none}.set-swipe.open{--dx:-84px}.set-delete{position:absolute;inset:0 0 0 auto;width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0;border:0;background:#e5484d;color:#fff;font-size:10px;font-weight:700;letter-spacing:.3px;opacity:0;transition:opacity .2s}.set-swipe.dragging .set-delete,.set-swipe.open .set-delete{opacity:1}.set-delete .i{width:18px;height:18px}.set-delete:active{background:#c9363b}.set-delete-row{margin-top:6px;border-color:#ff6b5b40}.set-delete-row strong,.set-delete-row .set-num{color:#ff8a7a}.set-delete-row .set-num{background:#ff6b5b1f}@media(prefers-reduced-motion:reduce){.set-swipe>.form.set-row,.set-delete{transition:none}}
