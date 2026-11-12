@@ -32,10 +32,19 @@ export const NODES = [
       L('Hemma eller borta', 'Vilar tonen efter ackorden?', {type: 'compare', mode: 'home'}, 'Hemma känns som slutet på en låt. Borta känns som en fråga som väntar på svar.'),
       L('Hemma eller kvint', 'Två skalsteg: 1 och 5.', {type: 'degree', pool: ['1', '5']}, '1 är hemma. 5 är stabil men ligger högre och vill gärna falla tillbaka till 1.'),
     ]},
-  {id: 'degrees', branch: 'ear', listen: ['Ackorden i början visar var hemma är. Nynna hemtonen (1) när de tystnar.', 'Lyssna på tonen. Vilar den, eller vill den någonstans?', 'Sjung tyst från tonen ner till hemma, ett steg i taget, och räkna. Tre toner (3–2–1) betyder att det var en 3:a.'], name: 'Tonartens toner', short: 'Skalsteg', requires: [],
+  {id: 'homing', branch: 'ear', listen: ['Ackorden slutar på hemtonen. Nynna den.', 'Efter tonen spelas vägen hem: tonen går ner ett steg i taget tills den landar hemma.', 'Räkna tonerna på vägen. Två toner betyder 2, tre toner betyder 3. Samma sak gör du sedan tyst i huvudet.'], name: 'Vägen hem', short: 'Vägen hem', requires: [],
+    learn: 'Här lär du dig knepet som gör skalstegen hörbara: att gå hem. Varje ton i en tonart kan gå stegvis ner till hemtonen, och antalet toner på vägen avslöjar vilket skalsteg det var. Först spelar appen vägen åt dig. Sedan går du den själv i huvudet och har knappen Vägen hem som facit.',
+    levels: [
+      L('Räkna stegen hem', 'Hör vägen från 1, 2 eller 3.', {type: 'degree', pool: ['1', '2', '3'], walk: true}, 'Hör du bara en ton i vägen var den redan hemma: 1.'),
+      L('Längre väg hem', 'Hör vägen från 1 till 5.', {type: 'degree', pool: ['1', '2', '3', '4', '5'], walk: true}, 'Fem toner på vägen betyder 5. Sjung med: fem, fyra, tre, två, ett.'),
+      L('1 eller 3', 'Gå vägen själv i huvudet.', {type: 'degree', pool: ['1', '3'], help: true}, 'Sjung tyst nedåt från tonen. Är du redan hemma var det 1. Behövs två steg ner var det 3.'),
+      L('3 eller 5', 'De två som är lättast att blanda ihop.', {type: 'degree', pool: ['3', '5'], help: true}, '5 ligger högre och låter öppen och ihålig. 3 ligger närmare hemma och låter varm. Vägen hem från 5 är dubbelt så lång.'),
+      L('1, 3 eller 5 med facit', 'Alla tre, med Vägen hem som hjälp.', {type: 'degree', pool: ['1', '3', '5'], help: true}, 'Gissa först. Tryck sedan på Vägen hem och räkna, innan du svarar.'),
+    ]},
+  {id: 'degrees', branch: 'ear', listen: ['Först spelas fyra ackord, som slutet på en låt. Det sista ackordet landar på hemtonen (1): tonen som låten vilar på. Nynna den.', 'Sedan kommer en ensam ton. Låter den lika vilsam som hemtonen, eller vill den någonstans?', 'Sjung tyst från tonen nedåt, ett steg i taget, tills du når hemtonen, och räkna tonerna. Landar du direkt var det 1. Sjunger du tre toner var det en 3:a.'], name: 'Tonartens toner', short: 'Skalsteg', requires: [],
     learn: 'Musik hörs alltid i förhållande till en tonart. Efter en kadens (I–IV–V–I) vet örat var ”hemma” är. Då känns varje ton som ett skalsteg: 1 vilar, 5 är stabil, 7 vill hem till 1. Det är så proffs hör melodier och baslinjer, inte som lösa intervall.',
     levels: [
-      L('Hemma, ters och kvint', 'Skilj 1, 3 och 5 efter kadensen.', {type: 'degree', pool: ['1', '3', '5']}, 'Sjung tonen tyst och glid ner till närmaste stabila ton. Hamnar du på 1 direkt var det 1.'),
+      L('Hemma, ters och kvint', 'Skilj 1, 3 och 5 efter kadensen.', {type: 'degree', pool: ['1', '3', '5']}, 'Tryck på Hemtonen och jämför. Låter tonen precis som hemtonen var det 1. Ligger den lite högre och låter ljus var det 3. Ligger den ännu högre och låter öppen och stark var det 5.'),
       L('De fem första', 'Lägg till 2 och 4.', {type: 'degree', pool: ['1', '2', '3', '4', '5']}, '2 vill ner till 1, 4 vill ner till 3.'),
       L('Hela durskalan', 'Alla sju skalsteg.', {type: 'degree', pool: ['1', '2', '3', '4', '5', '6', '7']}, '7 är ledtonen: den drar hårt uppåt mot 1.'),
       L('Moll', 'Skalsteg i naturlig moll.', {type: 'degree', minor: true, pool: ['1', '2', 'b3', '4', '5', 'b6', 'b7']}, '♭3 ger mollkänslan. ♭6 låter mörk och vill ner till 5.'),
@@ -86,6 +95,18 @@ export const NODES = [
       L('Hela halsen', 'Alla strängar, band 0–12.', {type: 'fret', strings: [0, 1, 2, 3], frets: [0, 12]}),
       L('Förtecken', '♯ och ♭ överallt.', {type: 'fret', strings: [0, 1, 2, 3], frets: [0, 12], naturals: false}, 'F♯ = ett band över F. B♭ = ett band under B.'),
     ]},
+  {id: 'neck', branch: 'bass', name: 'Hela halsen', short: 'Halsen', requires: [],
+    learn: 'Här lär du dig varje ton på halsen upp till band 12, en sträng i taget, genom att spela den på ditt instrument. Mellan de flesta toner är det två band. Bara E–F och B–C ligger intill varandra. Band 12 är samma ton som den lösa strängen, en oktav upp. Säg tonens namn högt varje gång du spelar den: det är så namnet fastnar. Bas och gitarr har samma fyra lägsta strängar (E, A, D, G), så övningen fungerar på båda.',
+    levels: [
+      L('E-strängen', 'E F G A B C D på den lägsta strängen.', {type: 'neck', strings: [0]}, 'Riktmärken: F på band 1, G på band 3, A på band 5, B på band 7, C på band 8 och D på band 10.'),
+      L('A-strängen', 'A B C D E F G.', {type: 'neck', strings: [1]}, 'Samma avstånd som på E-strängen, bara förskjutet: B på band 2, C på band 3, D på band 5, E på band 7.'),
+      L('D-strängen', 'D E F G A B C.', {type: 'neck', strings: [2]}, 'Oktavformen: samma ton finns två strängar upp och två band upp. E-strängens toner hjälper dig hitta D-strängens.'),
+      L('G-strängen', 'G A B C D E F.', {type: 'neck', strings: [3]}, 'Oktavformen igen: A-strängens toner finns två band högre upp på G-strängen.'),
+      L('E och A med förtecken', 'Alla tolv tonerna på de två lägsta strängarna.', {type: 'neck', strings: [0, 1], notes: 'all'}, '♯ ligger ett band över tonen och ♭ ett band under. C♯ och D♭ är alltså samma band.'),
+      L('D och G med förtecken', 'Alla tolv tonerna på de två högsta strängarna.', {type: 'neck', strings: [2, 3], notes: 'all'}, 'Utgå från en ton du kan och räkna ett band upp eller ner.'),
+      L('Samma toner på alla strängar', 'Fyra toner, först på E-strängen, sedan på A, D och G.', {type: 'neck', across: true}, 'Samma ton ligger fem band längre ner på nästa sträng. A på band 5 på E-strängen är samma ton som lös A-sträng.'),
+      L('Hela halsen på tid', 'Fyra sekunder per ton, alla strängar.', {type: 'neck', strings: [0, 1, 2, 3], notes: 'all', seconds: 4}, 'Tveka inte. Fel ton går fortare att rätta än en lång tvekan.'),
+    ]},
   {id: 'groove', branch: 'bass', name: 'Groove & timing', short: 'Timing', requires: [],
     learn: 'Basens viktigaste jobb är tajmingen: tillsammans med trummorna bestämmer basen hur låten känns. Tryck exakt på slagen till klicket. Spela hellre färre toner med perfekt tajming än många som svajar.',
     levels: [
@@ -120,6 +141,16 @@ export const NODES = [
       L('Treklangen', 'Använd ters och oktav.', {type: 'bassline', rule: 'triad'}),
       L('Närmande toner', 'Led in i nästa ackord.', {type: 'bassline', rule: 'approach'}, 'Halvtonen under nästa grundton är det starkaste närmandet.'),
       L('Walking bass', 'Fyra slag, mjuk melodisk linje.', {type: 'bassline', rule: 'walk'}, 'Gå i små steg. Byt riktning när det behövs, men hoppa högst en kvint.'),
+    ]},
+
+  {id: 'earbass', branch: 'bass', name: 'Spela efter gehör', short: 'Gehörsspel', requires: [],
+    learn: 'Det här är basistens viktigaste färdighet: höra ett ackord och hitta dess grundton. Börja med tonartens grundton. Den är hemma och ofta första eller sista ackordet. De andra grundtonerna ligger i tonartens skala, så leta längs skalan i stället för att gissa fritt. Nynna tonen innan du spelar den: kan du nynna den kan du hitta den.',
+    levels: [
+      L('Tre ackord', 'I, IV och V. Pianot spelar grundtonen längst ner.', {type: 'earbass', degs: ['I', 'IV', 'V'], bass: true, first: true}, 'Första ackordet är alltid tonartens eget. I C-dur är de tre ackorden C, F och G: skalsteg 1, 4 och 5.'),
+      L('Fyra ackord', 'Nu även vi, ett mollackord.', {type: 'earbass', degs: ['I', 'IV', 'V', 'vi'], bass: true, first: true}, 'Mollackordet låter mörkare. Dess grundton ligger två skalsteg under tonartens grundton: A i C-dur.'),
+      L('Sex ackord', 'Alla ackord i tonarten utom det sjunde.', {type: 'earbass', degs: ['I', 'ii', 'iii', 'IV', 'V', 'vi'], bass: true}, 'Nu kan följden börja var som helst, och skalsteg 2 och 3 dyker upp. Båda är mollackord.'),
+      L('Utan baston', 'Bara ackorden. Hitta grundtonen själv.', {type: 'earbass', degs: ['I', 'IV', 'V', 'vi'], bass: false}, 'Pianot spelar inte längre grundtonen längst ner. Lyssna efter den ton som hela ackordet vilar på och nynna den.'),
+      L('Alla tonarter', 'Åtta tonarter och sex ackord, utan baston.', {type: 'earbass', degs: ['I', 'ii', 'iii', 'IV', 'V', 'vi'], keys: ['C', 'G', 'D', 'A', 'E', 'F', 'B♭', 'E♭'], bass: false}, 'Hitta först tonartens grundton på halsen och spela skalan en gång innan du lyssnar.'),
     ]},
 
   // ---------------- SÅNG ----------------
