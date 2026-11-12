@@ -2809,4 +2809,5 @@ export default {
  "Visa äldre pass ({#})": "Show older sessions ({#})",
  "Visa äldre aktiviteter ({#})": "Show older activities ({#})",
  "Inga pass den senaste veckan.": "No sessions in the last week.",
+ "Till exempel K7QM-4XPA": "For example K7QM-4XPA",
 };
