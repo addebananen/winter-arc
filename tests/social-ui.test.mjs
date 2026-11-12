@@ -12,7 +12,7 @@ test('workout cards open complete set details with correct units, types and esca
 });
 test('cardio details include distance, duration and pace, without invented set rows',()=>{
  const dom=new JSDOM(ui.details({...post,workout:{kind:'cardio',activity:'run',km:5,seconds:1515}}));const text=dom.window.document.body.textContent;
- assert.match(text,/Löpning/);assert.match(text,/25,3/);assert.match(text,/5:03/);assert.equal(dom.window.document.querySelector('table'),null);dom.window.close();
+ assert.match(text,/Löpning/);assert.match(text,/25[.,]3/);assert.match(text,/5:03/);assert.equal(dom.window.document.querySelector('table'),null);dom.window.close();
 });
 test('eight labeled reactions expose accessible toggles and legacy servers get only supported choices',()=>{
  const p={...post,reactions:[{user_id:'me',kind:'rocket'},{user_id:'friend',kind:'rocket'}]};const dom=new JSDOM(ui.reactionBar(p,'rocket')),d=dom.window.document;
