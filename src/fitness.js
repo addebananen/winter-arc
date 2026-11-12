@@ -1,4 +1,5 @@
 import {frostForms} from './frost-character.js';
+import {arcaneForms} from './arcane-character.js';
 import {musicHabits,musicChallenges} from './music.js';
 export const SEASON_START='2026-11-09';
 export const characters=[
@@ -7,7 +8,8 @@ export const characters=[
  {id:'monk',name:'Ember Monk',role:'Den förankrade',motto:'Hitta lugnet. Behåll riktningen.',description:'Närvaro, tro och disciplin. En stilla stund kan vara dagens starkaste handling.',color:'#e4c494',symbol:'sun'},
  {id:'scholar',name:'Lunar Scholar',role:'Tänkaren',motto:'Var nyfiken en stund till.',description:'Läsning, vetenskap och stora frågor. Samla insikter, inte bara poäng.',color:'#cbbce8',symbol:'book'},
  {id:'adrian',name:'Adrian',role:'Den gränslösa',motto:'Bortom dig själv finns ingen gräns.',description:'Börjar som sig själv. Varje form bär mer kraft än den förra.',color:'#8fc4ff',symbol:'star'},
- {id:'frost',name:'Frostmagikern',role:'Den växande',motto:'Varje dag lite starkare.',description:'Börjar som en liten knatte med en trollstav och växer till en magiker med makt över is och storm. En ny form låses upp vid level 6, 11, 16 och 21.',color:'#9fd8ff',symbol:'snow',forms:frostForms}
+ {id:'frost',name:'Frostmagikern',role:'Den växande',motto:'Varje dag lite starkare.',description:'Börjar som en liten knatte med en trollstav och växer till en magiker med makt över is och storm. En ny form låses upp vid level 6, 11, 16 och 21.',color:'#9fd8ff',symbol:'snow',forms:frostForms},
+ {id:'arcane',name:'Arkanmagikern',role:'Den uppvaknande',motto:'Kraften växer med varje steg.',description:'Börjar som en knatte med en gnista av lila magi och växer till en legend omsvept av arkan storm. En ny form låses upp vid level 6, 11, 16 och 21.',color:'#b58cff',symbol:'star',forms:arcaneForms}
 ];
 export const ranks=[
  {name:'Rookie',xp:0,color:'#a3b6ae',icon:'flag'},
