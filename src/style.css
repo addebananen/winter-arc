@@ -418,3 +418,36 @@ button.skt-opt:hover{background:#ffffff08}
 /* Session lists: older than a week folds into "Visa äldre pass" */
 .older-list>summary{list-style:none;cursor:pointer;text-align:center}.older-list>summary::-webkit-details-marker{display:none}.older-list[open]>summary{margin-bottom:8px}
 .late-chip{margin:12px 0 4px;color:var(--gold);border-color:#4b4531;background:#2c2a22}.late-chip .i{width:14px;height:14px}.late-notice{margin:12px 0}.check-btn.late-locked{color:var(--muted);border-style:dashed;opacity:.65;cursor:not-allowed}.check-btn.late-locked .i{width:13px;height:13px}
+/* Squad member profile: photo banner, rank with XP, character card. */
+.member-banner{position:relative;isolation:isolate;overflow:hidden;border:1px solid #425753;border-radius:20px;background:#29413f;padding:22px 18px;text-align:left;animation:member-rise .45s cubic-bezier(.2,.8,.2,1) both}
+.member-banner .landscape{opacity:.55}
+.member-id{display:flex;align-items:center;gap:15px;min-width:0}
+.member-id>div{min-width:0}
+.member-banner .avatar.member-photo{width:72px;height:72px;flex:0 0 72px;font-size:24px;border:2px solid var(--gold);box-shadow:0 0 0 5px #dfc59414,0 10px 30px #0006;animation:member-photo-in .6s .1s cubic-bezier(.2,.9,.25,1.25) both}
+.member-banner .eyebrow{color:var(--gold)}
+.member-banner h3{margin:6px 0 3px;font-size:24px;overflow-wrap:anywhere}
+.member-banner small{color:#aec6be;font-size:11px}
+.member-rank,.member-char-card{margin-top:12px;border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:16px;text-align:left;animation:member-rise .45s cubic-bezier(.2,.8,.2,1) both}
+.member-rank{--rank:var(--mint);animation-delay:.07s}
+.member-char-card{animation-delay:.14s;text-align:center}
+.member-rank-head{display:flex;align-items:center;gap:12px}
+.member-rank .rank-emblem{width:44px;height:49px;flex:0 0 44px}
+.member-rank .rank-emblem .i{width:22px;height:22px}
+.member-rank-head strong{display:block;font-size:22px;margin-top:3px;color:var(--rank)}
+.member-total{margin-left:auto;text-align:right}
+.member-total strong{font-size:17px;color:var(--text)}
+.member-total small{display:block;color:var(--muted);font-size:10px}
+.member-profile .member-xp{margin:14px 0 9px}
+.member-rank .member-xp i{background:var(--rank);box-shadow:0 0 12px color-mix(in srgb,var(--rank) 55%,transparent)}
+.member-xp i{transform-origin:left;animation:member-fill .9s .25s cubic-bezier(.2,.8,.2,1) both}
+.member-rank p,.member-char-card p{margin:0;color:var(--muted);font-size:12px}
+.member-rank p b,.member-char-card p b{color:var(--text);font-weight:600}
+.member-char-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.member-char-card .member-character{width:min(100%,220px);height:250px}
+.member-char-card h3{margin:10px 0 0;font-size:20px}
+.member-profile>.mini-stats{margin-top:12px;animation:member-rise .45s .21s cubic-bezier(.2,.8,.2,1) both}
+@keyframes member-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes member-photo-in{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes member-fill{from{transform:scaleX(0)}to{transform:none}}
+@media(max-width:700px){.member-banner{padding:18px 15px}.member-banner .avatar.member-photo{width:62px;height:62px;flex-basis:62px}.member-banner h3{font-size:21px}.member-char-card .member-character{height:230px}}
+@media(prefers-reduced-motion:reduce){.member-banner,.member-banner .avatar.member-photo,.member-rank,.member-char-card,.member-profile>.mini-stats,.member-xp i{animation:none}}

@@ -9,7 +9,7 @@ const bundled=await build({entryPoints:['src/app.js'],bundle:true,write:false,fo
  export const configured=true,googleReady=true,trainingReady=true,skillWorkoutsReady=true,user={id:'owner',created_at:'2026-11-07T12:00:00Z'};
  export const initialize=async()=>user,load=async()=>structuredClone(window.backend.state);
  export const mySquad=async()=>({id:'squad',name:'Test squad'});
- export const social=async()=>{if(window.backend.failFeed)throw Error('PGRST201 ambiguous relationship');return {workoutReady:true,activityReady:true,posts:structuredClone(window.backend.posts),members:[],missions:[]};};
+ export const social=async()=>{if(window.backend.failFeed)throw Error('PGRST201 ambiguous relationship');return {workoutReady:true,activityReady:true,posts:structuredClone(window.backend.posts),members:structuredClone(window.backend.members||[]),missions:[]};};
  export const save=async s=>{if(window.backend.failSave)throw Error('Save unavailable');window.backend.state=structuredClone(s);return structuredClone(s);};
  export const publish=async(squad,body,image_path,id)=>{window.backend.publishCalls++;if(!window.backend.posts.some(p=>p.id===id))window.backend.posts.unshift({id,body,image_path,user_id:user.id,created_at:new Date().toISOString(),reactions:[]});if(window.backend.loseReply)throw Error('Reply lost');return {id};};
  export const react=async(id,kind,active)=>{window.backend.reactionCalls++;await new Promise(r=>setTimeout(r,40));if(window.backend.failReact)throw Error('Reaction unavailable');const p=window.backend.posts.find(p=>p.id===id);p.reactions=p.reactions.filter(r=>r.kind!==kind);if(!active)p.reactions.push({user_id:'owner',kind});};
@@ -97,3 +97,13 @@ test('friends in the cloud: accept a request, send one by code, and show the upd
  await x.click('friend:remove:f-K7Q2M9XA');await new Promise(r=>setTimeout(r,80));assert.doesNotMatch(x.q('#view').textContent,/Väntar på svar/);
  }finally{x.dom.window.close();}
  const y=await setup();try{y.w.backend.friendsMissing=true;await y.click('tab:friends');await new Promise(r=>setTimeout(r,80));assert.match(y.q('#view').textContent,/databasuppdatering 016/);}finally{y.dom.window.close();}});
+
+test('tapping a squad member opens their profile with photo, rank, XP and character',async()=>{const x=await setup();try{
+ x.w.backend.members=[{user_id:'owner',display_name:'Cloud Tester',xp:0},{user_id:'u2',display_name:'Cleo',xp:900,streak:2,photo:'u2/avatar/me.jpg'}];
+ await x.click('nav:today');await x.click('nav:squad');await sleep(80);await x.click('tab:leaderboard');await x.click('profile-of:u2');await sleep(60);
+ const p=x.q('.member-profile');assert.ok(p);
+ assert.equal(p.querySelector('.member-photo img').dataset.photo,'u2/avatar/me.jpg');
+ assert.equal(x.q('#modal-title').textContent,'Cleo');assert.match(p.querySelector('.member-banner').textContent,/Iron · LVL/);assert.match(p.querySelector('.member-banner').textContent,/Din vän/);
+ assert.match(p.querySelector('.member-rank').textContent,/Iron/);assert.match(p.querySelector('.member-rank').textContent,/900 \/ 2[\s\u00a0]?400 XP/);
+ assert.match(p.querySelector('.member-char-card').textContent,/Frostmunk/);assert.ok(p.querySelector('.member-character .character'));
+ }finally{x.dom.window.close();}});
