@@ -142,6 +142,14 @@ Migration 009 rättar även Storage INSERT-regeln så att en inloggad användare
 
 
 
+## Squadets passdetaljer och reaktioner (migration 014)
+
+Träningsinlägg öppnar en läsvy med övningar, genomförda set, kg/reps/sekunder och settyper. Konditionspass visar tid, distans och löptempo. Befintliga automatiska inlägg kopplas till redan sparad träningshistorik; inga kopior av privat användardata görs. Raderade inlägg lämnar inga åtkomliga passdetaljer. Saknas ett äldre pass visas detta uttryckligen.
+
+Kör `supabase/024_squad_workout_details.sql` en gång efter merge. RPC:n kontrollerar squadmedlemskap och returnerar enbart tillåtna träningsfält för flödets senaste 50 inlägg. Privata anteckningar, kroppsmått, spegelbilder och trackers lämnas utanför. Migrationen utökar också till åtta reaktioner. Innan den är installerad fungerar de tre tidigare reaktionerna och vanliga inlägg, medan passdetaljer visar en återförsöksnotis. Ingen profil, XP eller historik nollställs.
+
+Verifiering: `node --test tests/*.test.mjs` och `node scripts/build.mjs`. `node scripts/review-social.mjs` skapar en isolerad granskning i `dist/review/` med exempeldata, mockad molnanslutning och minneslagring. Den ingår inte i den vanliga produktionsbyggnaden.
+
 ## Passtid och settyper (migration 013)
 Glömde du trycka Avsluta kan du korta passtiden när du sparar passet. Tiden kan bara kortas, aldrig förlängas, och XP räknas på den nya tiden. Har passet pågått i minst tre timmar visar appen en påminnelse. Varje set kan markeras som vanligt set, till failure (F) eller drop-set (D) genom att trycka på setets nummer. Sparade pass är fortfarande låsta.
 
@@ -217,3 +225,4 @@ Kör endast migration 010 efter 001–009. Gamla migrationer ska inte regenerera
 Bildbehandling hör till det formulär där bilden valdes. En långsam privat bild kan inte följa med till profilbild eller squad-inlägg efter att rutan stängts. Setutkast, inklusive teknikbekräftelsen, bevaras om sparandet misslyckas och användaren växlar flik. En oläsbar gammal social cache blockerar inte starten.
 
 Migration 012 rättar enbart enheten för enarms-handstandens sista mål (ett håll på 10 sekunder). Tidigare workouts, profiler, XP och nivåer ändras inte. Kör 012 en gång efter 011; regenerera aldrig tidigare migrationer.
+
