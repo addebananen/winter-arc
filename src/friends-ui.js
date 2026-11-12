@@ -11,7 +11,7 @@ const demoFriends = () => [
 const demoKinds = {maya: 'striker', noah: 'scholar', elliot: 'monk'};
 const tiers = ['Vandrare', 'Frostvandrare', 'Norrskensväktare', 'Vinterlegend'];
 
-export function createFriendsUI({I, esc, button, avatar, character, D, F, getMode, cloud, modal, closeModal, toast, render}) {
+export function createFriendsUI({I, esc, button, avatar, character, landscape = () => '', D, F, getMode, cloud, modal, closeModal, toast, render}) {
   let list = null, code = '', loading = false, error = '', demo = null;
 
   async function load() {
@@ -93,26 +93,42 @@ export function createFriendsUI({I, esc, button, avatar, character, D, F, getMod
     render();
   }
 
-  // Opens someone's profile: their character big, rank, level and streaks. Only public fields are shown.
+  // Opens a friend's or squad member's profile: profile photo, rank with XP, their character and streaks.
+  // Only public fields are shown. The photo comes from the squad list (squad_avatars, migration 023), so
+  // friends outside your squad show their initials instead.
   async function profile(userId, known) {
     let p;
     if (getMode() === 'cloud') {
       try { p = await cloud.memberProfile(userId); }
       catch (e) { toast(/member_profile|schema cache|does not exist/i.test(e?.message || '') ? 'Profiler aktiveras med databasuppdatering 017.' : e?.message || 'Profilen kunde inte hämtas.'); return; }
+      if (p) p = {...p, photo: known?.photo || null};
     } else {
       const f = (data() || []).find(x => x.user_id === userId && x.relation === 'friend');
       p = known || f ? {char_kind: demoKinds[userId], ...f, ...known} : null;
     }
     if (!p) { toast('Profilen kunde inte hämtas.'); return; }
     const xp = Number(p.xp) || 0, l = D.levelInfo(xp), rank = F.rankInfo(xp), kind = p.char_kind || 'ranger';
+    const name = p.display_name || 'Äventyrare', num = n => Math.round(n).toLocaleString('sv-SE');
     const charName = p.char_name || F.characters.find(c => c.id === kind)?.name || 'Aurora Ranger';
+    const relation = p.relation === 'friend' ? 'Din vän' : p.relation === 'squad' || known ? 'I ditt squad' : '';
+    const pct = n => Math.round(Math.max(0, Math.min(1, n)) * 100);
     const stat = (icon, value, label) => `<div class="mini-stat">${I(icon)}<strong>${value}</strong><span>${label}</span></div>`;
-    modal(esc(p.display_name), `<div class="member-profile">
-      <div class="member-character">${character(l.level, true, kind)}</div>
-      <span class="eyebrow">${esc(p.title || tiers[Math.min(3, Math.floor((l.level - 1) / 5))])}</span>
-      <h3>${esc(charName)}</h3>
-      <p class="muted">${esc(rank.name)} · LVL ${l.level} · ${xp.toLocaleString('sv-SE')} XP</p>
-      <div class="member-xp"><i style="width:${Math.round(l.ratio * 100)}%"></i></div>
+    modal(esc(name), `<div class="member-profile">
+      <section class="member-banner">${landscape()}<div class="member-id">${avatar(name, 'large member-photo', p.photo || null)}
+        <div><span class="eyebrow">${esc(p.title || tiers[Math.min(3, Math.floor((l.level - 1) / 5))])}</span><h3>${esc(rank.name)} · LVL ${l.level}</h3>${relation ? `<small>${relation}</small>` : ''}</div></div></section>
+      <section class="member-rank" style="--rank:${rank.color}">
+        <div class="member-rank-head"><span class="rank-emblem">${I(rank.icon)}</span><div><span class="eyebrow">RANK</span><strong>${esc(rank.name)}</strong></div>
+          <span class="member-total"><strong>${num(xp)}</strong><small>XP totalt</small></span></div>
+        <div class="member-xp"><i style="width:${pct(rank.progress)}%"></i></div>
+        <p>${rank.next ? `<b>${num(xp)} / ${num(rank.next.xp)} XP</b> · <span>nästa rank</span> <b>${esc(rank.next.name)}</b>` : '<span>Högsta ranken uppnådd</span>'}</p>
+      </section>
+      <section class="member-char-card">
+        <div class="member-char-head"><span class="eyebrow">KARAKTÄR</span><span class="level-badge">LVL ${l.level}</span></div>
+        <div class="member-character">${character(l.level, true, kind)}</div>
+        <h3>${esc(charName)}</h3>
+        <div class="member-xp level"><i style="width:${pct(l.ratio)}%"></i></div>
+        <p><b>${num(xp - l.base)} / ${num(l.next - l.base)} XP</b> · <span>till level</span> <b>${l.level + 1}</b></p>
+      </section>
       <div class="mini-stats">${stat('flame', p.training_streak || 0, 'Träningsstreak')}${stat('check', p.streak || 0, 'Vanestreak')}${p.workouts != null ? stat('dumbbell', p.workouts, 'Pass totalt') : ''}</div>
       ${p.trained_today ? '<p class="friend-today">Har tränat idag</p>' : ''}
     </div>`);
