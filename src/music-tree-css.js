@@ -288,10 +288,61 @@ body.mg-open{overflow:hidden}
 .mg-end-stars span.won{animation:mg-star .55s calc(.55s + var(--d) * .26s) cubic-bezier(.3,1.6,.5,1) forwards}
 @keyframes mg-star{from{transform:scale(.3) rotate(-40deg);opacity:.3}to{transform:none;opacity:1}}
 .mg-end .mg-row{width:100%;max-width:360px;margin-top:8px}
+.mt-tuner{margin:0 0 12px;display:inline-flex;align-items:center;gap:7px}
+.mt-tuner svg{width:15px;height:15px}
+.mg-step{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:var(--c)}
+.mg-intro{gap:16px}
+.mg-stick{position:sticky;bottom:0;padding:10px 0 2px;background:linear-gradient(180deg,transparent,var(--bg) 38%);z-index:2}
+.mg-steps{margin:0;padding:0;list-style:none;counter-reset:st;display:grid;gap:10px}
+.mg-steps li{counter-increment:st;position:relative;padding:12px 14px 12px 50px;border-radius:16px;background:#172123;border:1px solid var(--line);font-size:13.5px;line-height:1.55;color:#dbe5e2}
+.mg-steps li:before{content:counter(st);position:absolute;left:12px;top:11px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px;background:color-mix(in srgb,var(--c) 26%,transparent);color:var(--c)}
+.mg-theory,.mg-choose{border-radius:16px;padding:12px 14px;background:#141d1f;border:1px solid var(--line);font-size:13px;line-height:1.6;color:#cdd9d6}
+.mg-theory strong,.mg-choose strong{display:block;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.mg-theory .mg-tip{margin-top:8px;color:var(--mint)}
+.mg-choose .mg-row{justify-content:flex-start;margin-bottom:8px}
+.mg-choose p{font-size:12px}
+.mg-choose .chip,.mg-input .chip{display:inline-flex;align-items:center;gap:7px;min-height:40px}
+.mg-choose .chip svg,.mg-input .chip svg{width:15px;height:15px}
+.mg-input{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;min-height:44px}
+.mg-live{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:14px;background:#141d1f;border:1px solid var(--line);min-width:150px}
+.mg-live small{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.mg-live b{font-family:Manrope,sans-serif;font-size:20px;min-width:34px;text-align:center;color:var(--muted);transition:color .1s}
+.mg-live.on b{color:var(--c)}
+.mg-live i{flex:1;min-width:44px;height:6px;border-radius:3px;background:#243033;overflow:hidden}
+.mg-live u{display:block;height:100%;width:100%;background:var(--c);transform-origin:left;transform:scaleX(0);transition:transform .06s linear}
+.mg-theory-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px}
+.mg-theory-row>span{display:flex;flex-direction:column;align-items:center;min-width:34px;padding:5px 4px;border-radius:10px;background:#1c2729}
+.mg-theory-row b{font-size:13px;color:var(--c)}
+.mg-theory-row small{font-size:11px;color:var(--text)}
+.mg-theory-row em{font-style:normal;font-size:9.5px;color:var(--muted);min-width:20px;text-align:center}
+.mg-note{font-size:12px;line-height:1.6;text-align:center}
+.mg-status.shake b,.mg-status b{color:#f0b3b3}
+.mg-fret.m-show i{background:#4a4136;color:#f0e6d6;animation:none}
+.mg-fret.m-now i{background:var(--c);color:#1a2426;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 35%,transparent);animation:mg-glow 1.2s ease-in-out infinite}
+.mg-fret.heard i{animation:mg-heard .5s ease-out}
+@keyframes mg-heard{0%{background:var(--mint);color:#16302c;transform:scale(1.25)}100%{transform:scale(1)}}
+.mg-timer{height:5px;border-radius:3px;background:#243033;overflow:hidden}
+.mg-timer i{display:block;height:100%;background:var(--c);transform-origin:left;animation:mg-timer var(--s) linear forwards}
+@keyframes mg-timer{to{transform:scaleX(0)}}
+.mg-tune{align-items:stretch;gap:18px}
+.mg-tune-note{display:flex;align-items:baseline;justify-content:center;gap:4px;min-height:96px}
+.mg-tune-note b{font-family:Manrope,sans-serif;font-size:84px;line-height:1;color:var(--muted);transition:color .15s}
+.mg-tune-note small{font-size:22px;color:var(--muted)}
+.mg-tune.live .mg-tune-note b{color:var(--text)}
+.mg-tune.ok .mg-tune-note b{color:var(--mint)}
+.mg-tune-bar{position:relative;height:38px;border-radius:19px;background:#141d1f;border:1px solid var(--line)}
+.mg-tune-bar i{position:absolute;left:50%;top:4px;bottom:4px;width:12%;transform:translateX(-50%);border-radius:10px;background:color-mix(in srgb,var(--mint) 22%,transparent)}
+.mg-tune-bar u{position:absolute;inset:0;transition:transform .09s linear;opacity:.25}
+.mg-tune-bar u:after{content:"";position:absolute;left:50%;top:5px;bottom:5px;width:6px;margin-left:-3px;border-radius:3px;background:var(--c)}
+.mg-tune.live .mg-tune-bar u{opacity:1}
+.mg-tune.ok .mg-tune-bar u:after{background:var(--mint)}
+.mg-tune-strings{display:flex;justify-content:center;gap:10px}
+.mg-tune-strings span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#1c2729;color:var(--muted);border:1px solid var(--line);transition:all .15s}
+.mg-tune-strings span.on{background:color-mix(in srgb,var(--c) 28%,#1c2729);color:var(--text);border-color:var(--c)}
 .mg-confetti{position:absolute;left:50%;top:32%;pointer-events:none}
 .mg-confetti i{position:absolute;width:8px;height:12px;border-radius:2px;opacity:0;animation:mg-confetti 1.6s var(--d) cubic-bezier(.15,.7,.3,1) forwards}
 @keyframes mg-confetti{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--x),calc(var(--y) + 260px)) rotate(var(--r))}}
 @media(max-width:380px){.mg-options.many{grid-template-columns:1fr 1fr}.mg-listen{width:96px;height:96px}.mg-orb{width:150px;height:150px}}
 @media(min-width:761px){.mg-card{height:auto;max-height:100%;margin:auto 0}}
-@media(prefers-reduced-motion:reduce){.mt-node,.mt-hero-glow,.mt-node.open .mt-node-ico,.mt-node.progress .mt-node-ico,.mg,.mg-listen.playing .mg-pulse,.mg-confetti{animation:none!important}.mg-lung{transition:none}}
+@media(prefers-reduced-motion:reduce){.mt-node,.mt-hero-glow,.mt-node.open .mt-node-ico,.mt-node.progress .mt-node-ico,.mg,.mg-listen.playing .mg-pulse,.mg-confetti,.mg-fret.m-now i,.mg-fret.heard i{animation:none!important}.mg-lung{transition:none}}
 `;

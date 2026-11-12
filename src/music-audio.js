@@ -5,7 +5,7 @@
 // iPhone notes: audio may only start inside a tap, so `unlock()` is called from button handlers.
 // `navigator.audioSession` (iOS 17+) makes sound play even with the ring/silent switch on, and is
 // switched to play-and-record while the microphone is in use.
-import {freqOf, detectPitch} from './music-theory.js';
+import {freqOf, detectPitch, QUIET} from './music-theory.js';
 
 let ctx = null, master = null, comp = null;
 const AC = () => (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)) || null;
@@ -27,6 +27,10 @@ export function unlock() {
   return ctx;
 }
 export const now = () => ctx?.currentTime || 0;
+// When the app's own sound has died away. The microphone games ignore what they hear until then,
+// so the phone's speaker can never be mistaken for the player's instrument.
+let busy = 0;
+export const busyUntil = () => busy;
 
 // Music goes through a bus that can be cut, so a new question never plays on top of the last one.
 // Feedback sounds (sfx) go straight to the master and are never cut.
@@ -34,7 +38,7 @@ let bus = null;
 const out = () => { if (!bus) { bus = ctx.createGain(); bus.connect(master); } return bus; };
 export function stopAll() {
   if (!ctx || !bus) return;
-  const b = bus; bus = null;
+  const b = bus; bus = null; busy = Math.min(busy, ctx.currentTime + .3);
   b.gain.setTargetAtTime(0, ctx.currentTime, .025);
   setTimeout(() => { try { b.disconnect(); } catch {} }, 250);
 }
@@ -161,6 +165,7 @@ export function play(events, {bpm = 80, at} = {}) {
     if (e.inst === 'snare') snare(t);
     end = Math.max(end, t + dur);
   }
+  busy = Math.max(busy, end + .35);
   return end;
 }
 export const note = (midi, dur = .8, inst = 'keys') => play([{t: 0, notes: [midi], dur, inst}], {bpm: 60});
@@ -175,7 +180,7 @@ export const drumBar = (bar, beatsPerBar = 4) => [
 // Short sound effects for feedback. Pleasant, never harsh.
 export function sfx(kind) {
   if (!unlock()) return;
-  const t = ctx.currentTime + .01;
+  const t = ctx.currentTime + .01; busy = Math.max(busy, t + .7);
   const seq = {
     right: [[76, 0], [83, .07]], wrong: [[52, 0], [51, .09]], combo: [[79, 0], [84, .06], [88, .12]],
     star: [[88, 0], [95, .05]], clear: [[72, 0], [76, .1], [79, .2], [84, .3], [88, .42]], tap: [[84, 0]],
@@ -200,24 +205,32 @@ export function releaseMic() {
   for (const t of micStream.getTracks()) t.stop();
   micStream = null; session('playback');
 }
-// Calls onFrame({freq, clarity, rms, level, t}) once per animation frame until stop() is called.
-export async function listen(onFrame) {
+// Calls onFrame({freq, clarity, rms, level, loud, t}) until stop() is called.
+// mode 'voice' suits singing (70–1100 Hz). mode 'instrument' hears a bass down to low E (41 Hz) and a
+// guitar up to the 12th fret: it needs a longer window, so the samples are halved to keep it fast.
+// Nothing here depends on how loud the microphone is: a phone gives a much weaker signal than a
+// computer, so `loud` compares the level with the room noise instead of a fixed number.
+const MODES = {voice: {size: 2048, minF: 70, maxF: 1100, decimate: 1, every: 30}, instrument: {size: 4096, minF: 38, maxF: 1400, decimate: 2, every: 20}};
+export async function listen(onFrame, {mode = 'voice'} = {}) {
   if (!unlock()) throw Error('Mikrofonen stöds inte i den här webbläsaren.');
   const s = await stream();
   if (ctx.state !== 'running') await ctx.resume?.();
-  const src = ctx.createMediaStreamSource(s), an = ctx.createAnalyser();
-  an.fftSize = 2048; src.connect(an);
+  const m = MODES[mode] || MODES.voice, src = ctx.createMediaStreamSource(s), an = ctx.createAnalyser();
+  an.fftSize = m.size; an.smoothingTimeConstant = 0; src.connect(an);
   const buf = new Float32Array(an.fftSize);
-  let raf = 0, alive = true, odd = false;
-  const tick = () => {
+  let raf = 0, alive = true, lastRun = 0, floor = null, ref = 0, lastT = 0;
+  const tick = now => {
     if (!alive) return;
-    // About 30 analyses per second is plenty for singing and halves the CPU cost on a phone.
-    if ((odd = !odd)) { raf = requestAnimationFrame(tick); return; }
-    an.getFloatTimeDomainData(buf);
-    let sum = 0; for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
-    const rms = Math.sqrt(sum / buf.length), p = detectPitch(buf, ctx.sampleRate);
-    onFrame({freq: p?.freq || null, clarity: p?.clarity || 0, rms, level: Math.min(1, rms * 9), t: ctx.currentTime});
     raf = requestAnimationFrame(tick);
+    if (now - lastRun < m.every) return;
+    lastRun = now;
+    an.getFloatTimeDomainData(buf);
+    // Loudness from the newest quarter of the window, so the meter and note starts react quickly.
+    let sum = 0; const from = buf.length - (buf.length >> 2); for (let i = from; i < buf.length; i++) sum += buf[i] * buf[i];
+    const rms = Math.sqrt(sum / (buf.length - from)), p = detectPitch(buf, ctx.sampleRate, m.minF, m.maxF, m.decimate);
+    const t = ctx.currentTime;
+    floor = floor == null ? rms : Math.min(rms, floor * Math.pow(2, Math.max(0, t - lastT) / 20)); lastT = t; ref = Math.max(ref * .9995, rms, floor * 8, QUIET);
+    onFrame({freq: p?.freq || null, clarity: p?.clarity || 0, rms, level: Math.min(1, rms / ref), loud: rms > Math.max(floor * 2.5, QUIET), floor, t});
   };
   raf = requestAnimationFrame(tick);
   return () => { alive = false; cancelAnimationFrame(raf); try { src.disconnect(); } catch {} };
