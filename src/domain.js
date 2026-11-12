@@ -69,6 +69,10 @@ export function setProgress(state,id,value,day=dateKey()) {
  if(count<3)delete state.claims['three:'+day];if(!p.perfect)delete state.claims['perfect:'+day];if(count<2&&!hasRecovery(state,day))delete state.claims['comeback:'+day];
  return p;
 }
+// Glömde du checka in? Gårdagens vanor kan registreras i efterhand, men träning bara samma dag.
+export function lateDay(state,today=dateKey()){const d=shiftDate(today,-1);return d>=state.expedition.start?d:null;}
+export function lateAllowed(h){return !!h&&h.category!=='strength';}
+export function setLateProgress(state,id,value,today=dateKey()){const d=lateDay(state,today),h=state.habits.find(x=>x.id===id);if(!d)throw Error('Gårdagen ligger före din start.');if(!lateAllowed(h))throw Error('Träning kan bara registreras samma dag.');return setProgress(state,id,value,d);}
 export function addHabit(state,h,today=dateKey()) {if(state.habits.some(x=>!x.archived&&habitKey(x)===habitKey(h))||Object.values(state.history[today]?.entries||{}).some(e=>e.activityKey===habitKey(h)&&e.value>=e.target))throw Error('Den aktiviteten finns redan bland dina vanor. Den räknas en gång per dag.');if(state.habits.filter(x=>!x.archived).length>=20)throw Error('Välj högst 20 aktiva vanor. Färre, tydligare steg gör din resa hållbar.');state.habits.push(h);if(due(h,today)&&state.history[today]&&!state.history[today].required.includes(h.id))state.history[today].required.push(h.id);}
 export function archiveHabit(state,id,today=dateKey()) { const h=state.habits.find(h=>h.id===id);if(!h)return;h.archived=true;delete h.pending;delete h.pendingDate; const r=state.history[today]; if(r && !(r.entries[id]?.value>=r.entries[id]?.target))r.required=r.required.filter(x=>x!==id); }
 export function applyScheduledChanges(state,day=dateKey()){for(const h of state.habits)if(h.pending&&h.pendingDate<=day){const pending=h.pending;delete h.pending;delete h.pendingDate;Object.assign(h,pending);}}

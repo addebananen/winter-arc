@@ -417,3 +417,4 @@ button.skt-opt:hover{background:#ffffff08}
 
 /* Session lists: older than a week folds into "Visa äldre pass" */
 .older-list>summary{list-style:none;cursor:pointer;text-align:center}.older-list>summary::-webkit-details-marker{display:none}.older-list[open]>summary{margin-bottom:8px}
+.late-chip{margin:12px 0 4px;color:var(--gold);border-color:#4b4531;background:#2c2a22}.late-chip .i{width:14px;height:14px}.late-notice{margin:12px 0}.check-btn.late-locked{color:var(--muted);border-style:dashed;opacity:.65;cursor:not-allowed}.check-btn.late-locked .i{width:13px;height:13px}
