@@ -32,6 +32,7 @@ const patterns = {
     [/^Lägg till vanan (.+)$/, (m, name) => `Add the habit ${translate(name)}`],
     [/^(.+) för att låsa upp (.+)\.$/, (m, req, item) => `${translate(req)} to unlock ${translate(item)}.`],
     [/^Alternativ för (.+)$/, (m, name) => `Options for ${translate(name)}`],
+    [/^Ta bort (.+) från passet$/, (m, name) => `Remove ${translate(name)} from the workout`],
     [/^(.+) har (\d+) loggade set\.$/, (m, name, n) => `${translate(name)} has ${n} logged ${n === '1' ? 'set' : 'sets'}.`],
     [/^Ta bort (.+) som vän$/, (m, name) => `Remove ${name} as a friend`],
     [/^Startnivå sparad: (.+)\.$/, (m, level) => `Starting level saved: ${translate(level)}.`],
