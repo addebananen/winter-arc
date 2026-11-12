@@ -29,6 +29,8 @@ test('the gear layer wraps the character only when something is equipped', () =>
   assert.match(html, /gear-aura/);
   assert.match(html, /--aura:#ff9a4a/);
   assert.match(html, /data-icon="flame"/);
+  // The emblem is a corner badge, never over the character's body or face.
+  assert.match(html, /class="gear-emblem" style="[^"]*right:6%;bottom:8%;transform:none/);
   assert.doesNotMatch(html, /gear-cape/);
   for (const slot of G.gearSlots) assert.ok(G.gearItems.some(g => g.slot === slot.id), slot.id);
 });
