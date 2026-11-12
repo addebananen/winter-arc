@@ -99,10 +99,10 @@ test('Postgres migration, state conflicts, squad isolation and photo policies',a
   const old=(await db.query('select payload from public.user_states where user_id=$1',[a])).rows[0].payload;
   const next=structuredClone(old);next.history['2026-11-10']={entries:{walk:{name:'Promenad',value:30,target:30,durationMinutes:30,note:'PRIVATE CHALLENGE NOTE'}}};
   next.body=[{photo:a+'/body/private.jpg',weight:81,note:'PRIVATE BODY NOTE'}];next.privateTrackers={nofap:{enabled:true,startedAt:'PRIVATE NOFAP'}};
-  next.reflections=[{id:'reflect1',date:'2026-11-10',win:'PRIVATE REFLECTION',next:'PRIVATE NEXT STEP'}];
+  next.reflections=[{id:'reflect1',date:'2026-11-10',win:'PRIVATE REFLECTION',next:'PRIVATE NEXT STEP'}];next.gratitude={'2026-11-10':{items:['PRIVATE GRATITUDE'],at:1}};
   const save=async x=>db.query('update public.user_states set payload=$2 where user_id=$1',[a,JSON.stringify(x)]);
   await save(next);const rows=(await db.query('select * from public.posts where user_id=$1 order by body',[a])).rows;
-  assert.equal(rows.length,3);assert.match(JSON.stringify(rows),/Promenad|Veckoreflektion/);assert.doesNotMatch(rows.map(p=>p.body+' '+p.image_path).join(' '),/PRIVATE|private.jpg|nofap/);
+  assert.equal(rows.length,3);assert.match(JSON.stringify(rows),/Promenad|Veckoreflektion/);assert.doesNotMatch(rows.map(p=>p.body+' '+p.image_path).join(' '),/PRIVATE|private.jpg|nofap/);await as(b);assert.doesNotMatch(JSON.stringify((await db.query('select public.member_profile($1) as p',[a])).rows[0].p),/PRIVATE GRATITUDE/,'gratitude never in member profiles');await db.exec('reset role');
   await save(next);assert.equal((await db.query('select count(*)::int n from public.posts where user_id=$1',[a])).rows[0].n,3);
   const habit=rows.find(p=>p.body.includes('Promenad'));await as(b);await db.query("insert into public.reactions values($1,$2,'heart')",[habit.id,b]);
   await db.exec('reset role');next.history['2026-11-10'].entries.walk.value=0;await save(next);assert.match((await db.query('select body from public.posts where id=$1',[habit.id])).rows[0].body,/Återtagen/);

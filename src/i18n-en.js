@@ -2865,4 +2865,9 @@ export default {
  "Träning kan bara registreras samma dag.": "Training can only be logged on the same day.",
  "Vanan var inte aktiv igår.": "The habit wasn't active yesterday.",
  "Utmaningar kan bara registreras samma dag.": "Challenges can only be logged on the same day.",
+ "Skriv ner det du är tacksam för idag.": "Write down what you are grateful for today.",
+ "Bara du kan se det du skriver här. Det delas aldrig med ditt squad.": "Only you can see what you write here. It is never shared with your squad.",
+ "Jag är tacksam för …": "I am grateful for …",
+ "Tidigare ({#})": "Earlier ({#})",
+ "Din tacksamhet är sparad. Bara du ser den.": "Your gratitude is saved. Only you can see it.",
 };
