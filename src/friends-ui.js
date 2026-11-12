@@ -12,7 +12,7 @@ const demoKinds = {maya: 'striker', noah: 'scholar', elliot: 'monk'};
 const tiers = ['Vandrare', 'Frostvandrare', 'Norrskensväktare', 'Vinterlegend'];
 
 export function createFriendsUI({I, esc, button, avatar, character, landscape = () => '', D, F, getMode, cloud, modal, closeModal, toast, render}) {
-  let list = null, code = '', loading = false, error = '', demo = null;
+  let list = null, code = '', loading = false, error = '', demo = null, shown = null;
 
   async function load() {
     if (loading) return;
@@ -67,6 +67,14 @@ export function createFriendsUI({I, esc, button, avatar, character, landscape = 
         try { await navigator.clipboard.writeText(text); toast('Vänkoden är kopierad.'); } catch { toast('Din vänkod: ' + text); }
         return;
       }
+      case 'add-member': {
+        if (demoMode) { (demo ||= demoFriends()).push({friendship_id: 'demo-' + id + '-out', user_id: id, display_name: shown?.known?.display_name || 'Vän', relation: 'outgoing'}); }
+        else { const result = await cloud.requestFriendMember(id); list = null; if (result === 'accepted') { toast('Ni är nu vänner.'); render(); if (shown?.userId === id) await profile(id, shown.known); return; } }
+        toast('Vänförfrågan är skickad.');
+        render();
+        if (shown?.userId === id) await profile(id, shown.known);
+        return;
+      }
       case 'accept': case 'decline': case 'remove':
         if (demoMode) {
           const f = demo.find(x => x.friendship_id === id);
@@ -77,8 +85,10 @@ export function createFriendsUI({I, esc, button, avatar, character, landscape = 
           list = null;
         }
         if (cmd === 'remove') closeModal();
+        const reopen = cmd === 'accept' && shown && document.querySelector('.member-profile');
         toast(cmd === 'accept' ? 'Ni är nu vänner.' : cmd === 'decline' ? 'Förfrågan är avböjd.' : 'Vännen är borttagen.');
         render();
+        if (reopen) await profile(shown.userId, shown.known);
         return;
     }
   }
@@ -110,12 +120,21 @@ export function createFriendsUI({I, esc, button, avatar, character, landscape = 
     const xp = Number(p.xp) || 0, l = D.levelInfo(xp), rank = F.rankInfo(xp), kind = p.char_kind || 'ranger';
     const name = p.display_name || 'Äventyrare', num = n => Math.round(n).toLocaleString('sv-SE');
     const charName = p.char_name || F.characters.find(c => c.id === kind)?.name || 'Aurora Ranger';
-    const relation = p.relation === 'friend' ? 'Din vän' : p.relation === 'squad' || known ? 'I ditt squad' : '';
+    shown = {userId, known};
+    // Friendship with this person: from the friends list (loaded if needed). Squad members who are not yet
+    // friends get a button to add them straight from here.
+    if (getMode() === 'cloud' && list === null) { try { list = await cloud.friends(); } catch { list = []; } }
+    const fr = (data() || []).find(x => x.user_id === userId);
+    const relation = fr?.relation === 'friend' || p.relation === 'friend' ? 'Din vän' : p.relation === 'squad' || known ? 'I ditt squad' : '';
+    const friendAction = fr?.relation === 'friend' || p.relation === 'friend' ? ''
+      : fr?.relation === 'incoming' ? button(I('check') + ' Godkänn vänförfrågan', 'friend:accept:' + fr.friendship_id, 'btn member-friend')
+      : fr?.relation === 'outgoing' ? `<span class="pill member-friend">${I('clock')} Vänförfrågan skickad</span>`
+      : known ? button(I('plus') + ' Lägg till som vän', 'friend:add-member:' + userId, 'btn member-friend') : '';
     const pct = n => Math.round(Math.max(0, Math.min(1, n)) * 100);
     const stat = (icon, value, label) => `<div class="mini-stat">${I(icon)}<strong>${value}</strong><span>${label}</span></div>`;
     modal(esc(name), `<div class="member-profile">
       <section class="member-banner">${landscape()}<div class="member-id">${avatar(name, 'large member-photo', p.photo || null)}
-        <div><span class="eyebrow">${esc(p.title || tiers[Math.min(3, Math.floor((l.level - 1) / 5))])}</span><h3>${esc(rank.name)} · LVL ${l.level}</h3>${relation ? `<small>${relation}</small>` : ''}</div></div></section>
+        <div><span class="eyebrow">${esc(p.title || tiers[Math.min(3, Math.floor((l.level - 1) / 5))])}</span><h3>${esc(rank.name)} · LVL ${l.level}</h3>${relation ? `<small>${relation}</small>` : ''}${friendAction}</div></div></section>
       <section class="member-rank" style="--rank:${rank.color}">
         <div class="member-rank-head"><span class="rank-emblem">${I(rank.icon)}</span><div><span class="eyebrow">RANK</span><strong>${esc(rank.name)}</strong></div>
           <span class="member-total"><strong>${num(xp)}</strong><small>XP totalt</small></span></div>

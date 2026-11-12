@@ -451,3 +451,6 @@ button.skt-opt:hover{background:#ffffff08}
 @keyframes member-fill{from{transform:scaleX(0)}to{transform:none}}
 @media(max-width:700px){.member-banner{padding:18px 15px}.member-banner .avatar.member-photo{width:62px;height:62px;flex-basis:62px}.member-banner h3{font-size:21px}.member-char-card .member-character{height:230px}}
 @media(prefers-reduced-motion:reduce){.member-banner,.member-banner .avatar.member-photo,.member-rank,.member-char-card,.member-profile>.mini-stats,.member-xp i{animation:none}}
+
+/* Squad member profile: add as friend */
+.member-friend{margin-top:10px;display:flex;width:fit-content;align-items:center;gap:6px;min-height:40px;padding:8px 14px;font-size:13px}.member-friend .i{width:16px;height:16px}

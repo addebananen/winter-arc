@@ -2877,4 +2877,9 @@ export default {
  "Jag är tacksam för …": "I am grateful for …",
  "Tidigare ({#})": "Earlier ({#})",
  "Din tacksamhet är sparad. Bara du ser den.": "Your gratitude is saved. Only you can see it.",
+ "Lägg till som vän": "Add as friend",
+ "Godkänn vänförfrågan": "Accept friend request",
+ "Vänförfrågan skickad": "Friend request sent",
+ "Du kan inte lägga till dig själv.": "You can't add yourself.",
+ "Ni är inte i samma squad. Använd vänkoden i stället.": "You are not in the same squad. Use the friend code instead.",
 };
