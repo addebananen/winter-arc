@@ -16,8 +16,8 @@ iPhone kräver att appen är tillagd på hemskärmen (iOS 16.4+) för webbnotise
 
 | Del | Fil |
 | --- | --- |
-| Tabell, RPC:er och `push_due()` | `supabase/028_push_notifications.sql` |
-| Timschema (pg_cron + pg_net) | `supabase/029_push_schedule.sql` |
+| Tabell, RPC:er och `push_due()` | `supabase/029_push_notifications.sql` |
+| Timschema (pg_cron + pg_net) | `supabase/030_push_schedule.sql` |
 | Edge Function som skickar | `supabase/functions/push-reminders/index.ts` |
 | Inställningar + låsskärmsnotis | `src/push.js` |
 | Visa notis / öppna appen vid tryck | service workern i `scripts/build.mjs` |
@@ -26,11 +26,11 @@ Den publika VAPID-nyckeln finns i `src/config.js` och i Edge Function. Den priva
 
 ## Aktivera i Supabase (en gång, efter merge)
 
-1. Kör `028_push_notifications.sql`.
+1. Kör `029_push_notifications.sql`.
 2. Lägg in två hemligheter i Vault (SQL Editor):
    `select vault.create_secret('<privat VAPID-nyckel>','push_vapid_private');`
    `select vault.create_secret('<lång slumpad sträng>','push_cron_secret');`
 3. Deploya Edge Function `push-reminders` med **Verify JWT av** (den kontrollerar själv `x-cron-secret`).
-4. Kör `029_push_schedule.sql`.
+4. Kör `030_push_schedule.sql`.
 
 Byter man VAPID-nycklar måste alla slå på notiserna igen.

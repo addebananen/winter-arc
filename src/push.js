@@ -1,4 +1,4 @@
-// Notifications: streak reminders from the server (Web Push, supabase/028) and a lock-screen notice while a
+// Notifications: streak reminders from the server (Web Push, supabase/029) and a lock-screen notice while a
 // workout is running. iPhone only allows web notifications for an app added to the home screen (iOS 16.4+).
 // A web app cannot show a live, ticking timer like a native Live Activity, so the workout notice says when the
 // workout started and how long it had run when you left the app; it is refreshed every time you leave.
@@ -85,7 +85,7 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
         if (!pref.workout) clearWorkout();
       }
     } catch (e) {
-      toast(/push_subscription|schema cache|does not exist/i.test(e?.message || '') ? 'Notiser aktiveras med databasuppdatering 028.' : e?.message || 'Notiserna kunde inte ändras.');
+      toast(/push_subscription|schema cache|does not exist/i.test(e?.message || '') ? 'Notiser aktiveras med databasuppdatering 029.' : e?.message || 'Notiserna kunde inte ändras.');
     } finally { busy = false; await refresh(); }
   }
 

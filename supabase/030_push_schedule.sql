@@ -1,4 +1,4 @@
--- Runs the push-reminders Edge Function every hour (on the hour). Run AFTER 028 and after the two Vault
+-- Runs the push-reminders Edge Function every hour (on the hour). Run AFTER 029 and after the two Vault
 -- secrets exist: 'push_vapid_private' and 'push_cron_secret' (see docs/push-notiser.md).
 -- Uses pg_cron + pg_net. Not part of the PGlite tests because those extensions only exist on Supabase.
 create extension if not exists pg_cron;

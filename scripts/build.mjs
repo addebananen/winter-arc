@@ -23,7 +23,7 @@ async function installShell(){const cache=await caches.open(CACHE);await cache.a
 self.addEventListener('install',e=>e.waitUntil(installShell()));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('winter-arc-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('message',e=>{if(e.data?.type==='SKIP_WAITING')self.skipWaiting()});
-// Push notifications (supabase/028): show the reminder, and open the app at the right page when it is tapped.
+// Push notifications (supabase/029): show the reminder, and open the app at the right page when it is tapped.
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch{d={body:e.data?.text()}}e.waitUntil(self.registration.showNotification(d.title||'Beyond Self',{body:d.body||'',tag:d.tag||'reminder',icon:'./icon-192.png',badge:'./icon-192.png',data:{url:d.url||'./'}}));});
 self.addEventListener('notificationclick',e=>{e.notification.close();const url=new URL(e.notification.data?.url||'./',self.location.href).href;e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{const c=list.find(c=>c.url.startsWith(self.registration.scope));if(c){c.navigate?.(url).catch(()=>{});return c.focus();}return self.clients.openWindow(url);}));});
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==location.origin||!URLS.has(u.href))return;

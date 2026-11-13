@@ -1,5 +1,5 @@
-// Sends the streak reminders that are due right now (see supabase/028_push_notifications.sql).
-// Called every hour by pg_cron (supabase/029_push_schedule.sql) with the header x-cron-secret.
+// Sends the streak reminders that are due right now (see supabase/029_push_notifications.sql).
+// Called every hour by pg_cron (supabase/030_push_schedule.sql) with the header x-cron-secret.
 // Secrets come from Supabase Vault through push_config(), never from the repository.
 import webpush from 'npm:web-push@3.6.7';
 import {createClient} from 'npm:@supabase/supabase-js@2.119.0';
