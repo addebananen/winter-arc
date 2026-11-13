@@ -35,6 +35,7 @@ const patterns = {
     [/^Ta bort (.+) från passet$/, (m, name) => `Remove ${translate(name)} from the workout`],
     [/^(.+) har (\d+) loggade set\.$/, (m, name, n) => `${translate(name)} has ${n} logged ${n === '1' ? 'set' : 'sets'}.`],
     [/^Ta bort (.+) som vän$/, (m, name) => `Remove ${name} as a friend`],
+    [/^Saknar ([0-9, ]+)\. Kör de filerna i supabase\/ i ordning\.$/, (m, list) => `Missing ${list}. Run those files in supabase/ in order.`],
     [/^Startnivå sparad: (.+)\.$/, (m, level) => `Starting level saved: ${translate(level)}.`],
     [/^Nästa pass senast (idag|imorgon|på [a-zåäö]+)\.$/, (m, when) => `Next workout by ${whenEn(when)}.`],
     [/^Träna senast (idag|imorgon|på [a-zåäö]+) för att hålla flamman vid liv\.$/, (m, when) => `Train by ${whenEn(when)} to keep the flame alive.`],

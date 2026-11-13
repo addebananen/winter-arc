@@ -5,10 +5,10 @@ export const configured = Boolean(config.supabaseUrl && config.supabaseKey);
 export const googleReady = configured && config.googleEnabled === true;
 export const client = configured ? createClient(config.supabaseUrl,config.supabaseKey,{auth:{flowType:'pkce',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}}) : null;
 export let user = null;
-export let trainingReady=false,skillWorkoutsReady=false,coreCatalogReady=false,skillStartReady=false,mobilityReady=false,trainingVersion=0,lateCheckinReady=false;
+export let trainingReady=false,skillWorkoutsReady=false,coreCatalogReady=false,skillStartReady=false,mobilityReady=false,trainingVersion=0,lateCheckinReady=false,schemaInstalled=null;
 let revision=0;
 const check = ({data,error})=>{if(error)throw error;return data;};
-export async function initialize(){if(!client)return null;const session=check(await client.auth.getSession());user=session.session?.user||null;if(user){try{const result=await client.rpc('training_expansion_ready');trainingReady=result.data>=9;skillWorkoutsReady=result.data>=10;coreCatalogReady=result.data>=14;skillStartReady=result.data>=15;mobilityReady=result.data>=20;trainingVersion=Number(result.data)||0;}catch{trainingReady=false;}try{lateCheckinReady=(await client.rpc('late_checkin_ready')).data===true;}catch{lateCheckinReady=false;}}return user;}
+export async function initialize(){if(!client)return null;const session=check(await client.auth.getSession());user=session.session?.user||null;if(user){try{const result=await client.rpc('training_expansion_ready');trainingReady=result.data>=9;skillWorkoutsReady=result.data>=10;coreCatalogReady=result.data>=14;skillStartReady=result.data>=15;mobilityReady=result.data>=20;trainingVersion=Number(result.data)||0;}catch{trainingReady=false;}try{lateCheckinReady=(await client.rpc('late_checkin_ready')).data===true;}catch{lateCheckinReady=false;}try{const r=await client.rpc('schema_status');schemaInstalled=r.error?null:r.data?.installed||null;}catch{schemaInstalled=null;}}return user;}
 export async function login(){if(!googleReady)throw Error('Google-inloggningen väntar på att OAuth-klienten aktiveras i Supabase.');check(await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}}));}
 export async function logout(){if(client)check(await client.auth.signOut());user=null;}
 export async function load(){const row=check(await client.from('user_states').select('payload,revision').eq('user_id',user.id).maybeSingle());revision=row?.revision||0;return row?.payload||null;}
@@ -38,4 +38,6 @@ const signed=new Map();
 export async function imageUrl(path,refresh=false){if(!path)return '';const cached=signed.get(path);if(!refresh&&cached&&cached.expires>Date.now())return cached.url;const data=check(await client.storage.from('arc-photos').createSignedUrl(path,300));signed.set(path,{url:data.signedUrl,expires:Date.now()+240000});return data.signedUrl;}
 export async function removeImage(path){check(await client.storage.from('arc-photos').remove([path]));signed.delete(path);}
 export async function createMission(squad,name,target,deadline){return check(await client.from('missions').insert({squad_id:squad.id,created_by:user.id,name,target,deadline}).select().single());}
-
+// Push notifications (029): register or remove this device for streak reminders.
+export async function savePush(sub,hour,lang){const k=sub.keys||{};check(await client.rpc('save_push_subscription',{p_endpoint:sub.endpoint,p_p256dh:k.p256dh,p_auth:k.auth,p_hour:hour,p_lang:lang}));}
+export async function removePush(endpoint){check(await client.rpc('remove_push_subscription',{p_endpoint:endpoint}));}

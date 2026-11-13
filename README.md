@@ -226,3 +226,8 @@ Bildbehandling hör till det formulär där bilden valdes. En långsam privat bi
 
 Migration 012 rättar enbart enheten för enarms-handstandens sista mål (ett håll på 10 sekunder). Tidigare workouts, profiler, XP och nivåer ändras inte. Kör 012 en gång efter 011; regenerera aldrig tidigare migrationer.
 
+## Databasversion (028)
+
+`supabase/028_schema_status.sql` lägger till tabellen `schema_migrations` och funktionen `schema_status()`, som listar vilka migrationer som är installerade. 001–027 kördes för hand och registrerades aldrig, så de känns igen på ett objekt som bara finns när migrationen har körts (005 och 006 räknas som installerade när 007 finns). Från 028 avslutar varje ny migration med `insert into public.schema_migrations(name) values('0NN_namn') on conflict do nothing;`, och filnamnet läggs till i `src/schema.js` (ett test kontrollerar att listan matchar mappen). Appen hämtar statusen vid inloggning och visar under Inställningar → Databas om något saknas. Den ändrar ingen sparad data.
+
+`021_squad_code_for_members.sql` är borttagen: den kördes aldrig och `025_short_squad_codes.sql` ersatte samma funktion. Att köra den nu skulle visa de gamla långa koderna igen.
