@@ -28,7 +28,8 @@ export const MIGRATIONS=[
  '025_short_squad_codes',
  '026_late_habit_checkin',
  '027_friend_from_squad',
- '028_schema_status'
+ '028_schema_status',
+ '031_squad_feed_choice'
 ];
 
 // Migrations the database is missing, or null while unknown (offline, or 028 not installed yet).

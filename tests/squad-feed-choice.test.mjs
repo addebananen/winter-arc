@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as D from '../src/domain.js';
 import * as Q from '../src/squad-share.js';
+import * as SC from '../src/schema.js';
 
 test('squad feed choice, workout photos and photo reactions (031)',async t=>{
  const db=new PGlite();await db.waitReady;
@@ -23,7 +24,9 @@ test('squad feed choice, workout photos and photo reactions (031)',async t=>{
   const dir=new URL('../supabase/',import.meta.url);
   const files=(await readdir(dir)).filter(f=>/^0\d\d_.*\.sql$/.test(f)&&f<'028').sort();
   for(const f of files){let sql=await readFile(new URL(f,dir),'utf8');if(f.startsWith('001'))sql=sql.replace('create extension if not exists pgcrypto with schema extensions;','');await db.exec(sql);}
+  await db.exec(await readFile(new URL('028_schema_status.sql',dir),'utf8'));
   await db.exec(await readFile(new URL('031_squad_feed_choice.sql',dir),'utf8'));
+  await t.test('031 records itself in schema_status',async()=>{const st=(await db.query('select public.schema_status() s')).rows[0].s;assert.ok(st.installed.includes('031_squad_feed_choice'));assert.ok(SC.MIGRATIONS.includes('031_squad_feed_choice'));});
   const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',c='33333333-3333-4333-8333-333333333333';
   await db.query('insert into auth.users(id) values($1),($2),($3)',[a,b,c]);
   const as=async uid=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[uid]);await db.exec('set role authenticated');};
