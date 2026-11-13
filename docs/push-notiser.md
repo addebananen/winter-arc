@@ -34,3 +34,9 @@ Den publika VAPID-nyckeln finns i `src/config.js` och i Edge Function. Den priva
 4. Kör `030_push_schedule.sql`.
 
 Byter man VAPID-nycklar måste alla slå på notiserna igen.
+
+## Reaktioner (032)
+
+`supabase/032_reaction_push.sql` lägger en notis i `push_outbox` när någon i squadet reagerar på ditt inlägg, med emoji eller med en egen bild. Varje person och reaktion ger högst en notis per inlägg, och ditt eget tryck ger ingen. Triggern väcker Edge Function `push-reminders` direkt via pg_net med kroppen `{"only":"outbox"}`, så notisen kommer inom några sekunder. Timkörningen skickar också det som eventuellt blivit kvar.
+
+Under Inställningar → Notiser kan reaktionsnotiser slås av (`set_push_reactions`). Efter att 032 är körd behöver `push-reminders` deployas om, eftersom den nu även läser `push_outbox_due()`.

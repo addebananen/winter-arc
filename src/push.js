@@ -8,7 +8,7 @@ import {activities} from './cardio.js';
 import {realElapsed} from './strength.js';
 
 const PREF = 'arc-push', HOURS = [18, 19, 20, 21], TAG = 'active-workout';
-const readPref = () => { try { return {on: false, hour: 19, workout: true, ...JSON.parse(localStorage.getItem(PREF) || '{}')}; } catch { return {on: false, hour: 19, workout: true}; } };
+const readPref = () => { try { return {on: false, hour: 19, workout: true, reactions: true, ...JSON.parse(localStorage.getItem(PREF) || '{}')}; } catch { return {on: false, hour: 19, workout: true, reactions: true}; } };
 const writePref = p => { try { localStorage.setItem(PREF, JSON.stringify(p)); } catch { /* private mode: the choice lasts this session */ } };
 const keyBytes = b64 => { const s = atob((b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, c => c.charCodeAt(0)); };
 const clock = ms => new Date(ms).toLocaleTimeString(lang === 'en' ? 'en-GB' : 'sv-SE', {hour: '2-digit', minute: '2-digit'});
@@ -54,7 +54,8 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
     return `<p>${on ? 'Påminnelse när din streak håller på att brytas, en gång per dag.' : 'Få en påminnelse innan din träningsflamma eller vanestreak slocknar.'}</p>
       ${button(on ? 'Stäng av påminnelser' : I('bell') + ' Slå på påminnelser', on ? 'push:off' : 'push:on', on ? 'btn ghost' : 'btn', busy ? 'disabled' : '')}
       ${on ? `<div class="push-hours"><span>Påminn mig kl</span><div class="push-chips">${HOURS.map(h => chip(`${h}:00`, 'push:hour:' + h, pref.hour === h)).join('')}</div></div>
-      <div class="push-hours"><span>Pågående pass på låsskärmen</span><div class="push-chips">${chip('På', 'push:workout:1', pref.workout)}${chip('Av', 'push:workout:0', !pref.workout)}</div></div>` : ''}`;
+      <div class="push-hours"><span>Pågående pass på låsskärmen</span><div class="push-chips">${chip('På', 'push:workout:1', pref.workout)}${chip('Av', 'push:workout:0', !pref.workout)}</div></div>
+      <div class="push-hours"><span>När någon reagerar på mina inlägg</span><div class="push-chips">${chip('På', 'push:reactions:1', pref.reactions)}${chip('Av', 'push:reactions:0', !pref.reactions)}</div></div>` : ''}`;
   }
 
   // A one-tap card on Today while reminders are off. iPhone only shows the permission prompt after a tap,
@@ -85,6 +86,7 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') { toast(permission === 'denied' ? 'Notiser är blockerade i iPhone-inställningarna.' : 'Notiser är inte påslagna.'); return; }
         await subscribe(); pref = {...pref, on: true}; writePref(pref);
+        if (!pref.reactions) await cloud.pushReactions?.(false).catch(() => {});
         toast('Påminnelserna är på. Vi hör av oss bara när din streak behöver dig.');
       } else if (cmd === 'off') {
         const sub = await (await registration())?.pushManager.getSubscription();
@@ -92,6 +94,9 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
         pref = {...pref, on: false}; writePref(pref); toast('Påminnelserna är avstängda.');
       } else if (cmd === 'hour') {
         pref = {...pref, hour: Number(arg)}; writePref(pref); await subscribe(); toast(`Påminnelser kl ${arg}:00.`);
+      } else if (cmd === 'reactions') {
+        pref = {...pref, reactions: arg === '1'}; await cloud.pushReactions(pref.reactions); writePref(pref);
+        toast(pref.reactions ? 'Du får en notis när någon reagerar på dina inlägg.' : 'Inga notiser för reaktioner.');
       } else if (cmd === 'later') {
         pref = {...pref, askedAt: Date.now()}; writePref(pref);
       } else if (cmd === 'workout') {
@@ -99,7 +104,7 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
         if (!pref.workout) clearWorkout();
       }
     } catch (e) {
-      toast(/push_subscription|schema cache|does not exist/i.test(e?.message || '') ? 'Notiser aktiveras med databasuppdatering 029.' : e?.message || 'Notiserna kunde inte ändras.');
+      toast(/set_push_reactions/i.test(e?.message || '') ? 'Notiser för reaktioner aktiveras med databasuppdatering 032.' : /push_subscription|schema cache|does not exist/i.test(e?.message || '') ? 'Notiser aktiveras med databasuppdatering 029.' : e?.message || 'Notiserna kunde inte ändras.');
     } finally { busy = false; await refresh(); }
   }
 
