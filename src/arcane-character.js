@@ -1,17 +1,17 @@
-// The Arcane mage: a selectable character drawn from one five-step illustration (src/arcane), from a
-// little boy with a spark of purple magic to a legend wrapped in arcane storm. Like the other characters,
-// a new form unlocks every five levels: level 1, 6, 11, 16 and 21. Each form is cut from the same height,
-// so the boy is small and grows. The pictures fade out at the edges into the app's background; the
-// character breathes and purple sparks rise from form 2 (CSS shared with the hero character).
+// The Music mage (id 'arcane', kept so saved choices stay): a selectable character drawn from one five-step
+// illustration (src/arcane), from a beginner with a glowing note in his hand to a legend at a keyboard in a storm
+// of purple music. Like the other characters, a new form unlocks every five levels: level 1, 6, 11, 16 and 21.
+// Each form is cut from the same height, so the boy is small and grows. The black background fades out into the
+// app's background; the character breathes and purple sparks rise from form 2 (CSS shared with the hero character).
 import {heroForm} from './hero-character.js';
 
 export const ARCANE_ID = 'arcane';
 // [level, name] of each form, as written under the illustration.
-export const arcaneForms = [[1, 'Knatte'], [6, 'Lärling'], [11, 'Magiker'], [16, 'Mästare'], [21, 'Legend']];
+export const arcaneForms = [[1, 'Nybörjare'], [6, 'Lärling'], [11, 'Magiker'], [16, 'Mästare'], [21, 'Legend']];
 export const arcaneForm = heroForm;
 
 // Picture size of each form (src/arcane/lvN.webp).
-const pictures = {1: [304, 720], 2: [289, 720], 3: [314, 720], 4: [314, 720], 5: [429, 720]};
+const pictures = {1: [261, 720], 2: [306, 720], 3: [311, 720], 4: [344, 720], 5: [445, 720]};
 let seq = 0;
 
 export function arcaneCharacter(level = 1, large = false) {
