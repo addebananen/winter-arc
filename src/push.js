@@ -39,6 +39,8 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
     else { const sub = await (await registration())?.pushManager.getSubscription().catch(() => null); status = sub && Notification.permission === 'granted' ? 'on' : 'off'; }
     const box = document.getElementById('push-settings');
     if (box) box.innerHTML = inner();
+    const ask = document.getElementById('push-ask');
+    if (ask) ask.innerHTML = askInner();
   }
 
   function inner() {
@@ -54,6 +56,16 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
       ${on ? `<div class="push-hours"><span>Påminn mig kl</span><div class="push-chips">${HOURS.map(h => chip(`${h}:00`, 'push:hour:' + h, pref.hour === h)).join('')}</div></div>
       <div class="push-hours"><span>Pågående pass på låsskärmen</span><div class="push-chips">${chip('På', 'push:workout:1', pref.workout)}${chip('Av', 'push:workout:0', !pref.workout)}</div></div>` : ''}`;
   }
+
+  // A one-tap card on Today while reminders are off. iPhone only shows the permission prompt after a tap,
+  // so this is the shortest possible path. "Inte nu" hides it for two weeks.
+  function askInner() {
+    if (getMode() !== 'cloud' || (pref.askedAt && Date.now() - pref.askedAt < 14 * 864e5)) return '';
+    if (status === 'install') return `<section class="push-ask card"><span class="push-ask-icon">${I('bell')}</span><div><strong>Missa aldrig din streak</strong><p>Lägg appen på hemskärmen, så kan du få en påminnelse innan flamman slocknar.</p><div class="push-ask-actions">${button('Visa hur', 'install', 'btn')}${button('Inte nu', 'push:later', 'btn ghost')}</div></div></section>`;
+    if (status !== 'off') return '';
+    return `<section class="push-ask card"><span class="push-ask-icon">${I('bell')}</span><div><strong>Missa aldrig din streak</strong><p>Slå på notiser så säger vi till innan din träningsflamma eller vanestreak slocknar. Högst en gång per dag.</p><div class="push-ask-actions">${button('Slå på notiser', 'push:on', 'btn')}${button('Inte nu', 'push:later', 'btn ghost')}</div></div></section>`;
+  }
+  function askHTML() { if (status === 'checking') refresh(); return `<div id="push-ask">${askInner()}</div>`; }
 
   function settingsHTML() { refresh(); return `<div class="settings-row push-settings"><div><h3>Notiser</h3><div id="push-settings">${inner()}</div></div></div>`; }
 
@@ -80,6 +92,8 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
         pref = {...pref, on: false}; writePref(pref); toast('Påminnelserna är avstängda.');
       } else if (cmd === 'hour') {
         pref = {...pref, hour: Number(arg)}; writePref(pref); await subscribe(); toast(`Påminnelser kl ${arg}:00.`);
+      } else if (cmd === 'later') {
+        pref = {...pref, askedAt: Date.now()}; writePref(pref);
       } else if (cmd === 'workout') {
         pref = {...pref, workout: arg === '1'}; writePref(pref);
         if (!pref.workout) clearWorkout();
@@ -103,5 +117,6 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
   }
   document.addEventListener('visibilitychange', () => { if (document.hidden) showWorkout(); else clearWorkout(); });
 
-  return {settingsHTML, action, clearWorkout};
+  refresh();
+  return {settingsHTML, askHTML, action, clearWorkout};
 }
