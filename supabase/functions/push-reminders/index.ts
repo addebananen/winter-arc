@@ -1,5 +1,7 @@
 // Sends the streak reminders that are due right now (see supabase/029_push_notifications.sql).
 // Called every hour by pg_cron (supabase/030_push_schedule.sql) with the header x-cron-secret.
+// Also sends reaction notifications (supabase/032_reaction_push.sql): a new reaction wakes this function
+// right away with the body {"only":"outbox"}, which skips the streak reminders.
 // Secrets come from Supabase Vault through push_config(), never from the repository.
 import webpush from 'npm:web-push@3.6.7';
 import {createClient} from 'npm:@supabase/supabase-js@2.119.0';
@@ -15,8 +17,12 @@ Deno.serve(async req => {
   if (config.error || !secrets?.vapid_private || !secrets?.cron_secret) return json({error: 'Push is not configured'}, 503);
   if (req.headers.get('x-cron-secret') !== secrets.cron_secret) return json({error: 'Forbidden'}, 403);
   webpush.setVapidDetails('https://addebananen.github.io/winter-arc/', VAPID_PUBLIC, secrets.vapid_private);
-  const due = await db.rpc('push_due');
-  if (due.error) return json({error: due.error.message}, 500);
+  const body = await req.json().catch(() => ({}));
+  const reminders = body?.only === 'outbox' ? {data: [], error: null} : await db.rpc('push_due');
+  if (reminders.error) return json({error: reminders.error.message}, 500);
+  // Before 032 the outbox does not exist yet; reminders still go out.
+  const outbox = await db.rpc('push_outbox_due');
+  const due = {data: [...(reminders.data || []), ...(outbox.error ? [] : outbox.data || [])]};
   let sent = 0, gone = 0, failed = 0;
   await Promise.all((due.data || []).map(async (n: {endpoint: string; p256dh: string; auth: string; kind: string; title: string; body: string; url: string}) => {
     try {

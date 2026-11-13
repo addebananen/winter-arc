@@ -42,4 +42,5 @@ export async function removeImage(path){check(await client.storage.from('arc-pho
 export async function createMission(squad,name,target,deadline){return check(await client.from('missions').insert({squad_id:squad.id,created_by:user.id,name,target,deadline}).select().single());}
 // Push notifications (029): register or remove this device for streak reminders.
 export async function savePush(sub,hour,lang){const k=sub.keys||{};check(await client.rpc('save_push_subscription',{p_endpoint:sub.endpoint,p_p256dh:k.p256dh,p_auth:k.auth,p_hour:hour,p_lang:lang}));}
+export async function pushReactions(on){check(await client.rpc('set_push_reactions',{p_on:on}));}
 export async function removePush(endpoint){check(await client.rpc('remove_push_subscription',{p_endpoint:endpoint}));}

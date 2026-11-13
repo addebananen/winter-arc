@@ -79,5 +79,9 @@ export default {
  "Vad har du gjort för dig själv idag?": "What did you do for yourself today?",
  "Kör ett pass eller ta en löptur, så dyker det upp här.": "Do a workout or go for a run, and it shows up here.",
  "Eller skriv något själv.": "Or write something yourself.",
- "Kör ett pass eller ta en löptur, så dyker det upp här. Eller skriv något själv.": "Do a workout or go for a run, and it shows up here. Or write something yourself."
+ "Kör ett pass eller ta en löptur, så dyker det upp här. Eller skriv något själv.": "Do a workout or go for a run, and it shows up here. Or write something yourself.",
+ "När någon reagerar på mina inlägg": "When someone reacts to my posts",
+ "Du får en notis när någon reagerar på dina inlägg.": "You'll get a notification when someone reacts to your posts.",
+ "Inga notiser för reaktioner.": "No notifications for reactions.",
+ "Notiser för reaktioner aktiveras med databasuppdatering {#}.": "Reaction notifications turn on with database update {#}."
 };

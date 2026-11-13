@@ -80,7 +80,7 @@ test('the app opens in English by default and switches to Swedish from settings'
   await click('hub:cancel'); await click('hub:discard');
   for (const r of ['today', 'habits', 'squad', 'training']) { await click('nav:' + r); const gear = q('.top-actions [data-action="settings"]'); assert.ok(gear, 'Settings reachable on ' + r); assert.equal(gear.nextElementSibling?.dataset.action, 'nav:profile', 'Left of the profile picture on ' + r); assert.equal(q('.page-head [data-action="settings"]'), null); }
   await click('nav:squad');
-  assert.deepEqual([...w.document.querySelectorAll('.tabs .tab')].map(b => b.textContent), ['Friends', 'Squad', 'Leaderboard', 'Missions']);
+  assert.deepEqual([...w.document.querySelectorAll('.tabs .tab')].map(b => b.textContent), ['Squad', 'Friends', 'Leaderboard', 'Missions']); assert.match(q('#view').textContent, /YOUR SQUAD/); await click('tab:friends');
   assert.match(q('#view').textContent, /YOUR FRIEND CODE/);
   assert.match(q('#view').textContent, /Friend requests/);
   assert.match(q('#view').textContent, /Your friends/);
