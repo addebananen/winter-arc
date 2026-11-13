@@ -1,12 +1,15 @@
 // Skill tree UI: dependency map, tree cards, level detail with animations, level setup.
 import * as SK from './skills.js';
 import {poseSVG, mountPlayer} from './skills-anim.js';
+import * as P from './skill-paths.js';
+import {goalCard, goalPicker, roadView, injectCSS} from './skill-paths-ui.js';
 
 // The animation catalogue is computed on first use so it never slows down app start.
 let moves = null, loading = null;
 const loadMoves = () => moves ? Promise.resolve(moves) : (loading ||= import('./skills-moves.js').then(m => (moves = m.moves)));
 
-export function createSkillsUI({getState, I, esc, button, bar, today, modal, commit, toast, render, startReady = () => true}) {
+export function createSkillsUI({getState, I, esc, button, bar, today, modal, commit, toast, render, closeModal = () => {}, startReady = () => true}) {
+  injectCSS();
   const startOf = (s, id) => s.skills?.[id]?.level || 0;
   let branch = 'all';
   const state = () => SK.ensureSkills(getState());
@@ -14,6 +17,9 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
   const statName = {Strength: 'Strength', Flexibility: 'Flexibility', Discipline: 'Discipline'};
   const thumb = (l, cls = 'sk-mini') => moves?.[l.anim] ? poseSVG(moves[l.anim], moves[l.anim].key ?? 0, cls) : '';
   const focusLevel = (s, t) => t.levels[Math.min(t.levels.length - 1, SK.levelOf(s, t.id))];
+  // Picture of a skill workout (sk-<tree>-<level>) for the goal card and the road.
+  const idThumb = id => { const e = SK.workoutById[id]; return e ? thumb(SK.treeById[e.skillTree].levels[e.skillLevel - 1], 'sp-svg') : ''; };
+  const goalOpts = () => ({I, esc, button, thumb: idThumb, allowed: () => true, day: today(), active: !!getState().strength?.active, where: 'sp-in-tree'});
   const reqText = list => list.map(m => `${esc(m.name)} nivå ${m.n} (${esc(m.level)})`).join(', ');
 
   // ---------- map ----------
@@ -60,7 +66,7 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
     if (!moves) { loadMoves().then(() => render()); return `<div class="card sk-loading" role="status"><span class="eyebrow">SKILL TREE</span><p class="muted">Laddar dina skill-träd…</p></div>`; }
     const s = state(), sum = SK.summary(s), pts = SK.skillStats(s), started = sum.levels > 0;
     const list = SK.trees.filter(t => branch === 'all' || t.branch === branch);
-    return `<section class="card sk-hero"><div><span class="eyebrow">SKILL TREE · CALISTHENICS</span><h2>Från grund till skill.</h2>
+    return `${goalCard(s, goalOpts())}<section class="card sk-hero"><div><span class="eyebrow">SKILL TREE · CALISTHENICS</span><h2>Från grund till skill.</h2>
       <p>${sum.levels} av ${sum.total} nivåer klara · ${sum.mastered} av ${sum.trees} träd bemästrade. Varje nivå stärker din karaktär.</p>
       <div class="sk-stat-row">${Object.entries(pts).map(([k, v]) => `<span class="pill">${I(k === 'Flexibility' ? 'stretch' : k === 'Discipline' ? 'bolt' : 'dumbbell')}${k} +${v}</span>`).join('')}</div>
       ${button(I('flag') + ' Ange var jag är', 'fit:sk:levels', 'btn secondary sk-levels-btn')}</div>
@@ -82,6 +88,7 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
     const pts = SK.levelPoints(l);
     modal(esc(t.name), `<div class="sk-detail" style="--cat:${b.color}">
       <p class="intro">${esc(t.about)}</p>
+      ${P.goalOf(s) === id ? `<p class="sp-is-goal pill">${I('flag')} Mitt mål</p>` : button(I('flag') + ' Gör till mitt mål', 'fit:sk:goal:' + id, 'btn secondary full sp-make-goal')}
       <div class="sk-start"><div><strong>${startOf(s, id) ? `Startnivå: ${startOf(s, id)} av ${t.levels.length}` : 'Ingen startnivå angiven'}</strong><small>Har du redan kommit längre? Ange var du är, så börjar trädet därifrån.</small></div>${button(startOf(s, id) ? 'Ändra' : 'Ange min nivå', 'fit:sk:setup:' + id, 'btn secondary')}</div>
       ${treeMiss.length && lvl === 0 ? `<div class="notice">${I('info')}<span>Förkunskap krävs: ${reqText(treeMiss)}.</span></div>` : ''}
       <div class="sk-anim" data-skill-anim="${l.anim}" data-label="${esc(l.name)}"></div>
@@ -120,6 +127,18 @@ export function createSkillsUI({getState, I, esc, button, bar, today, modal, com
       case 'show': await detail(a, Number(b)); return false;
       case 'setup': startModal(a); return false;
       case 'levels': levelsModal(); return false;
+      case 'goals': await loadMoves(); modal('Välj ditt mål', goalPicker(state(), {esc, thumb: idThumb})); return false;
+      case 'goal': {
+        const t = SK.treeById[a]; if (!t) throw Error('Välj ett skill-träd i listan.');
+        await commit(s => P.setGoal(s, a), 'Nytt mål sparat.');
+        closeModal(); render(); return false;
+      }
+      case 'goal-clear': await commit(s => P.setGoal(s, null), 'Målet är borttaget.'); closeModal(); render(); return false;
+      case 'road': {
+        await loadMoves(); const t = SK.treeById[a]; if (!t) return false;
+        modal(esc(t.name), roadView(state(), a, {...goalOpts(), allowed: () => true}));
+        return false;
+      }
       case 'up':case 'down':throw Error('Nya nivåer låses upp genom sparade workouts. Välj Lägg till i workout.');
     }
     return false;

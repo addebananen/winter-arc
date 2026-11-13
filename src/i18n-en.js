@@ -1,8 +1,10 @@
 // Swedish → English. Keys are the Swedish texts exactly as rendered; numbers are written as {#}.
 // Add one line per new text. See src/i18n.js.
 import music from './i18n-music-en.js';
+import skillPaths from './i18n-skill-paths-en.js';
 export default {
  ...music,
+ ...skillPaths,
  "· Demosquad": "· Demo squad",
  "”Det är de små sakerna, upprepade, som gör dig till den du vill vara.”": "\"It's the small things, repeated, that make you who you want to be.\"",
  "”Du stiger inte till nivån av dina mål.": "\"You do not rise to the level of your goals.",
