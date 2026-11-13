@@ -296,6 +296,40 @@ export function earBassQuestion(R, {degs, keys = ['C', 'G', 'D', 'A', 'E'], bass
   };
 }
 
+// Play it back: the bass plays a short phrase in a key and the player plays the same notes on the
+// instrument. The key's own chord sounds first (piano with the bass root), so the ear knows where home
+// is, then the phrase on the bass alone. The phrase moves through `pool` (intervals from the key note,
+// in pitch order) at most `step` places at a time and never repeats a note straight away, so every
+// answer is a new note. `start: 'root'` begins on the key note; otherwise anywhere in the pool.
+// Judged by pitch class, so the octave and the string are free.
+export const ECHO_KEYS = ['C', 'D', 'E', 'F', 'G', 'A'];
+export const ECHO_START = 2.5;
+export function echoQuestion(R, {pool, len = 4, minor = false, start = 'root', step = 2, keys = ECHO_KEYS}) {
+  const key = R.pick(keys), r = 28 + pcOf(midiOf(parseNote(key + '2')) - 28);
+  const order = [...pool].sort((a, b) => semis(a) - semis(b)), pc = k => semis(order[k]) % 12;
+  let idx;
+  do {
+    idx = [start === 'root' ? order.indexOf('1') : R.int(order.length)];
+    while (idx.length < len) {
+      const at = idx[idx.length - 1], next = [];
+      for (let k = Math.max(0, at - step); k <= Math.min(order.length - 1, at + step); k++) if (pc(k) !== pc(at)) next.push(k);
+      idx.push(R.pick(next));
+    }
+  } while (len > 3 && new Set(idx.map(pc)).size < 3);
+  const ivs = idx.map(k => order[k]), targets = ivs.map(iv => r + semis(iv)), home = parseNote(key + '2');
+  const chord = voiceIn((minor ? CHORDS.min : CHORDS.maj).tones.map(t => r + semis(t)), 55);
+  const phrase = targets.map((m, k) => ({t: k, notes: [m], dur: .9, inst: 'bass', vel: 1}));
+  // Shown low on the neck: from the E string, or from the A string when the root sits high on the E string.
+  const f = r - STRINGS[0].midi, positions = patternPositions(f >= 6 ? [1, f - 5] : [0, f], targets), used = positions.filter(Boolean).map(p => p[1]);
+  const lo = Math.max(0, Math.min(...used) - 1);
+  return {
+    kind: 'echo', key, minor, ivs, targets, pcs: targets.map(pcOf), labels: ivs.map(degreeLabel),
+    names: ivs.map(iv => nameOf(transpose(home, iv))),
+    play: [{t: 0, notes: chord, dur: 1.6, inst: 'keys', vel: .5}, {t: 0, notes: [r], dur: 1.6, inst: 'bass', vel: .9}, ...phrase.map(e => ({...e, t: e.t + ECHO_START}))],
+    phrase, positions, frets: [lo, Math.min(FRETS, Math.max(lo + 5, Math.max(...used) + 1))],
+  };
+}
+
 // Inversions: which chord tone is in the bass (slash chords).
 export function inversionQuestion(R) {
   const q = R.pick(['maj', 'min']), key = R.pick(KEYS), root = keyRoot(key), tones = CHORDS[q].tones, which = R.int(3);

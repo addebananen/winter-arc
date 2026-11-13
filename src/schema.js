@@ -29,6 +29,8 @@ export const MIGRATIONS=[
  '026_late_habit_checkin',
  '027_friend_from_squad',
  '028_schema_status',
+ '029_push_notifications',
+ '030_push_schedule',
  '031_squad_feed_choice'
 ];
 
