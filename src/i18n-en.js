@@ -2882,4 +2882,10 @@ export default {
  "Vänförfrågan skickad": "Friend request sent",
  "Du kan inte lägga till dig själv.": "You can't add yourself.",
  "Ni är inte i samma squad. Använd vänkoden i stället.": "You are not in the same squad. Use the friend code instead.",
+ "Musikmagikern": "The Music Mage",
+ "Välj Musikmagikern": "Choose the Music Mage",
+ "Den rytmiska": "The Rhythmic One",
+ "Varje ton tar dig längre.": "Every note takes you further.",
+ "Börjar som nybörjare med en lysande ton i handen och växer till en legend som styr musiken med lila magi. En ny form låses upp vid level 6, 11, 16 och 21.": "Starts as a beginner with a glowing note in his hand and grows into a legend who commands music with purple magic. A new form unlocks at level 6, 11, 16 and 21.",
+ "Nybörjare": "Beginner",
 };
