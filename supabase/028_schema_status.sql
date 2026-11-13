@@ -3,6 +3,8 @@
 -- an object that only exists once that migration has run. 001-007 are detected one by one where they
 -- left a unique object; 005 and 006 only changed function bodies, so they count as installed once 007's
 -- arc_strength_score exists (007 builds on them). 021 was removed: 025 replaced it before it was ever run.
+-- 029 and 030 (push notifications) were run in Supabase before this file, so their guarded self-record
+-- was skipped; they are detected the same way.
 -- From 028 on, every migration records itself at the end:
 --   insert into public.schema_migrations(name) values('0NN_name') on conflict do nothing;
 -- No stored user data is changed.
@@ -29,9 +31,9 @@ declare
   "022_straddle_basics":"arc_strength_meta_v21","023_squad_avatars":"squad_avatars",
   "024_squad_workout_details":"squad_workout_feed","024_straddle_research":"arc_strength_meta_v23",
   "025_short_squad_codes":"arc_new_squad_code","026_late_habit_checkin":"late_checkin_ready",
-  "027_friend_from_squad":"request_friend_member"}';
+  "027_friend_from_squad":"request_friend_member","029_push_notifications":"push_ready"}';
  tb constant jsonb:='{"008_squad_activity":"squad_activity_events","016_friends":"friendships"}';
- r record; found text[]:='{}';
+ r record; found text[]:='{}'; done boolean;
 begin
  for r in select key,value from jsonb_each_text(fn) loop
   if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=r.value) then found=found||r.key; end if;
@@ -39,6 +41,11 @@ begin
  for r in select key,value from jsonb_each_text(tb) loop
   if to_regclass('public.'||r.value) is not null then found=found||r.key; end if;
  end loop;
+ -- 030 (push schedule) only leaves a pg_cron job; cron exists on Supabase but not everywhere.
+ if to_regclass('cron.job') is not null then
+  execute 'select exists(select 1 from cron.job where jobname=''push-reminders'')' into done;
+  if done then found=found||'030_push_schedule'::text; end if;
+ end if;
  return found;
 end;$$;
 
