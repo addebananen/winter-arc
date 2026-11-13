@@ -454,3 +454,11 @@ button.skt-opt:hover{background:#ffffff08}
 
 /* Squad member profile: add as friend */
 .member-friend{margin-top:10px;display:flex;width:fit-content;align-items:center;gap:6px;min-height:40px;padding:8px 14px;font-size:13px}.member-friend .i{width:16px;height:16px}
+/* Notifications in settings (src/push.js). */
+.push-settings>div{flex:1;min-width:0}
+.push-settings #push-settings p{margin:4px 0 12px}
+.push-settings .btn{width:100%}
+.push-hours{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--muted)}
+.push-chips{display:flex;gap:6px;flex-wrap:wrap}
+.push-chip{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:999px;padding:7px 11px;font-size:12px;min-height:34px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.push-chip.active{background:var(--mint);border-color:var(--mint);color:#102020;font-weight:700}
