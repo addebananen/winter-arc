@@ -1,8 +1,10 @@
 // Swedish → English. Keys are the Swedish texts exactly as rendered; numbers are written as {#}.
 // Add one line per new text. See src/i18n.js.
 import music from './i18n-music-en.js';
+import skillPaths from './i18n-skill-paths-en.js';
 export default {
  ...music,
+ ...skillPaths,
  "· Demosquad": "· Demo squad",
  "”Det är de små sakerna, upprepade, som gör dig till den du vill vara.”": "\"It's the small things, repeated, that make you who you want to be.\"",
  "”Du stiger inte till nivån av dina mål.": "\"You do not rise to the level of your goals.",
@@ -1156,6 +1158,9 @@ export default {
  "Ny energi.": "New energy.",
  "Ny vana": "New habit",
  "Ny version": "New version",
+ "Databas": "Database",
+ "Uppdaterad · {#}": "Up to date · {#}",
+ "Databasversionen är okänd. Kör 028_schema_status.sql i Supabase för att se den.": "Database version unknown. Run 028_schema_status.sql in Supabase to see it.",
  "Nya färger, detaljer och rustningar låses upp vid level {#}, {#} och {#}.": "New colours, details and armour unlock at level {#}, {#} and {#}.",
  "NYBÖRJARE": "BEGINNER",
  "Nyfiken": "Curious",
