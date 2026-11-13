@@ -13,3 +13,7 @@ select cron.schedule('push-reminders','0 * * * *',$$
   body:='{}'::jsonb,
   timeout_milliseconds:=20000);
 $$);
+
+-- Register this migration (028 schema_migrations); guarded so the order of merging does not matter.
+do $$ begin if to_regclass('public.schema_migrations') is not null then
+ insert into public.schema_migrations(name) values('030_push_schedule') on conflict do nothing; end if; end $$;

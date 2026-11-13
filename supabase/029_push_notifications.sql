@@ -107,5 +107,8 @@ end;$$;
 revoke all on function public.push_due(timestamptz), public.push_forget(text), public.push_config() from public, anon, authenticated;
 grant execute on function public.push_due(timestamptz), public.push_forget(text), public.push_config() to service_role;
 
+-- Register this migration (028 schema_migrations); guarded so the order of merging does not matter.
+do $$ begin if to_regclass('public.schema_migrations') is not null then
+ insert into public.schema_migrations(name) values('029_push_notifications') on conflict do nothing; end if; end $$;
 notify pgrst,'reload schema';
 commit;
