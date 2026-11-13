@@ -153,6 +153,17 @@ export const NODES = [
       L('Alla tonarter', 'Åtta tonarter och sex ackord, utan baston.', {type: 'earbass', degs: ['I', 'ii', 'iii', 'IV', 'V', 'vi'], keys: ['C', 'G', 'D', 'A', 'E', 'F', 'B♭', 'E♭'], bass: false}, 'Hitta först tonartens grundton på halsen och spela skalan en gång innan du lyssnar.'),
     ]},
 
+  {id: 'echo', branch: 'bass', name: 'Härma basen', short: 'Härma', requires: [],
+    learn: 'Att kunna spela det man hör är grunden för att lära sig låtar på gehör. Först spelas tonartens ackord så att du hör var hemma är, sedan en kort fras på basen. Nynna frasen innan du spelar den. Tänk i skalsteg i stället för i band: går frasen ett steg upp, ett steg ner eller hoppar den? Börjar frasen på grundtonen vet du redan var första tonen ligger, och resten hittar du längs skalan.',
+    levels: [
+      L('Tre toner', 'Steg från grundtonen: 1, 2 och 3.', {type: 'echo', pool: ['1', '2', '3'], len: 3, step: 1}, 'Frasen börjar alltid på grundtonen. Lyssna bara efter om nästa ton går upp eller ner.'),
+      L('Fyra toner i steg', 'Skalsteg 1 till 5, ett steg i taget.', {type: 'echo', pool: ['1', '2', '3', '4', '5'], len: 4, step: 1}, 'Varje ton är granne med den förra i skalan. Frågan är bara: upp eller ner?'),
+      L('Treklangen', 'Hopp mellan 1, 3, 5 och 8.', {type: 'echo', pool: ['1', '3', '5', '8'], len: 4, step: 2}, 'Samma toner som durarpeggiot. Från grundtonen ligger 3 ett band bakåt på nästa sträng och 5 två band framåt på nästa sträng.'),
+      L('Hela durskalan', 'Steg och små hopp i hela skalan.', {type: 'echo', pool: ['1', '2', '3', '4', '5', '6', '7', '8'], len: 4, step: 2}, 'Ett hopp här är högst en ters: en ton i skalan hoppas över.'),
+      L('Rockriff i moll', 'Mollpentatoniskt: 1, ♭3, 4, 5 och ♭7.', {type: 'echo', pool: ['1', 'b3', '4', '5', 'b7', '8'], minor: true, len: 4, step: 2}, 'Mollpentatoniska skalan har inga halvtonssteg. Spela mönstret en gång från grundtonen innan du lyssnar.'),
+      L('Fem toner, fri start', 'Frasen kan börja var som helst i durskalan.', {type: 'echo', pool: ['1', '2', '3', '4', '5', '6', '7', '8'], len: 5, start: 'any', step: 2}, 'Jämför första tonen med ackordet du hörde först. Vägen hem till grundtonen avslöjar skalsteget. Visa första tonen finns som hjälp, men då blir det högst en stjärna.'),
+    ]},
+
   // ---------------- SÅNG ----------------
   {id: 'breath', branch: 'voice', name: 'Andning & stöd', short: 'Stöd', requires: [],
     learn: 'Stöd betyder att du styr utandningen: revben och mage får stanna ute medan luften släpps långsamt. Andas lågt (magen och sidorna rör sig, inte axlarna). Ett jämnt ”sss” är ett tydligt sätt att öva: målet är en stadig ström, inte mest luft. Övningen lyssnar på hur jämnt du låter.',

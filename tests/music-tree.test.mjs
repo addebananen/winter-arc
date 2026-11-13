@@ -342,6 +342,65 @@ test('play by ear: the piano plays four chords, only the key is told, three atte
   w.close();
 });
 
+test('play it back: the bass plays a short phrase in a key, you play the same notes', async t => {
+  const R = T.rng(9);
+  for (const level of M.nodeById.echo.levels) for (let i = 0; i < 80; i++) {
+    const game = level.game, q = T.echoQuestion(R, game), order = [...game.pool].sort((a, b) => T.semis(a) - T.semis(b));
+    assert.equal(q.ivs.length, game.len);
+    assert.ok(q.ivs.every(iv => game.pool.includes(iv)), 'Only notes from the pool');
+    if (game.start !== 'any') assert.equal(q.ivs[0], '1', 'Starts on the key note');
+    q.ivs.forEach((iv, k) => {
+      if (!k) return;
+      assert.notEqual(q.pcs[k], q.pcs[k - 1], 'Never the same note twice in a row');
+      assert.ok(Math.abs(order.indexOf(iv) - order.indexOf(q.ivs[k - 1])) <= game.step, 'Moves at most `step` places in the pool');
+    });
+    if (game.len > 3) assert.ok(new Set(q.pcs).size >= 3, 'At least three different notes');
+    assert.ok(q.targets.every(m => m >= 28 && m <= 55), 'Inside the recorded bass range');
+    assert.deepEqual(q.pcs, q.targets.map(T.pcOf));
+    q.names.forEach((x, k) => assert.equal(T.pcOf(T.midiOf(T.parseNote(x + 3))), q.pcs[k], 'Spelled names match the notes'));
+    q.positions.forEach((p, k) => { assert.ok(p, 'Every note has a place on the neck'); assert.equal(T.fretMidi(...p), q.targets[k]); assert.ok(p[1] >= q.frets[0] && p[1] <= q.frets[1], 'Shown inside the board'); });
+    const bass = q.play.filter(e => e.inst === 'bass'), keys = q.play.filter(e => e.inst === 'keys');
+    assert.equal(keys.length, 1, 'One chord sets the key');
+    assert.equal(T.pcOf(bass[0].notes[0]), T.pcOf(T.midiOf(T.parseNote(q.key + 2))), 'The key note under the chord');
+    assert.deepEqual(bass.slice(1).map(e => e.notes[0]), q.targets, 'Then the phrase on the bass alone');
+    assert.ok(bass.slice(1).every(e => e.t >= T.ECHO_START), 'The phrase comes after the chord');
+    const third = T.pcOf(keys[0].notes.find(n => T.pcOf(n - bass[0].notes[0]) === 3 || T.pcOf(n - bass[0].notes[0]) === 4) - bass[0].notes[0]);
+    assert.equal(third, game.minor ? 3 : 4, 'Major or minor chord as the level says');
+  }
+  // In the app, by tapping: a wrong first attempt, then right; a hint caps the score.
+  const {w, q, click} = await app('en');
+  t.after(() => w.close());
+  const leftovers = texts => texts.filter(x => swedish.test(x));
+  await click('nav:skills'); await click('mt:node:echo');
+  const seed = Date.parse('2026-11-12T10:00:00Z'), now = w.Date.now; w.Date.now = () => seed;
+  await click('mt:play:echo:1');
+  assert.deepEqual(leftovers(visible(q('.mg'))), [], 'Intro');
+  await click('start'); w.Date.now = now;
+  const R2 = T.rng(seed), fret = pc => `fret:0:${(pc - 4 + 12) % 12}`, count = sel => w.document.querySelectorAll(sel).length;
+  for (let n = 0; n < 4; n++) {
+    const want = T.echoQuestion(R2, M.nodeById.echo.levels[0].game);
+    assert.equal(q('.mg-ctx b').textContent, want.key);
+    assert.equal(count('.mg-try:not(.later) > span'), 3, 'One slot per note');
+    assert.deepEqual(leftovers(visible(q('.mg'))), [], 'Playing');
+    if (n === 0) {
+      for (const [k, pc] of want.pcs.entries()) await click(fret(pc + (k === 2 ? 1 : 0)));
+      await sleep(1000);
+      assert.deepEqual([count('.mg-try span.ok'), count('.mg-try span.bad')], [2, 1]);
+      assert.match(q('.mg-status').textContent, /2\s*of 3 right/);
+    }
+    for (const pc of want.pcs) await click(fret(pc));
+    await sleep(1000);
+    assert.ok(q('.mg-reveal.ok'), 'Solved');
+    assert.ok(q('.mg-reveal').textContent.includes(want.names[1]), 'The answer shows the notes');
+    assert.ok(q('.mg-reveal .mg-board'), 'And where they sit on the neck');
+    assert.deepEqual(leftovers(visible(q('.mg'))), [], 'Reveal');
+    await click('next');
+  }
+  await sleep(80);
+  assert.equal(q('[data-count]').dataset.count, '96');
+  w.close();
+});
+
 // A plucked string as a phone microphone hears it: many overtones, hardly any fundamental, some noise.
 function pluck(R, midi, sr, len, gain = .3) {
   const f = T.freqOf(midi), out = new Float32Array(len), H = Math.min(14, Math.floor(sr / 2 / f) - 1), ph = Array.from({length: H + 1}, () => R() * 6.28);
