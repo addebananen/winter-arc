@@ -9,7 +9,7 @@ export const characters=[
  {id:'scholar',name:'Lunar Scholar',role:'Tänkaren',motto:'Var nyfiken en stund till.',description:'Läsning, vetenskap och stora frågor. Samla insikter, inte bara poäng.',color:'#cbbce8',symbol:'book'},
  {id:'adrian',name:'Adrian',role:'Den gränslösa',motto:'Bortom dig själv finns ingen gräns.',description:'Börjar som sig själv. Varje form bär mer kraft än den förra.',color:'#8fc4ff',symbol:'star'},
  {id:'frost',name:'Frostmagikern',role:'Den växande',motto:'Varje dag lite starkare.',description:'Börjar som en liten knatte med en trollstav och växer till en magiker med makt över is och storm. En ny form låses upp vid level 6, 11, 16 och 21.',color:'#9fd8ff',symbol:'snow',forms:frostForms},
- {id:'arcane',name:'Arkanmagikern',role:'Den uppvaknande',motto:'Kraften växer med varje steg.',description:'Börjar som en knatte med en gnista av lila magi och växer till en legend omsvept av arkan storm. En ny form låses upp vid level 6, 11, 16 och 21.',color:'#b58cff',symbol:'star',forms:arcaneForms}
+ {id:'arcane',name:'Musikmagikern',role:'Den rytmiska',motto:'Varje ton tar dig längre.',description:'Börjar som nybörjare med en lysande ton i handen och växer till en legend som styr musiken med lila magi. En ny form låses upp vid level 6, 11, 16 och 21.',color:'#b58cff',symbol:'music',forms:arcaneForms}
 ];
 export const ranks=[
  {name:'Rookie',xp:0,color:'#a3b6ae',icon:'flag'},
