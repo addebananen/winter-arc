@@ -6,7 +6,7 @@ export function createFitnessUI({skillStartReady=()=>true,getState,D,I,character
  let section='strength',stat='all';
  const state=()=>F.ensureTraining(getState());
  const music=createMusicUI({state,D,F,I,esc,button,bar,today,modal,form});
- const skills=createSkillsUI({getState,I,esc,button,bar,today,modal,commit,toast,render,startReady:skillStartReady});
+ const skills=createSkillsUI({getState,I,esc,button,bar,today,modal,commit,toast,render,closeModal,startReady:skillStartReady});
  const cmeta=k=>D.categories[F.statCategory[k]];
  const time=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
  const hint=t=>`<p class="fitness-hint">${t}</p>`;

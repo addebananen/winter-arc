@@ -21,6 +21,10 @@ export function createSocialClient(client,getUser){
    return check(result);
   },
   async remove(id){return check(await client.from('posts').delete().eq('id',id).eq('user_id',getUser().id));},
-  async attach(id,path){return check(await client.rpc('attach_post_photo',{p_post:id,p_path:path}));}
+  async attach(id,path){return check(await client.rpc('attach_post_photo',{p_post:id,p_path:path}));},
+  // Migration 031: a photo on the post of a just-saved workout or run, and photo reactions.
+  async attachActivity(event,path){return check(await client.rpc('attach_activity_photo',{p_event:event,p_path:path}));},
+  async photoReactions(ids){if(!ids.length)return [];return check(await client.from('photo_reactions').select('post_id,user_id,image_path,created_at').in('post_id',ids).order('created_at'));},
+  async photoReact(post,path){const user_id=getUser().id;if(!path)return check(await client.from('photo_reactions').delete().eq('post_id',post).eq('user_id',user_id));return check(await client.from('photo_reactions').upsert({post_id:post,user_id,image_path:path,created_at:new Date().toISOString()},{onConflict:'post_id,user_id'}));}
  };
 }

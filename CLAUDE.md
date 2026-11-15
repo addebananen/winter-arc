@@ -33,6 +33,7 @@ Supabase används för inloggning (Google) och data. Se README.md för detaljer.
 ## Databas (Supabase)
 - Migrationerna i `supabase/` är numrerade (001, 002 …). Ändra eller kör ALDRIG om en befintlig migration.
 - Nya databasändringar läggs i en ny fil med nästa lediga nummer. Kolla högsta numret på senaste `main` först.
+- Varje ny migration avslutas med `insert into public.schema_migrations(name) values('0NN_namn') on conflict do nothing;` och filnamnet läggs till i `src/schema.js`.
 - Kör aldrig SQL mot den riktiga Supabase-databasen. Det gör en människa manuellt efter att PR:en är mergad.
 - Lägg aldrig hemligheter (nycklar, lösenord, client secrets) i koden.
 

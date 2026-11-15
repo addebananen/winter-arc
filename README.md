@@ -36,7 +36,7 @@ Dagens vanor, 68 biblioteksförslag inom åtta kategorier, egna vanor och schema
 
 Animationerna (`src/skills-anim.js`, `src/skills-moves.js`) är en 2D-figur med riktiga segmentlängder. Händer och fötter låses mot golv, stång eller vägg med tvåleds-IK, och balansskills löses så att tyngdpunkten ligger över stödet. En anatomikontroll (`lint`) stoppar omöjliga ledvinklar och kontakter som inte nås. Figuren ritas med samma människa som övningsanimationerna (`skillFigure` i `src/figure.js`): t-shirt med logga, shorts, sneakers, huvud och händer som greppar stång, ringar, parallettes och dipsräcke eller ligger platt mot golvet. Rörelser filmade rakt framifrån (till exempel archer push-up) visar bara överkroppen, eftersom benen pekar bort från kameran. `dev/skill-review.html` och `dev/skill-gallery.html` visar alla animationer för granskning. `dev/app.html` kör appen lokalt i utvecklingsläge utan backend (`python3 -m http.server` i repots rot).
 
-Fyra fasta mobildestinationer: Idag, Träning, Skill tree och Squad. Kategorin **Musik** har 17 noder och 85 nivåer i Gehör, Bas och Sång, som klaras genom korta spel (gehörsquiz, greppbräda, skalor, basgångsbyggare, timing, andning och tonträff med mikrofon). Se `docs/skill-tree-kategorier.md`. Nya skill tree-kategorier läggs till i `src/skill-tree-ui.js`. Profilen nås från avataren, vanor och expedition från startsidan. Tydlig installationsknapp i inställningar.
+Fyra fasta mobildestinationer: Idag, Träning, Skill tree och Squad. Kategorin **Musik** har 18 noder och 91 nivåer i Gehör, Bas och Sång, som klaras genom korta spel (gehörsquiz, greppbräda, skalor, basgångsbyggare, timing, andning och tonträff med mikrofon). Se `docs/skill-tree-kategorier.md`. Nya skill tree-kategorier läggs till i `src/skill-tree-ui.js`. Profilen nås från avataren, vanor och expedition från startsidan. Tydlig installationsknapp i inställningar.
 
 Squad med kodinbjudningar, flöde, bildinlägg, reaktioner, leaderboard, gemensam streak och veckouppdrag. Privat kroppstracker med bilder, vikt, midjemått, graf och jämförelse. Bildjournal, veckoreflektioner, 90-dagarsöversikt, Wrapped som nedladdningsbar SVG och JSON-export av journaldata. En användare tillhör ett squad i denna version. Flödet hämtar de 50 senaste inläggen.
 
@@ -226,3 +226,8 @@ Bildbehandling hör till det formulär där bilden valdes. En långsam privat bi
 
 Migration 012 rättar enbart enheten för enarms-handstandens sista mål (ett håll på 10 sekunder). Tidigare workouts, profiler, XP och nivåer ändras inte. Kör 012 en gång efter 011; regenerera aldrig tidigare migrationer.
 
+## Databasversion (028)
+
+`supabase/028_schema_status.sql` lägger till tabellen `schema_migrations` och funktionen `schema_status()`, som listar vilka migrationer som är installerade. 001–027 kördes för hand och registrerades aldrig, så de känns igen på ett objekt som bara finns när migrationen har körts (005 och 006 räknas som installerade när 007 finns). Från 028 avslutar varje ny migration med `insert into public.schema_migrations(name) values('0NN_namn') on conflict do nothing;`, och filnamnet läggs till i `src/schema.js` (ett test kontrollerar att listan matchar mappen). Appen hämtar statusen vid inloggning och visar under Inställningar → Databas om något saknas. Den ändrar ingen sparad data.
+
+`021_squad_code_for_members.sql` är borttagen: den kördes aldrig och `025_short_squad_codes.sql` ersatte samma funktion. Att köra den nu skulle visa de gamla långa koderna igen.

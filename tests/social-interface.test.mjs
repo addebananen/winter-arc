@@ -107,3 +107,12 @@ test('tapping a squad member opens their profile with photo, rank, XP and charac
  assert.match(p.querySelector('.member-rank').textContent,/Iron/);assert.match(p.querySelector('.member-rank').textContent,/900 \/ 2[\s\u00a0]?400 XP/);
  assert.match(p.querySelector('.member-char-card').textContent,/Frostmunk/);assert.ok(p.querySelector('.member-character .character'));
  }finally{x.dom.window.close();}});
+
+test('settings show notifications, and explain the home screen step when push is unavailable',async()=>{const x=await setup();try{
+ await x.click('settings');assert.ok(x.q('#push-settings'));await sleep(40);assert.match(x.q('#push-settings').textContent,/hemskärmen/);
+ }finally{x.dom.window.close();}});
+
+test('Today offers a one-tap way to get reminders, and "Not now" hides it',async()=>{const x=await setup();try{
+ await x.click('nav:today');await sleep(40);assert.ok(x.q('.push-ask'));assert.match(x.q('.push-ask').textContent,/hemskärmen/);
+ await x.click('push:later');await sleep(40);assert.equal(x.q('.push-ask'),null);
+ }finally{x.dom.window.close();}});

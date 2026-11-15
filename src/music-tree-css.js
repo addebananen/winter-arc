@@ -325,7 +325,7 @@ body.mg-open{overflow:hidden}
 .mg-listen.small>svg{width:28px;height:28px}
 .mg-listen.small .mg-eq{height:26px}
 .mg-tries{display:grid;gap:8px;justify-content:center}
-.mg-try{display:grid;grid-template-columns:64px repeat(4,54px);gap:8px;align-items:center;transition:opacity .2s}
+.mg-try{display:grid;grid-template-columns:64px repeat(var(--n,4),minmax(0,54px));gap:8px;align-items:center;transition:opacity .2s}
 .mg-try.later{opacity:.35}
 .mg-try small{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700}
 .mg-try>span{height:46px;border-radius:14px;display:grid;place-items:center;font-family:Manrope,sans-serif;font-weight:800;font-size:17px;background:#172123;border:1px solid var(--line);color:#4f6163}
