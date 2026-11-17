@@ -3,6 +3,7 @@
 // squadShare = {entries:["<day>:<habit id>"], cardio:["<session id>"], always:["<habit id>"]}.
 // Entries are never pruned: removing an old key would take that old post away from the feed.
 // `always` is only a client convenience that picks the habit automatically at check-in.
+import {activities} from './cardio.js';
 export const AUTO_CARDIO = 'run';
 const list = v => Array.isArray(v) ? v.filter(x => typeof x === 'string').slice(-2000) : [];
 export function ensure(s) {
@@ -36,7 +37,7 @@ export function parseActivity(body = '') {
     if (!m || !rest.length) return null;
     return {kind: 'habit', done: parts[0] === 'Klar', name: rest.join(' · '), value: Number(m[1]), target: Number(m[2]), minutes, date};
   }
-  const cardio = {'Löpning': 'run', 'Promenad': 'walk', 'Volleyboll': 'volleyball', 'Klättring': 'climb'};
+  const cardio = Object.fromEntries(activities.map(a => [a.name, a.id]));
   const head = /^(.+) klart$/.exec(parts[0]);
   if (head && cardio[head[1]] && parts.length === 4) return {kind: 'cardio', activity: cardio[head[1]], km: parseFloat(parts[1]), minutes: parseFloat(parts[2]), date};
   return null;
