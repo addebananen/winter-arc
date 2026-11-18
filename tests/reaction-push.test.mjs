@@ -1,4 +1,4 @@
-// Migration 032: a reaction on your post queues one push notification per person and reaction,
+// Migration 034: a reaction on your post queues one push notification per person and reaction,
 // never for your own post, only when you have notifications on, and in your device's language.
 import {PGlite} from '@electric-sql/pglite';
 import {readFile,readdir} from 'node:fs/promises';
@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as D from '../src/domain.js';
 
-test('reaction push notifications (032)',async t=>{
+test('reaction push notifications (034)',async t=>{
  const db=new PGlite();await db.waitReady;
  try{
   await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create schema storage;create schema extensions;
@@ -49,7 +49,7 @@ test('reaction push notifications (032)',async t=>{
   });
   await t.test('nobody but the Edge Function reads the outbox',async()=>{
    await as(b);await assert.rejects(db.query('select * from public.push_outbox'),/permission/);await assert.rejects(db.query('select * from public.push_outbox_due()'),/permission/);
-   await db.exec('reset role');assert.ok((await db.query('select public.schema_status() s')).rows[0].s.installed.includes('032_reaction_push'));
+   await db.exec('reset role');assert.ok((await db.query('select public.schema_status() s')).rows[0].s.installed.includes('034_reaction_push'));
   });
  }finally{await db.close();}
 });

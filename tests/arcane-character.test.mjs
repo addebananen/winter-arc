@@ -5,8 +5,8 @@ import {ARCANE_ID, arcaneForm, arcaneForms, arcaneCharacter} from '../src/arcane
 import {character} from '../src/graphics.js';
 import {characters} from '../src/fitness.js';
 
-test('the Arcane mage grows through five forms from Knatte to Legend, one every five levels', () => {
-  assert.deepEqual(arcaneForms, [[1, 'Knatte'], [6, 'Lärling'], [11, 'Magiker'], [16, 'Mästare'], [21, 'Legend']]);
+test('the Music mage grows through five forms from Nybörjare to Legend, one every five levels', () => {
+  assert.deepEqual(arcaneForms, [[1, 'Nybörjare'], [6, 'Lärling'], [11, 'Magiker'], [16, 'Mästare'], [21, 'Legend']]);
   assert.deepEqual([1, 5, 6, 10, 11, 15, 16, 20, 21, 60].map(arcaneForm), [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);
   for (const [level] of arcaneForms) {
     const form = arcaneForm(level);

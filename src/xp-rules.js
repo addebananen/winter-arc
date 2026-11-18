@@ -1,4 +1,4 @@
-// XP rules from 2026-11-10: only five activities give XP, at most once per day each.
+// XP rules from 2026-11-10: only five activities give XP, at most once per day each (and sports from 2026-11-17).
 //
 // Everything else (own habits, other library habits, quests, combos, programs, breathing, other
 // cardio and the skill tree) still counts in the character's stats, but gives no XP, level or rank.
@@ -16,6 +16,15 @@ export const xpActivities = [
 ];
 
 export const rulesActive = day => day >= XP_RULES_START;
+
+// Sports (everything under Sport, not running or walking) give XP from 2026-11-17: 0.5 XP per minute of the
+// day's sports sessions together, at most 30 XP per day. An hour gives the full 30. Mirrored in migration 033.
+export const SPORT_XP = {id: 'sport', name: 'Sportpass', xp: 30, perMinute: 0.5, start: '2026-11-17'};
+export function sportXP(state, day) {
+  if (day < SPORT_XP.start) return 0;
+  const seconds = (state.cardio?.sessions || []).filter(w => w.date === day && w.kind !== 'run' && w.kind !== 'walk').reduce((n, w) => n + (Number(w.seconds) || 0), 0);
+  return Math.min(SPORT_XP.xp, Math.floor(seconds / 120));
+}
 const lower = s => String(s || '').trim().toLocaleLowerCase('sv-SE');
 const matches = (e, a) => e.activityKey ? e.activityKey === 'habit:' + a.habit : lower(e.name) === lower(a.habitName);
 
@@ -36,5 +45,7 @@ export function rulesDayXP(state, day) {
     const xp = (a.id === 'strength' && workout) || (a.id === 'run' && run) ? a.xp : fromHabit(a);
     if (xp) parts[a.id] = xp;
   }
+  const sport = sportXP(state, day);
+  if (sport) parts.sport = sport;
   return {total: Object.values(parts).reduce((n, x) => n + x, 0), parts};
 }
