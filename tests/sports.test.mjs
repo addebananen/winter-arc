@@ -8,6 +8,7 @@ import * as C from '../src/cardio.js';
 import * as D from '../src/domain.js';
 import * as Q from '../src/squad-share.js';
 import * as SC from '../src/schema.js';
+import {rulesDayXP,sportXP} from '../src/xp-rules.js';
 
 test('Kondition holds running and walking, Sport holds the sports with bouldering and roped climbing indoors',()=>{
   assert.deepEqual(C.conditioning.map(a=>a.id),['run','walk']);
@@ -38,7 +39,7 @@ test('the database accepts the new sports and names them in the squad feed (032)
   const dir=new URL('../supabase/',import.meta.url);
   const files=(await readdir(dir)).filter(f=>/^0\d\d_.*\.sql$/.test(f)&&f<'028').sort();
   for(const f of files){let sql=await readFile(new URL(f,dir),'utf8');if(f.startsWith('001'))sql=sql.replace('create extension if not exists pgcrypto with schema extensions;','');await db.exec(sql);}
-  for(const f of ['028_schema_status.sql','031_squad_feed_choice.sql','032_sports.sql'])await db.exec(await readFile(new URL(f,dir),'utf8'));
+  for(const f of ['028_schema_status.sql','031_squad_feed_choice.sql','032_sports.sql','033_logged_activities.sql'])await db.exec(await readFile(new URL(f,dir),'utf8'));
   const st0=(await db.query('select public.schema_status() s')).rows[0].s;assert.ok(st0.installed.includes('032_sports'));assert.ok(SC.MIGRATIONS.includes('032_sports'));
   const id='11111111-1111-4111-8111-111111111111';await db.query('insert into auth.users(id) values($1)',[id]);
   const as=async()=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated');};
@@ -53,5 +54,25 @@ test('the database accepts the new sports and names them in the squad feed (032)
   const posts=(await db.query('select body from public.posts')).rows;
   assert.equal(posts.length,1);assert.match(posts[0].body,/^Fotboll klart · 0 km · 90.0 min · /);
   assert.deepEqual(Q.parseActivity(posts[0].body).activity,'football');
+  await t.test('033: a forgotten session is logged afterwards for today or yesterday, never earlier',async()=>{
+   const yd=C.yesterdayOf(day),old=C.yesterdayOf(yd);st.expedition.start=old;
+   await db.exec('reset role');await db.query('update public.user_states set payload=$2 where user_id=$1',[id,JSON.stringify(st)]);await as();
+   let x=structuredClone(st);C.logPast(x,'padel',yd,0,3600,day);x=await save(x);st=x;assert.equal(st.cardio.sessions.find(w=>w.kind==='padel').manual,true);
+   x=structuredClone(st);C.logPast(x,'run',day,5,1800,day);st=await save(x);
+   const early=structuredClone(st);early.cardio.sessions.push({id:'old1',kind:'tennis',date:old,startedAt:Date.now()-3600000,finishedAt:Date.now(),seconds:3600,km:0,weight:null,height:null,manual:true});await assert.rejects(save(early),/idag eller igår/);
+   assert.throws(()=>C.logPast(structuredClone(st),'tennis',old,0,3600,day),/idag eller igår/);
+   const twice=structuredClone(st);twice.cardio.sessions.push({...twice.cardio.sessions.find(w=>w.kind==='padel'),id:'dup'});await assert.rejects(save(twice),/en gång per dag/);
+   const fake=structuredClone(st);fake.cardio.sessions.push({id:'f1',kind:'tennis',date:day,startedAt:Date.now()-60000,finishedAt:Date.now(),seconds:3600,km:0,weight:null,height:null,manual:true});await assert.rejects(save(fake),/Kontrollera/);
+   const running=structuredClone(st);running.cardio.active={id:'r2',kind:'walk',date:day,startedAt:1,weight:null,height:null};running.cardio.sessions.push({id:'t2',kind:'tennis',date:day,startedAt:Date.now()-3600000,finishedAt:Date.now(),seconds:3600,km:0,weight:null,height:null,manual:true});await assert.rejects(save(running),/Avsluta|Bara/);
+  });
+  await t.test('033: sports give 0.5 XP per minute, at most 30 a day, the same on the server as in the app',async()=>{
+   const yd=C.yesterdayOf(day);
+   const server=async(p,d)=>{await db.exec('reset role');const xp=(await db.query('select public.arc_rules_day_xp($1::jsonb,$2) xp',[JSON.stringify(p),d])).rows[0].xp;await as();return xp;};
+   assert.equal(sportXP(st,yd),yd<'2026-11-17'?0:30);assert.equal(await server(st,yd),rulesDayXP(st,yd).total);
+   assert.equal(rulesDayXP(st,day).parts.sport,30);assert.equal(rulesDayXP(st,day).parts.run,35);assert.equal(await server(st,day),rulesDayXP(st,day).total);
+   const half={...st,cardio:{active:null,sessions:[{id:'h',kind:'tennis',date:'2026-11-20',seconds:1830,km:0}]}};assert.equal(sportXP(half,'2026-11-20'),15);assert.equal(await server(half,'2026-11-20'),15);
+   const long={...st,cardio:{active:null,sessions:[{id:'l',kind:'padel',date:'2026-11-20',seconds:7200,km:0},{id:'w',kind:'walk',date:'2026-11-20',seconds:7200,km:3}]}};assert.equal(sportXP(long,'2026-11-20'),30);assert.equal(await server(long,'2026-11-20'),30);
+   const before={...st,cardio:{active:null,sessions:[{id:'b',kind:'padel',date:'2026-11-16',seconds:3600,km:0}]}};assert.equal(sportXP(before,'2026-11-16'),0);assert.equal(await server(before,'2026-11-16'),0);
+  });
  }finally{await db.close();}
 });

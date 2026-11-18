@@ -32,7 +32,8 @@ export const MIGRATIONS=[
  '029_push_notifications',
  '030_push_schedule',
  '031_squad_feed_choice',
- '032_sports'
+ '032_sports',
+ '033_logged_activities'
 ];
 
 // Migrations the database is missing, or null while unknown (offline, or 028 not installed yet).
