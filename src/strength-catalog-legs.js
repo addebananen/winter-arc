@@ -8,7 +8,7 @@ const lift = (id, name, pose, thresholds, cue) => ({id, name, muscle: 'Ben', equ
 // Extra search words, so 'vader', 'säte' or English gym names find the right exercise.
 const aliases = {
   'lying-leg-curl': 'Lying Leg Curl hamstrings baksida lår', 'hip-thrust-machine': 'Hip Thrust Machine glutes säte rumpa',
-  'hip-abduction': 'Hip Abduction Machine glutes säte utsida lår', 'hip-adduction': 'Hip Adduction Machine adduktorer insida lår',
+  'hip-abduction': 'Abductor Abduktor Hip Abduction Machine höftabduktion glutes säte utsida lår', 'hip-adduction': 'Adductor Adduktor Hip Adduction Machine höftadduktion adduktorer insida lår',
   'glute-kickback': 'Glute Kickback Machine säte rumpa', 'standing-calf': 'Standing Calf Raise vader calves',
   'seated-calf': 'Seated Calf Raise vader calves', 'leg-press-calf': 'Leg Press Calf Raise vader calves',
   'single-leg-press': 'Single-Leg Leg Press', 'belt-squat': 'Belt Squat knäböj', 'smith-split-squat': 'Smith Machine Split Squat utfall',
@@ -17,8 +17,8 @@ const aliases = {
 export const legMachineLifts = [
   lift('lying-leg-curl', 'Liggande lårcurl', 'lying-leg-curl', [.15, .3, .45, .6, .75, .9], 'Ligg på mage med knäna precis nedanför dynan och rullen strax ovanför hälarna. Böj benen lugnt och håll höften mot dynan.'),
   lift('hip-thrust-machine', 'Höftlyft i maskin', 'hip-thrust', [.5, .8, 1.1, 1.5, 1.9, 2.3], 'Övre delen av ryggen mot dynan och fötterna i golvet. Pressa upp höften med sätet tills kroppen är rak från axlar till knän, utan att svanka.'),
-  lift('hip-abduction', 'Höftabduktion i maskin', 'hip-abduction', [.2, .35, .5, .65, .8, 1], 'Sitt med ryggen mot stödet och dynorna mot utsidan av knäna. För isär benen med sätet och låt dem gå tillbaka långsamt.'),
-  lift('hip-adduction', 'Höftadduktion i maskin', 'hip-adduction', [.2, .35, .5, .65, .8, 1], 'Sitt med ryggen mot stödet och dynorna mot insidan av knäna. Börja i ett bekvämt omfång och pressa ihop benen kontrollerat.'),
+  lift('hip-abduction', 'Abduktor (höft utåt)', 'hip-abduction', [.2, .35, .5, .65, .8, 1], 'Sitt med ryggen mot stödet och dynorna mot utsidan av knäna. För isär benen med sätet och låt dem gå tillbaka långsamt.'),
+  lift('hip-adduction', 'Adduktor (höft inåt)', 'hip-adduction', [.2, .35, .5, .65, .8, 1], 'Sitt med ryggen mot stödet och dynorna mot insidan av knäna. Börja i ett bekvämt omfång och pressa ihop benen kontrollerat.'),
   lift('glute-kickback', 'Glute kickback i maskin', 'glute-kickback', [.1, .2, .3, .45, .6, .75], 'Stöd överkroppen mot dynan och spänn bålen. Pressa benet bakåt med sätet utan att svanka. Logga vikten för ett ben.'),
   lift('standing-calf', 'Stående vadpress i maskin', 'calf-raise', [.4, .7, 1, 1.3, 1.6, 2], 'Främre delen av foten på kanten och raka knän. Sänk hälarna långsamt, pausa och res dig så högt du kan.'),
   lift('seated-calf', 'Sittande vadpress', 'seated-calf', [.2, .4, .6, .8, 1, 1.2], 'Sitt med dynan över låren och främre delen av foten på plattan. Sänk hälarna långsamt och pressa upp så högt du kan.'),

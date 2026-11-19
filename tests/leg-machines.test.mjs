@@ -12,7 +12,7 @@ import {translate} from '../src/i18n.js';
 test('the leg machine exercises are in the catalog, animated and identical in migration 034', () => {
   const legs = S.lifts.filter(e => e.muscle === 'Ben' && e.equipment === 'Maskin');
   assert.ok(legs.length >= 18, String(legs.length));
-  for (const name of ['Lying leg curl', 'Machine hip thrust', 'Machine hip abduction', 'Machine hip adduction', 'Standing machine calf raise', 'Seated calf raise', 'Belt squat'])
+  for (const name of ['Lying leg curl', 'Machine hip thrust', 'Abductor (hips out)', 'Adductor (hips in)', 'Standing machine calf raise', 'Seated calf raise', 'Belt squat'])
     assert.ok(legMachineLifts.some(e => translate(e.name, 'en') === name), name);
   for (const e of legMachineLifts) {
     assert.equal(S.liftById[e.id], e);
