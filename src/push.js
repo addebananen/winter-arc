@@ -104,7 +104,7 @@ export function createPush({getState, getMode, cloud, button, toast, I, standalo
         if (!pref.workout) clearWorkout();
       }
     } catch (e) {
-      toast(/set_push_reactions/i.test(e?.message || '') ? 'Notiser för reaktioner aktiveras med databasuppdatering 034.' : /push_subscription|schema cache|does not exist/i.test(e?.message || '') ? 'Notiser aktiveras med databasuppdatering 029.' : e?.message || 'Notiserna kunde inte ändras.');
+      toast(/set_push_reactions/i.test(e?.message || '') ? 'Notiser för reaktioner aktiveras med databasuppdatering 036.' : /push_subscription|schema cache|does not exist/i.test(e?.message || '') ? 'Notiser aktiveras med databasuppdatering 029.' : e?.message || 'Notiserna kunde inte ändras.');
     } finally { busy = false; await refresh(); }
   }
 

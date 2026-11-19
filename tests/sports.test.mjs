@@ -10,8 +10,8 @@ import * as Q from '../src/squad-share.js';
 import * as SC from '../src/schema.js';
 import {rulesDayXP,sportXP} from '../src/xp-rules.js';
 
-test('Kondition holds running and walking, Sport holds the sports with bouldering and roped climbing indoors',()=>{
-  assert.deepEqual(C.conditioning.map(a=>a.id),['run','walk']);
+test('Cardio holds running, walking and gym machines, Sport holds the sports with bouldering and roped climbing indoors',()=>{
+  assert.deepEqual(C.conditioning.filter(a=>!a.machine).map(a=>a.id),['run','walk']);for(const id of ['treadmill','crosstrainer','exercise-bike','rowing-machine','stair-climber','ski-erg','air-bike'])assert.ok(C.conditioning.find(a=>a.id===id)?.machine,id);assert.ok(!C.sports.some(a=>a.machine));
   const names=C.sports.map(a=>a.name);
   for(const n of ['Volleyboll','Bouldering','Repklättring','Fotboll','Basket','Innebandy','Padel','Tennis'])assert.ok(names.includes(n),n);
   assert.match(C.sports.find(a=>a.id==='boulder').place,/inomhus/);
@@ -39,7 +39,7 @@ test('the database accepts the new sports and names them in the squad feed (032)
   const dir=new URL('../supabase/',import.meta.url);
   const files=(await readdir(dir)).filter(f=>/^0\d\d_.*\.sql$/.test(f)&&f<'028').sort();
   for(const f of files){let sql=await readFile(new URL(f,dir),'utf8');if(f.startsWith('001'))sql=sql.replace('create extension if not exists pgcrypto with schema extensions;','');await db.exec(sql);}
-  for(const f of ['028_schema_status.sql','031_squad_feed_choice.sql','032_sports.sql','033_logged_activities.sql'])await db.exec(await readFile(new URL(f,dir),'utf8'));
+  for(const f of ['028_schema_status.sql','031_squad_feed_choice.sql','032_sports.sql','033_logged_activities.sql','035_cardio_machines.sql'])await db.exec(await readFile(new URL(f,dir),'utf8'));
   const st0=(await db.query('select public.schema_status() s')).rows[0].s;assert.ok(st0.installed.includes('032_sports'));assert.ok(SC.MIGRATIONS.includes('032_sports'));
   const id='11111111-1111-4111-8111-111111111111';await db.query('insert into auth.users(id) values($1)',[id]);
   const as=async()=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated');};
@@ -64,6 +64,11 @@ test('the database accepts the new sports and names them in the squad feed (032)
    const twice=structuredClone(st);twice.cardio.sessions.push({...twice.cardio.sessions.find(w=>w.kind==='padel'),id:'dup'});await assert.rejects(save(twice),/en gång per dag/);
    const fake=structuredClone(st);fake.cardio.sessions.push({id:'f1',kind:'tennis',date:day,startedAt:Date.now()-60000,finishedAt:Date.now(),seconds:3600,km:0,weight:null,height:null,manual:true});await assert.rejects(save(fake),/Kontrollera/);
    const running=structuredClone(st);running.cardio.active={id:'r2',kind:'walk',date:day,startedAt:1,weight:null,height:null};running.cardio.sessions.push({id:'t2',kind:'tennis',date:day,startedAt:Date.now()-3600000,finishedAt:Date.now(),seconds:3600,km:0,weight:null,height:null,manual:true});await assert.rejects(save(running),/Avsluta|Bara/);
+  });
+  await t.test('035: a treadmill session is saved, named in the squad feed and gives XP like sports',async()=>{
+   const x=structuredClone(st);const w=C.logPast(x,'treadmill',day,5,1800,day);Q.setCardioShared(x,w.id,true);st=await save(x);
+   const body=(await db.query("select body from public.posts where body like 'Löpband%'")).rows[0]?.body;assert.match(body,/^Löpband klart · 5 km · 30.0 min · /);assert.equal(Q.parseActivity(body).activity,'treadmill');
+   const bad=structuredClone(st);bad.cardio.sessions.push({id:'z',kind:'hoverboard',date:day,startedAt:Date.now()-1800000,finishedAt:Date.now(),seconds:1800,km:0,weight:null,height:null,manual:true});await assert.rejects(save(bad),/Kontrollera/);
   });
   await t.test('033: sports give 0.5 XP per minute, at most 30 a day, the same on the server as in the app',async()=>{
    const yd=C.yesterdayOf(day);

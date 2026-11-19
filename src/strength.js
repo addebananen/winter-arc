@@ -2,6 +2,7 @@ import {workoutCatalog,workoutById,workoutVariant} from './skills.js';
 import {additions,technique} from './strength-catalog.js';
 import {trainingXP} from './fitness.js';
 import {coreLifts} from './strength-catalog-core.js';
+import {legMachineLifts} from './strength-catalog-legs.js';
 // Rank boundaries are Beyond Self game milestones, not population percentiles.
 export const ranks=['Ograderad','Brons','Silver','Guld','Platina','Diamant','Aurora'];
 const lift=(id,name,muscle,equipment,family,pose,thresholds,cue,unit='kg')=>({id,name,muscle,equipment,family,pose,thresholds,cue,unit});
@@ -33,6 +34,7 @@ const cueOverrides={goblet:'Håll en hantel framför bröstet. Sätt dig ned kon
 for(const e of lifts){if(cueOverrides[e.id])e.cue=cueOverrides[e.id];if(e.id==='leg-curl')e.aliases='Seated Hamstring Curl Seated Leg Curl';if(e.id==='incline-bench')e.aliases='Incline Press';if(e.id==='pulldown')e.aliases='Pulldowns';if(e.id==='pushdown'){e.aliases='Triceps Pressdown (Bar)';e.pose='pushdown';}}
 lifts.push(...workoutCatalog);
 lifts.push(...coreLifts);
+lifts.push(...legMachineLifts);
 export const liftById=Object.fromEntries(lifts.map(e=>[e.id,e]));
 export const routines=[{name:'Push',ids:['bench','press','lateral','pushdown']},{name:'Pull',ids:['pulldown','row','curl','hang']},{name:'Legs',ids:['squat','deadlift','leg-curl','plank']},{name:'Calisthenics',ids:['pullup','dip','pushup','handstand']}];
 export function ensureStrength(s){s.strength??={sessions:[],active:null};s.strength.sessions??=[];return s.strength;}
