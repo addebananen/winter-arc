@@ -17,9 +17,9 @@ export const xpActivities = [
 
 export const rulesActive = day => day >= XP_RULES_START;
 
-// Sports (everything under Sport, not running or walking) give XP from 2026-11-17: 0.5 XP per minute of the
+// Sports and cardio machines (every activity except running and walking) give XP from 2026-11-17: 0.5 XP per minute of the
 // day's sports sessions together, at most 30 XP per day. An hour gives the full 30. Mirrored in migration 033.
-export const SPORT_XP = {id: 'sport', name: 'Sportpass', xp: 30, perMinute: 0.5, start: '2026-11-17'};
+export const SPORT_XP = {id: 'sport', name: 'Sport och cardiomaskiner', xp: 30, perMinute: 0.5, start: '2026-11-17'};
 export function sportXP(state, day) {
   if (day < SPORT_XP.start) return 0;
   const seconds = (state.cardio?.sessions || []).filter(w => w.date === day && w.kind !== 'run' && w.kind !== 'walk').reduce((n, w) => n + (Number(w.seconds) || 0), 0);

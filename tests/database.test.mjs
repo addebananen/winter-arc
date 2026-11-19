@@ -146,7 +146,7 @@ test('Postgres migration, state conflicts, squad isolation and photo policies',a
  });
 
  await t.test('expanded catalog is identical in database and client and accepts new machine sets',async()=>{
-  await db.exec('reset role');for(const lift of S.lifts){const meta=(await db.query('select public.arc_strength_meta($1) m',[lift.id])).rows[0].m;assert.deepEqual(meta,lift);}
+  await db.exec('reset role');await db.exec(await readFile(new URL('../supabase/034_leg_machines.sql',import.meta.url),'utf8'));for(const lift of S.lifts){const meta=(await db.query('select public.arc_strength_meta($1) m',[lift.id])).rows[0].m;assert.deepEqual(meta,lift);}
  });
  await t.test('cardio RPC owns clock, rejects time farming and shares only the finished activity',async()=>{
   const id='66666666-6666-4666-8666-666666666666';await db.exec('reset role');await db.query('insert into auth.users(id) values($1)',[id]);await as(id);let st=D.normalizeState(D.blankState(),'2026-11-07T12:00:00Z'),rev=0;
