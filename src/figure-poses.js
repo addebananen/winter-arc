@@ -313,3 +313,46 @@ for (const [name, style] of Object.entries(palms)) for (const key of poses[name]
   a.limbs.an = {...a.limbs.an, palm: 'flat'};
   b.limbs.an = {...b.limbs.an, palm: 'open'};
 }
+
+// ---------- leg machines (migration 034) ----------
+Object.assign(poses, {
+  'calf-raise': {keys: [
+    {p: [96, 75], t: 2, limbs: {ln: {w: [98, G], foot: 90}, lf: {w: [93, G], foot: 90}, an: {r: [6, 40]}, af: {r: [4, 40]}}},
+    {p: [96, 66], t: 2, limbs: {ln: {w: [98, 137], foot: 45}, lf: {w: [93, 137], foot: 45}, an: {r: [6, 40]}, af: {r: [4, 40]}}},
+  ], dur: 1.4, scene: [['post', 132, 30], ['line', 112, 108, 132, 108, 5]]},
+  'seated-calf': {keys: [
+    {p: [76, 108], t: 2, limbs: {ln: {w: [112, G], foot: 90}, lf: {w: [108, G], foot: 90}, an: {w: [104, 100]}, af: {w: [102, 100]}}},
+    {p: [76, 102], t: 2, limbs: {ln: {w: [112, 138], foot: 45}, lf: {w: [108, 138], foot: 45}, an: {w: [104, 94]}, af: {w: [102, 94]}}},
+  ], dur: 1.4, pad: true, scene: [['line', 56, 114, 88, 114, 8], ['post', 72, 118], ['line', 98, 98, 124, 98, 7]]},
+  'hip-thrust': {keys: [
+    {p: [92, 134], t: -40, limbs: {ln: {w: [128, G], foot: 90}, lf: {w: [124, G], foot: 90}, an: {w: [96, 126]}, af: {w: [94, 126]}}},
+    {p: [94, 104], t: -84, limbs: {ln: {w: [128, G], foot: 90}, lf: {w: [124, G], foot: 90}, an: {w: [96, 100]}, af: {w: [94, 100]}}},
+  ], scene: [['bench', 20, 64, 108]]},
+  'lying-leg-curl': {keys: [
+    {p: [84, 112], t: 90, limbs: {ln: {w: [13, 114], foot: 10}, lf: {w: [15, 116], foot: 10}, an: {w: [146, 120]}, af: {w: [144, 120]}}},
+    {p: [84, 112], t: 90, limbs: {ln: {w: [48, 78], foot: 220, pref: [0, 1]}, lf: {w: [50, 80], foot: 220, pref: [0, 1]}, an: {w: [146, 120]}, af: {w: [144, 120]}}},
+  ], pad: true, scene: [['line', 10, 122, 150, 122, 8], ['post', 40, 126], ['post', 120, 126]]},
+  'hip-abduction': {view: 'front', keys: [
+    {p: [96, 112], t: 0, limbs: {ln: {w: [102, 146], foot: 0, pref: [.3, -1]}, an: {w: [112, 118]}}},
+    {p: [96, 112], t: 0, limbs: {ln: {w: [122, 146], foot: 0, pref: [1, -.6]}, an: {w: [112, 118]}}},
+  ], scene: [['line', 70, 118, 122, 118, 8], ['post', 96, 122]]},
+  'glute-kickback': {keys: [
+    {p: [96, 92], t: 62, limbs: {ln: {w: [102, 140], foot: 90, pref: [1, 0]}, lf: {w: [100, G], foot: 90}, an: {w: [136, 98]}, af: {w: [134, 98]}}},
+    {p: [96, 92], t: 62, limbs: {ln: {w: [54, 76], foot: 170, pref: [0, 1]}, lf: {w: [100, G], foot: 90}, an: {w: [136, 98]}, af: {w: [134, 98]}}},
+  ], scene: [['line', 128, 102, 150, 102, 7], ['post', 146, 102]]},
+});
+poses['hip-adduction'] = {...poses['hip-abduction'], keys: [...poses['hip-abduction'].keys].reverse()};
+poses['leg-press-calf'] = {...poses['leg-press'], keys: [
+  {...poses['leg-press'].keys[1], limbs: {...poses['leg-press'].keys[1].limbs, ln: {w: [130, 60], foot: 150, pref: [-1, -1]}, lf: {w: [126, 62], foot: 150, pref: [-1, -1]}}},
+  {...poses['leg-press'].keys[1], limbs: {...poses['leg-press'].keys[1].limbs, ln: {w: [130, 60], foot: 110, pref: [-1, -1]}, lf: {w: [126, 62], foot: 110, pref: [-1, -1]}}},
+]};
+
+// ---------- cardio machines (migration 035) ----------
+poses.bike = {keys: [
+  {p: [82, 84], t: 26, limbs: {ln: {w: [104, 138], foot: 100}, lf: {w: [96, 112], foot: 80}, an: {w: [128, 80]}, af: {w: [126, 80]}}},
+  {p: [82, 84], t: 26, limbs: {ln: {w: [96, 112], foot: 80}, lf: {w: [104, 138], foot: 100}, an: {w: [128, 80]}, af: {w: [126, 80]}}},
+], dur: 0.9, scene: [['line', 70, 90, 94, 90, 7], ['post', 82, 94], ['line', 124, 76, 132, 76, 5], ['post', 130, 80], ['line', 70, 148, 140, 148, 6]]};
+poses.rower = {keys: [
+  {p: [66, 132], t: 30, limbs: {ln: {w: [118, 134], foot: 120, pref: [0, -1]}, lf: {w: [116, 135], foot: 120, pref: [0, -1]}, an: {w: [122, 112]}, af: {w: [120, 112]}}},
+  {p: [44, 132], t: -22, limbs: {ln: {w: [118, 134], foot: 120, pref: [0, -1]}, lf: {w: [116, 135], foot: 120, pref: [0, -1]}, an: {w: [74, 104]}, af: {w: [72, 104]}}},
+], dur: 2.2, scene: [['line', 20, 140, 150, 140, 6], ['line', 122, 120, 134, 140, 5], ['pulley', 140, 116]]};

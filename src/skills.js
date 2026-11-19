@@ -337,7 +337,7 @@ export const mobilityUpdateIds=new Set(['sk-pike-4','sk-straddle-3','sk-straddle
 // Beginner straddle steps. Added in 022 and replaced with research-based exercises in 024; saving them needs 024.
 export const straddleBaseIds=new Set([1,2,3,4,5].map(n=>'sk-straddle-base-'+n));
 // Database version (training_expansion_ready) a skill workout needs before it can be saved.
-export const workoutVersion=id=>straddleBaseIds.has(id)?24:mobilityUpdateIds.has(id)?20:0;
+export const workoutVersion=id=>legMachineIds.has(id)?34:straddleBaseIds.has(id)?24:mobilityUpdateIds.has(id)?20:0;
 const legacyStrength={pushup:'push-up',pullup:'pull-up',dip:'dip',plank:'plank',hang:'dead-hang',diamond:'diamond-push-up'};
 const legacyTraining={'incline-push':'incline-push-up','push-up':'push-up','close-push':'diamond-push-up','pike-push':'pike-push-up','squat':'squat','split-squat':'split-squat','plank':'plank','side-plank':'side-plank','dead-hang':'dead-hang','pull-up':'pull-up','hollow-hold':'hollow'};
 const cache=new WeakMap();
@@ -355,4 +355,5 @@ export function workoutLevels(state){
 }
 export function canTrain(state,tree,n){const t=treeById[tree],l=t?.levels[n-1];return !!l&&n<=levelOf(state,tree)+1&&!missing(state,t.requires).length&&!missing(state,l.requires).length;}
 
-export const workoutVariant=id=>workoutById[id]?.skillAnim||legacyStrength[id]||null;
+export const workoutVariant=id=>workoutById[id]?.skillAnim||legacyStrength[id]||null;import {legMachineIds} from './strength-catalog-legs.js';
+
