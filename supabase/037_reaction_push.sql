@@ -98,6 +98,6 @@ revoke all on function public.arc_push_kick(),public.arc_queue_reaction(uuid,uui
 grant execute on function public.push_outbox_due() to service_role;
 
 do $$ begin if to_regclass('public.schema_migrations') is not null then
- insert into public.schema_migrations(name) values('036_reaction_push') on conflict do nothing; end if; end $$;
+ insert into public.schema_migrations(name) values('037_reaction_push') on conflict do nothing; end if; end $$;
 notify pgrst,'reload schema';
 commit;

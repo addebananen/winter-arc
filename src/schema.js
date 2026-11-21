@@ -36,7 +36,8 @@ export const MIGRATIONS=[
  '033_logged_activities',
  '034_leg_machines',
  '035_cardio_machines',
- '036_reaction_push'
+ '036_repair_squad_feed',
+ '037_reaction_push'
 ];
 
 // Migrations the database is missing, or null while unknown (offline, or 028 not installed yet).

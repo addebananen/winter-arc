@@ -1,6 +1,6 @@
 // Sends the streak reminders that are due right now (see supabase/029_push_notifications.sql).
 // Called every hour by pg_cron (supabase/030_push_schedule.sql) with the header x-cron-secret.
-// Also sends reaction notifications (supabase/036_reaction_push.sql): a new reaction wakes this function
+// Also sends reaction notifications (supabase/037_reaction_push.sql): a new reaction wakes this function
 // right away with the body {"only":"outbox"}, which skips the streak reminders.
 // Secrets come from Supabase Vault through push_config(), never from the repository.
 import webpush from 'npm:web-push@3.6.7';
@@ -20,7 +20,7 @@ Deno.serve(async req => {
   const body = await req.json().catch(() => ({}));
   const reminders = body?.only === 'outbox' ? {data: [], error: null} : await db.rpc('push_due');
   if (reminders.error) return json({error: reminders.error.message}, 500);
-  // Before 036 the outbox does not exist yet; reminders still go out.
+  // Before 037 the outbox does not exist yet; reminders still go out.
   const outbox = await db.rpc('push_outbox_due');
   const due = {data: [...(reminders.data || []), ...(outbox.error ? [] : outbox.data || [])]};
   let sent = 0, gone = 0, failed = 0;
