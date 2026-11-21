@@ -8,6 +8,7 @@ import * as C from '../src/cardio.js';
 import * as D from '../src/domain.js';
 import * as Q from '../src/squad-share.js';
 import * as SC from '../src/schema.js';
+import * as S from '../src/strength.js';
 import {rulesDayXP,sportXP} from '../src/xp-rules.js';
 
 test('Cardio holds running, walking and gym machines, Sport holds the sports with bouldering and roped climbing indoors',()=>{
@@ -68,6 +69,7 @@ test('the database accepts the new sports and names them in the squad feed (032)
   await t.test('035: a treadmill session is saved, named in the squad feed and gives XP like sports',async()=>{
    const x=structuredClone(st);const w=C.logPast(x,'treadmill',day,5,1800,day);Q.setCardioShared(x,w.id,true);st=await save(x);
    const body=(await db.query("select body from public.posts where body like 'Löpband%'")).rows[0]?.body;assert.match(body,/^Löpband klart · 5 km · 30.0 min · /);assert.equal(Q.parseActivity(body).activity,'treadmill');
+   const during=structuredClone(st);S.startWorkout(during,day,['squat']);let saved=await save(during);const logged=structuredClone(saved);C.logPast(logged,'rowing-machine',day,0,1200,day);saved=await save(logged);assert.ok(saved.strength.active,'the strength workout keeps running');assert.ok(saved.cardio.sessions.some(w=>w.kind==='rowing-machine'));st=saved;
    const bad=structuredClone(st);bad.cardio.sessions.push({id:'z',kind:'hoverboard',date:day,startedAt:Date.now()-1800000,finishedAt:Date.now(),seconds:1800,km:0,weight:null,height:null,manual:true});await assert.rejects(save(bad),/Kontrollera/);
   });
   await t.test('033: sports give 0.5 XP per minute, at most 30 a day, the same on the server as in the app',async()=>{
