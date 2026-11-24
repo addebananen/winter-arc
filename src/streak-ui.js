@@ -25,5 +25,6 @@ export function streakCard({I, button}, state, today, {cta = true} = {}) {
     <div class="streak-text"><span class="eyebrow">TRÄNINGSSTREAK</span><h3>${st.title}</h3><p>${st.text}</p>
       <div class="streak-week" aria-hidden="true">${dots}</div></div>
     ${cta && !st.trainedToday ? button(I('dumbbell') + ' Starta pass', 'quick:workout', 'btn streak-cta') : ''}
+    ${button('Se översikt', 'mem:streak', 'btn ghost streak-more')}
   </section>`;
 }
