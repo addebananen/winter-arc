@@ -3070,4 +3070,7 @@ export default {
  "Lägg till i passet": "Add to the workout",
  "tid": "time",
  "valfri KM": "optional KM",
+ "Nivåer du kan träna nu ligger först.": "Levels you can train now come first.",
+ "Låsta nivåer öppnas när du klarat nivån före.": "Locked levels open when you have completed the level before.",
+ "Låst: klara föregående nivå först": "Locked: complete the previous level first",
 };
