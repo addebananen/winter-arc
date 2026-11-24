@@ -27,6 +27,7 @@ import {applyTheme,setTheme,themes,theme} from './themes.js';
 import * as cloud from './cloud.js';
 import {icon as I,landscape,character} from './graphics.js';
 import {keepFocus,isTyping} from './keep-focus.js';
+import {keepDockInPlace} from './dock-viewport.js';
 
 const $=s=>document.querySelector(s), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>new Intl.NumberFormat('sv-SE').format(n), dayLabel=(d,opts={day:'numeric',month:'short'})=>new Intl.DateTimeFormat('sv-SE',opts).format(new Date(d+'T12:00:00'));
@@ -36,6 +37,7 @@ const langSwitch=()=>`<div class="lang-switch" role="group" aria-label="Språk">
 // True when opened from the home screen (installed PWA); then install prompts are hidden.
 const installed=()=>window.matchMedia?.('(display-mode: standalone)').matches===true||navigator.standalone===true;
 startTranslating();
+keepDockInPlace();
 applyTheme();
 const themePicker=()=>`<div class="theme-picker" role="group" aria-label="Färgtema">${Object.entries(themes).map(([k,t])=>`<button class="theme-choice ${theme===k?'active':''}" data-action="theme:${k}" aria-pressed="${theme===k}"><span class="theme-swatch" aria-hidden="true">${t.swatch.map(c=>`<i style="background:${c}"></i>`).join('')}</span><strong>${t.name}</strong><small>${t.hint}</small></button>`).join('')}</div>`;
 const developmentModes=config.developmentModes===true;
